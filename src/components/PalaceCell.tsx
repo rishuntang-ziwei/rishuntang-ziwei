@@ -5,6 +5,7 @@ import {
   type ChartMode,
   getDisplayMutagen,
   getScopePalaceName,
+  type YearlyDisplayOptions,
   type YearlyMonthlyEntry,
 } from '../lib/horoscope'
 import { StarDisplay } from './StarDisplay'
@@ -21,6 +22,7 @@ interface PalaceCellProps {
   yearlyMonthlyEntry?: YearlyMonthlyEntry | null
   yearlyDailyDays?: number[]
   activeYearlyMonth?: number
+  yearlyDisplayOptions?: YearlyDisplayOptions
   isActiveMonthlyPalace?: boolean
   onYearlyMonthSelect?: (month: number) => void
 }
@@ -58,7 +60,8 @@ export function PalaceCell({
   onDecadalSelect,
   yearlyMonthlyEntry = null,
   yearlyDailyDays,
-  activeYearlyMonth = 1,
+  activeYearlyMonth,
+  yearlyDisplayOptions,
   isActiveMonthlyPalace = false,
   onYearlyMonthSelect,
 }: PalaceCellProps) {
@@ -70,7 +73,13 @@ export function PalaceCell({
   const mapStar = (s: { name: string; mutagen?: string; brightness?: string }) =>
     mapStarForDisplay(s, chartMode, horoscope)
 
-  const displayPalaceName = getScopePalaceName(horoscope, palace.index, chartMode, palace.name)
+  const displayPalaceName = getScopePalaceName(
+    horoscope,
+    palace.index,
+    chartMode,
+    palace.name,
+    yearlyDisplayOptions,
+  )
 
   const showDecadalAge = chartMode === 'origin' || chartMode === 'decadal'
   const decadalRange =
@@ -127,7 +136,7 @@ export function PalaceCell({
               <span className="monthly-badges">
                 <button
                   type="button"
-                  className={`monthly-badge ${yearlyMonthlyEntry.month === activeYearlyMonth ? 'active' : ''}`}
+                  className={`monthly-badge ${activeYearlyMonth !== undefined && yearlyMonthlyEntry.month === activeYearlyMonth ? 'active' : ''}`}
                   title={`${yearlyMonthlyEntry.month}月 ${yearlyMonthlyEntry.gz}`}
                   onClick={(e) => {
                     e.stopPropagation()

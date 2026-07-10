@@ -14,6 +14,11 @@ import { getMutagenForStar } from './constants'
 export type ChartMode = 'origin' | 'decadal' | 'yearly'
 export type HoroscopeScope = 'decadal' | 'yearly' | 'monthly' | 'daily'
 
+export interface YearlyDisplayOptions {
+  /** 使用者已點選流月時，宮名改以流月命宮為準 */
+  useMonthlyPalaceNames?: boolean
+}
+
 /** 流年盤以流年為宮名與三方四正基準（流年所在宮為命宮） */
 export function chartModeToScope(mode: ChartMode): HoroscopeScope | 'origin' {
   if (mode === 'decadal') return 'decadal'
@@ -21,10 +26,13 @@ export function chartModeToScope(mode: ChartMode): HoroscopeScope | 'origin' {
   return 'origin'
 }
 
-/** 宮名與三方四正：流年盤以流月為基準（流月命宮所在宮為命宮） */
-export function palaceNameScopeForMode(mode: ChartMode): HoroscopeScope | 'origin' {
+/** 宮名與三方四正：預設流年；點選流月後改以流月命宮為命宮 */
+export function palaceNameScopeForMode(
+  mode: ChartMode,
+  options?: YearlyDisplayOptions,
+): HoroscopeScope | 'origin' {
   if (mode === 'decadal') return 'decadal'
-  if (mode === 'yearly') return 'monthly'
+  if (mode === 'yearly') return options?.useMonthlyPalaceNames ? 'monthly' : 'yearly'
   return 'origin'
 }
 
@@ -41,9 +49,10 @@ export function getScopePalaceName(
   palaceIndex: number,
   mode: ChartMode,
   natalName: PalaceName | string,
+  options?: YearlyDisplayOptions,
 ): string {
   if (mode === 'origin' || !horoscope) return natalName
-  const scope = palaceNameScopeForMode(mode)
+  const scope = palaceNameScopeForMode(mode, options)
   if (scope === 'origin') return natalName
   return horoscope[scope].palaceNames[palaceIndex] ?? natalName
 }
@@ -111,8 +120,9 @@ export function getSanFangBranchRoles(
   horoscope: IFunctionalHoroscope,
   focusPalaceName: PalaceName | string,
   mode: ChartMode,
+  options?: YearlyDisplayOptions,
 ): SanFangBranchRoles {
-  const scope = palaceNameScopeForMode(mode)
+  const scope = palaceNameScopeForMode(mode, options)
   const surrounded =
     scope === 'origin'
       ? horoscope.astrolabe.surroundedPalaces(focusPalaceName as PalaceName)

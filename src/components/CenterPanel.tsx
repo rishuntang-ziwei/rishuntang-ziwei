@@ -26,6 +26,7 @@ interface CenterPanelProps {
   onYearlyYearChange: (year: number) => void
   showYearlyDaily: boolean
   onShowYearlyDailyChange: (value: boolean) => void
+  yearlyMonthSelected?: boolean
   onBackToNatal?: () => void
 }
 
@@ -43,6 +44,7 @@ export function CenterPanel({
   onYearlyYearChange,
   showYearlyDaily,
   onShowYearlyDailyChange,
+  yearlyMonthSelected = false,
   onBackToNatal,
 }: CenterPanelProps) {
   const birth = centerBirthText(astrolabe, calendar, birthDate)
@@ -121,7 +123,7 @@ export function CenterPanel({
                 )}
               </div>
             )}
-            {chartMode === 'yearly' && (
+            {chartMode === 'yearly' && yearlyMonthSelected && (
               <div className="center-scope center-flow-scope">
                 <div>
                   流月：{horoscope.monthly.heavenlyStem}
