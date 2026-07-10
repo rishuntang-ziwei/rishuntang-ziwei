@@ -495,8 +495,24 @@ body {
   margin-bottom: 1rem;
 }
 
+@page {
+  size: A4 landscape;
+  margin: 0;
+}
+
 @media print {
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  html,
   body {
+    width: 297mm;
+    height: 210mm;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden;
     background: #fff;
   }
 
@@ -506,12 +522,39 @@ body {
     display: none !important;
   }
 
-  .app-main {
-    display: block;
+  .app,
+  .app-main,
+  .chart-section {
+    display: block !important;
+    width: 297mm !important;
+    height: 210mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
-  .chart-section {
+  .chart-wrapper {
+    box-sizing: border-box;
+    width: 297mm !important;
+    height: 210mm !important;
+    max-width: none !important;
+    aspect-ratio: auto !important;
+    margin: 0 !important;
+    page-break-inside: avoid;
+  }
+
+  .chart-grid {
     width: 100%;
+    height: 100%;
+  }
+
+  .palace-cell.dimmed {
+    opacity: 1 !important;
+  }
+
+  .center-top-right,
+  .back-to-natal,
+  .center-toggle-btn {
+    display: none !important;
   }
 }
 
