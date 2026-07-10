@@ -735,7 +735,8 @@ body {
   font-family: inherit;
   font-size: 0.78rem;
   line-height: 1;
-  color: #333;
+  color: var(--line-soul);
+  font-weight: 700;
   vertical-align: middle;
   pointer-events: none;
 }
