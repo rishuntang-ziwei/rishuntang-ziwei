@@ -198,7 +198,7 @@
 
     @page {
       size: A4 landscape;
-      margin: 0;
+      margin: 10mm;
     }
 
     @media print {
@@ -209,11 +209,11 @@
 
       html,
       body {
-        width: 297mm;
-        height: 210mm;
         margin: 0 !important;
         padding: 0 !important;
-        overflow: hidden;
+        width: auto;
+        height: auto;
+        overflow: visible;
         background: #fff;
       }
 
@@ -227,27 +227,31 @@
       #appRoot,
       .layout {
         display: block !important;
-        width: 297mm !important;
-        height: 210mm !important;
+        width: 100% !important;
+        height: auto !important;
         max-width: none !important;
         margin: 0 !important;
         padding: 0 !important;
       }
 
       .chart-panel {
-        width: 297mm !important;
-        height: 210mm !important;
-        margin: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+        margin: 0 auto !important;
         padding: 0 !important;
+        display: flex !important;
+        justify-content: center;
+        align-items: center;
       }
 
       .chart-outer {
         box-sizing: border-box;
-        width: 297mm !important;
-        height: 210mm !important;
-        max-width: none !important;
-        aspect-ratio: auto !important;
-        margin: 0 !important;
+        width: 100% !important;
+        max-width: calc(297mm - 20mm) !important;
+        height: auto !important;
+        max-height: calc(210mm - 20mm) !important;
+        aspect-ratio: 6 / 4;
+        margin: 0 auto !important;
         border: 2px double #222;
         page-break-inside: avoid;
       }
