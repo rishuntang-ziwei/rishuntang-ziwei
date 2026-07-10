@@ -77,8 +77,6 @@ export function AstrolabeChart({
     return getSanFangBranchRoles(horoscope, focusPalace, chartMode)
   }, [horoscope, focusPalace, chartMode])
 
-  const dimRelatedFooter = chartMode === 'origin' || chartMode === 'yearly'
-
   const yearlyMonthlyByPalace = useMemo(() => {
     if (chartMode !== 'yearly') return null
     const year = parseHoroscopeDateParts(horoscopeDate).year
@@ -206,7 +204,7 @@ export function AstrolabeChart({
                   palace={palace}
                   highlight={sanFangRoles.all.has(cell)}
                   focused={sanFangRoles.target === cell}
-                  footerDimmed={dimRelatedFooter && sanFangRoles.related.has(cell)}
+                  footerDimmed={sanFangRoles.related.has(cell)}
                   chartMode={chartMode}
                   horoscope={horoscope}
                   activeDecadalIndex={activeDecadalIndex}

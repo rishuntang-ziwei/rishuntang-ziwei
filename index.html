@@ -1193,7 +1193,7 @@
       const hl = sanFangRoles.all.has(p.earthlyBranch) ? 'highlight' : ''
       const focus = sanFangRoles.target === p.earthlyBranch ? 'focus-palace' : ''
       const activeMonthly = chartMode === 'yearly' && h.monthly.index === p.index ? 'active-monthly-palace' : ''
-      const footerDim = (chartMode === 'origin' || chartMode === 'yearly') && sanFangRoles.related.has(p.earthlyBranch)
+      const footerDim = sanFangRoles.related.has(p.earthlyBranch)
 
       return `<div class="palace ${hl} ${focus} ${activeMonthly}" data-scope-palace="${scopeName}" title="點選查看三方四正">
         ${shen}
