@@ -164,25 +164,25 @@ export function listSavedChartsByUser(userId: number, search?: string): SavedCha
            WHERE user_id = ? AND subject_name LIKE ?
            ORDER BY updated_at DESC, id DESC`,
         )
-        .all(userId, `%${q}%`) as SavedChartRow[])
+        .all(userId, `%${q}%`) as unknown as SavedChartRow[])
     : (db
         .prepare(
           `SELECT * FROM saved_charts
            WHERE user_id = ?
            ORDER BY updated_at DESC, id DESC`,
         )
-        .all(userId) as SavedChartRow[])
+        .all(userId) as unknown as SavedChartRow[])
   return rows.map(toSavedChartSummary)
 }
 
 export function findSavedChartById(id: number): SavedChartRow | undefined {
-  return db.prepare('SELECT * FROM saved_charts WHERE id = ?').get(id) as SavedChartRow | undefined
+  return db.prepare('SELECT * FROM saved_charts WHERE id = ?').get(id) as unknown as SavedChartRow | undefined
 }
 
 export function findSavedChartForUser(id: number, userId: number): SavedChartRow | undefined {
   return db
     .prepare('SELECT * FROM saved_charts WHERE id = ? AND user_id = ?')
-    .get(id, userId) as SavedChartRow | undefined
+    .get(id, userId) as unknown as SavedChartRow | undefined
 }
 
 export function createSavedChart(userId: number, payload: SavedChartPayload): SavedChartDetail {
