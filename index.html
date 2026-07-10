@@ -24,14 +24,16 @@
       color: var(--ink);
       min-height: 100vh;
       padding: 12px;
+      overflow-x: hidden;
     }
 
     .layout {
       display: flex;
       gap: 16px;
-      max-width: 1680px;
+      max-width: 100%;
       margin: 0 auto;
       align-items: flex-start;
+      box-sizing: border-box;
     }
 
     .form-panel {
@@ -103,7 +105,7 @@
       border: 3px double var(--border);
       background: var(--paper);
       width: 100%;
-      max-width: 1280px;
+      max-width: min(1280px, calc(100vw - 360px), calc((100vh - 80px) * 1.5));
       aspect-ratio: 6 / 4;
       margin: 0 auto;
     }
