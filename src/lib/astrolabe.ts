@@ -2,6 +2,8 @@ import { astro } from 'iztro'
 import type FunctionalAstrolabe from 'iztro/lib/astro/FunctionalAstrolabe'
 import type { IFunctionalPalace } from 'iztro/lib/astro/FunctionalPalace'
 import type { PalaceName } from 'iztro/lib/i18n/types/Palace'
+import { lunar2solar, solar2lunar } from 'lunar-lite/lib/convertor'
+import { LunarMonth } from 'lunar-typescript'
 
 export type CalendarType = 'solar' | 'lunar'
 export type Gender = '男' | '女'
@@ -101,6 +103,64 @@ export function horoscopeDateForYearMonthDay(
 export function parseHoroscopeDateParts(date: string): { year: number; month: number; day: number } {
   const [year, month, day] = date.split('-').map(Number)
   return { year, month, day }
+}
+
+export interface LunarDateParts {
+  year: number
+  month: number
+  day: number
+  isLeap: boolean
+}
+
+export function parseLunarFromSolarDate(solarDate: string): LunarDateParts {
+  const lunar = solar2lunar(solarDate)
+  return {
+    year: lunar.lunarYear,
+    month: lunar.lunarMonth,
+    day: lunar.lunarDay,
+    isLeap: lunar.isLeap,
+  }
+}
+
+export function solarDateFromLunar(
+  lunarYear: number,
+  lunarMonth: number,
+  lunarDay: number,
+  isLeapMonth = false,
+): string {
+  const solar = lunar2solar(`${lunarYear}-${lunarMonth}-${lunarDay}`, isLeapMonth)
+  return `${solar.solarYear}-${String(solar.solarMonth).padStart(2, '0')}-${String(solar.solarDay).padStart(2, '0')}`
+}
+
+export function daysInLunarMonth(lunarYear: number, lunarMonth: number, isLeapMonth = false): number {
+  const ym = isLeapMonth ? -lunarMonth : lunarMonth
+  return LunarMonth.fromYm(lunarYear, ym)?.getDayCount() ?? 30
+}
+
+export function horoscopeDateFromLunarYearMonthDay(
+  lunarYear: number,
+  lunarMonth: number,
+  lunarDay: number,
+  isLeapMonth = false,
+): string {
+  const maxDay = daysInLunarMonth(lunarYear, lunarMonth, isLeapMonth)
+  const safeDay = Math.min(Math.max(lunarDay, 1), maxDay)
+  return solarDateFromLunar(lunarYear, lunarMonth, safeDay, isLeapMonth)
+}
+
+/** 流年預設論命日：同農曆年則取今日農曆月日，否則正月初一 */
+export function horoscopeDateForLunarYear(lunarYear: number, referenceDate = new Date()): string {
+  const refSolar = todaySolarDate(referenceDate)
+  const refLunar = parseLunarFromSolarDate(refSolar)
+  if (refLunar.year === lunarYear) {
+    return horoscopeDateFromLunarYearMonthDay(
+      refLunar.year,
+      refLunar.month,
+      refLunar.day,
+      refLunar.isLeap,
+    )
+  }
+  return horoscopeDateFromLunarYearMonthDay(lunarYear, 1, 1, false)
 }
 
 export function currentGregorianMonth(referenceDate = new Date()): number {

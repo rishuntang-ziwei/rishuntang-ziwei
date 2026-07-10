@@ -14,22 +14,6 @@ export const BRANCH_GRID: Record<string, { row: number; col: number }> = {
   亥: { row: 3, col: 3 },
 }
 
-/** 流年流月指示：申起順時針 1–12 月（真元宗盤式） */
-export const CHART_MONTH_BRANCH_RING = [
-  '申',
-  '酉',
-  '戌',
-  '亥',
-  '子',
-  '丑',
-  '寅',
-  '卯',
-  '辰',
-  '巳',
-  '午',
-  '未',
-] as const
-
 /** 流日順排地支 */
 export const BRANCH_ROTATION_ORDER = [
   '子',
@@ -44,6 +28,21 @@ export const BRANCH_ROTATION_ORDER = [
   '酉',
   '戌',
   '亥',
+] as const
+
+export const LUNAR_MONTH_LABELS = [
+  '正月',
+  '二月',
+  '三月',
+  '四月',
+  '五月',
+  '六月',
+  '七月',
+  '八月',
+  '九月',
+  '十月',
+  '冬月',
+  '腊月',
 ] as const
 
 export function palaceIndexByBranch(

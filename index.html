@@ -775,9 +775,11 @@
     </div>
   </div>
 
+  <script src="./vendor/lunar.min.js"></script>
   <script src="./vendor/iztro.min.js"></script>
   <script>
     const { astro } = iztro
+    const { Lunar, LunarMonth, Solar } = LunarLib
 
     const BRANCH_POS = {
       巳: [0,0], 午: [0,1], 未: [0,2], 申: [0,3],
@@ -842,51 +844,86 @@
       return `${year}-${String(m).padStart(2, '0')}-${String(day).padStart(2, '0')}`
     }
 
-    function horoscopeDateForYearMonthDay(year, month, day) {
-      const daysInMonth = new Date(year, month, 0).getDate()
-      const safeDay = Math.min(Math.max(day, 1), daysInMonth)
-      return `${year}-${String(month).padStart(2, '0')}-${String(safeDay).padStart(2, '0')}`
-    }
-
-    function parseHoroscopeDateParts(date) {
-      const [year, month, day] = date.split('-').map(Number)
-      return { year, month, day }
-    }
-
-    const CHART_MONTH_BRANCH_RING = ['申','酉','戌','亥','子','丑','寅','卯','辰','巳','午','未']
+    const LUNAR_MONTH_LABELS = ['正月','二月','三月','四月','五月','六月','七月','八月','九月','十月','冬月','腊月']
     const BRANCH_ROTATION_ORDER = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥']
+
+    function parseLunarFromSolarDate(solarDate) {
+      const [y, m, d] = solarDate.split('-').map(Number)
+      const l = Solar.fromYmd(y, m, d).getLunar()
+      const month = Math.abs(l.getMonth())
+      return { year: l.getYear(), month, day: l.getDay(), isLeap: l.getMonth() < 0 }
+    }
+
+    function solarDateFromLunar(lunarYear, lunarMonth, lunarDay, isLeapMonth = false) {
+      const ym = isLeapMonth ? -lunarMonth : lunarMonth
+      const s = Lunar.fromYmd(lunarYear, ym, lunarDay).getSolar()
+      const [y, m, d] = s.toYmd().split('-').map(Number)
+      return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+    }
+
+    function daysInLunarMonth(lunarYear, lunarMonth, isLeapMonth = false) {
+      const ym = isLeapMonth ? -lunarMonth : lunarMonth
+      return LunarMonth.fromYm(lunarYear, ym).getDayCount()
+    }
+
+    function horoscopeDateFromLunarYearMonthDay(lunarYear, lunarMonth, lunarDay, isLeapMonth = false) {
+      const maxDay = daysInLunarMonth(lunarYear, lunarMonth, isLeapMonth)
+      const safeDay = Math.min(Math.max(lunarDay, 1), maxDay)
+      return solarDateFromLunar(lunarYear, lunarMonth, safeDay, isLeapMonth)
+    }
+
+    function horoscopeDateForLunarYear(lunarYear, referenceDate = new Date()) {
+      const refSolar = todaySolarDate(referenceDate)
+      const refLunar = parseLunarFromSolarDate(refSolar)
+      if (refLunar.year === lunarYear) {
+        return horoscopeDateFromLunarYearMonthDay(refLunar.year, refLunar.month, refLunar.day, refLunar.isLeap)
+      }
+      return horoscopeDateFromLunarYearMonthDay(lunarYear, 1, 1, false)
+    }
 
     function palaceIndexByBranch(a, branch) {
       return a.palaces.find(p => p.earthlyBranch === branch)?.index
     }
 
-    function getYearlyMonthBranch(month) {
-      return CHART_MONTH_BRANCH_RING[month - 1] || ''
+    function lunarMonthAnchorSolar(lunarYear, lunarMonth, isLeapMonth = false) {
+      try {
+        return solarDateFromLunar(lunarYear, lunarMonth, 15, isLeapMonth)
+      } catch {
+        return null
+      }
     }
 
-    function computeYearlyMonthlyByPalace(a, year, timeIndex) {
+    function getYearlyMonthBranch(a, lunarYear, lunarMonth, timeIndex, isLeapMonth = false) {
+      const solar = lunarMonthAnchorSolar(lunarYear, lunarMonth, isLeapMonth)
+      if (!solar) return ''
+      const h = a.horoscope(solar, timeIndex)
+      return a.palace(h.monthly.index)?.earthlyBranch || ''
+    }
+
+    function computeYearlyMonthlyByPalace(a, lunarYear, timeIndex) {
       const map = new Map()
       for (let month = 1; month <= 12; month++) {
-        const branch = CHART_MONTH_BRANCH_RING[month - 1]
-        const idx = palaceIndexByBranch(a, branch)
-        if (idx === undefined) continue
-        const date = `${year}-${String(month).padStart(2, '0')}-15`
-        const h = a.horoscope(date, timeIndex)
+        const solar = lunarMonthAnchorSolar(lunarYear, month)
+        if (!solar) continue
+        const h = a.horoscope(solar, timeIndex)
+        const idx = h.monthly.index
         const gz = `${h.monthly.heavenlyStem}${h.monthly.earthlyBranch}`
         map.set(idx, [{ month, gz }])
       }
       return map
     }
 
-    function computeMonthlyDailyByPalace(a, year, month, timeIndex) {
+    function computeMonthlyDailyByPalace(a, lunarYear, lunarMonth, timeIndex, isLeapMonth = false) {
       const map = new Map()
-      const h = a.horoscope(`${year}-${String(month).padStart(2, '0')}-15`, timeIndex)
+      const anchorSolar = lunarMonthAnchorSolar(lunarYear, lunarMonth, isLeapMonth)
+      if (!anchorSolar) return map
+      const h = a.horoscope(anchorSolar, timeIndex)
       const startBranch = a.palace(h.monthly.index)?.earthlyBranch
       if (!startBranch) return map
       const startIdx = BRANCH_ROTATION_ORDER.indexOf(startBranch)
       if (startIdx < 0) return map
-      const daysInMonth = new Date(year, month, 0).getDate()
-      for (let day = 1; day <= daysInMonth; day++) {
+      const dayCount = daysInLunarMonth(lunarYear, lunarMonth, isLeapMonth)
+      for (let day = 1; day <= dayCount; day++) {
         const branch = BRANCH_ROTATION_ORDER[(startIdx + day - 1) % 12]
         const idx = palaceIndexByBranch(a, branch)
         if (idx === undefined) continue
@@ -1169,7 +1206,7 @@
       return stars.map(s => renderStarCol(s, role, chartMode)).join('')
     }
 
-    function renderPalace(p, h, a, sanFangRoles, chartMode, yearlyMonthlyByPalace, activeMonth, yearlyDailyByPalace, activeDay) {
+    function renderPalace(p, h, a, sanFangRoles, chartMode, yearlyMonthlyByPalace, activeMonth, yearlyDailyByPalace, activeDay, lunarYear, timeIndex, isLeapMonth) {
       const { leftPurple, leftGreen, rightGreen } = splitMinors([
         ...p.minorStars.map(s => ({ name: s.name, mutagen: s.mutagen })),
         ...p.adjectiveStars.map(s => ({ name: s.name, mutagen: s.mutagen })),
@@ -1209,7 +1246,7 @@
       const shen = p.isBodyPalace && chartMode === 'origin' ? '<div class="shen">身</div>' : ''
       const hl = sanFangRoles.all.has(p.earthlyBranch) ? 'highlight' : ''
       const focus = sanFangRoles.target === p.earthlyBranch ? 'focus-palace' : ''
-      const activeMonthly = chartMode === 'yearly' && p.earthlyBranch === getYearlyMonthBranch(activeMonth) ? 'active-monthly-palace' : ''
+      const activeMonthly = chartMode === 'yearly' && p.earthlyBranch === getYearlyMonthBranch(a, lunarYear, activeMonth, timeIndex, isLeapMonth) ? 'active-monthly-palace' : ''
       const footerDim = sanFangRoles.related.has(p.earthlyBranch)
 
       return `<div class="palace ${hl} ${focus} ${activeMonthly}" data-scope-palace="${scopeName}" title="點選查看三方四正">
@@ -1242,22 +1279,22 @@
       const scopeGz = scopeItem ? `${scopeItem.heavenlyStem}${scopeItem.earthlyBranch}` : ''
       const decadalPalace = chartMode === 'decadal' ? a.palace(h.decadal.index) : null
       const decadalRange = decadalPalace?.decadal?.range
-      const { month: activeMonth, day: activeDay } = parseHoroscopeDateParts(horoscopeDate)
-      const daysInMonth = new Date(yearlyYear, activeMonth, 0).getDate()
-      const monthOptions = Array.from({ length: 12 }, (_, i) => {
+      const lunar = parseLunarFromSolarDate(horoscopeDate)
+      const daysInMonth = daysInLunarMonth(lunar.year, lunar.month, lunar.isLeap)
+      const monthOptions = LUNAR_MONTH_LABELS.map((label, i) => {
         const m = i + 1
-        return `<option value="${m}" ${m === activeMonth ? 'selected' : ''}>${m} 月</option>`
+        return `<option value="${m}" ${m === lunar.month ? 'selected' : ''}>${label}</option>`
       }).join('')
       const dayOptions = Array.from({ length: daysInMonth }, (_, i) => {
         const d = i + 1
-        return `<option value="${d}" ${d === activeDay ? 'selected' : ''}>${d} 日</option>`
+        return `<option value="${d}" ${d === lunar.day ? 'selected' : ''}>${d} 日</option>`
       }).join('')
 
       const scopeLine = scopeGz
         ? `<div class="center-scope">${MODE_TAG[chartMode]}：${scopeGz}${chartMode === 'decadal' && decadalRange ? `<span class="scope-range"> (${decadalRange[0]}–${decadalRange[1]} 歲)</span>` : ''}</div>`
         : ''
       const flowScopeLine = chartMode === 'yearly'
-        ? `<div class="center-scope center-flow-scope"><div>流月：${h.monthly.heavenlyStem}${h.monthly.earthlyBranch}（${activeMonth} 月）</div><div>流日：${h.daily.heavenlyStem}${h.daily.earthlyBranch}（${activeDay} 日）</div></div>`
+        ? `<div class="center-scope center-flow-scope"><div>流月：${h.monthly.heavenlyStem}${h.monthly.earthlyBranch}（${LUNAR_MONTH_LABELS[lunar.month - 1]}）</div><div>流日：${h.daily.heavenlyStem}${h.daily.earthlyBranch}（${lunar.day} 日）</div></div>`
         : ''
 
       const backToNatal = initialChartType === 'natal' && chartMode === 'decadal'
@@ -1266,8 +1303,8 @@
 
       const yearControl = initialChartType === 'yearly'
         ? `<label class="center-control-row"><span>流年年份</span><input type="number" id="centerYearlyYear" min="1900" max="2100" value="${yearlyYear}"/></label>
-           <label class="center-control-row"><span>流月</span><select id="centerYearlyMonth">${monthOptions}</select></label>
-           <label class="center-control-row"><span>流日</span><select id="centerYearlyDay">${dayOptions}</select></label>`
+           <label class="center-control-row"><span>農曆流月</span><select id="centerYearlyMonth">${monthOptions}</select></label>
+           <label class="center-control-row"><span>農曆流日</span><select id="centerYearlyDay">${dayOptions}</select></label>`
         : `<label class="center-control-row"><span>論命日期</span><input type="date" id="horoscopeDate" value="${horoscopeDate}"/></label>`
 
       return `<div class="center">
@@ -1355,12 +1392,14 @@
       const h = a.horoscope(horoscopeDate, input.timeIndex)
       const map = new Map(a.palaces.map(p => [p.earthlyBranch, p]))
       const sanFangRoles = getSanFangBranchRoles(a, h, selectedPalaceName, chartMode)
-      const { month: activeMonth, year, day: activeDay } = parseHoroscopeDateParts(horoscopeDate)
+      const lunar = parseLunarFromSolarDate(horoscopeDate)
+      const activeMonth = lunar.month
+      const activeDay = lunar.day
       const yearlyMonthlyByPalace = chartMode === 'yearly'
-        ? computeYearlyMonthlyByPalace(a, year, input.timeIndex)
+        ? computeYearlyMonthlyByPalace(a, yearlyYear, input.timeIndex)
         : null
       const yearlyDailyByPalace = chartMode === 'yearly'
-        ? computeMonthlyDailyByPalace(a, year, activeMonth, input.timeIndex)
+        ? computeMonthlyDailyByPalace(a, lunar.year, activeMonth, input.timeIndex, lunar.isLeap)
         : null
       let centerDone = false
       let html = '<div class="chart-outer"><div class="chart-grid">'
@@ -1377,7 +1416,7 @@
           }
           const p = map.get(cell)
           if (!p) return
-          html += `<div class="cell" style="grid-row:${ri+1};grid-column:${ci+1}">${renderPalace(p, h, a, sanFangRoles, chartMode, yearlyMonthlyByPalace, activeMonth, yearlyDailyByPalace, activeDay)}</div>`
+          html += `<div class="cell" style="grid-row:${ri+1};grid-column:${ci+1}">${renderPalace(p, h, a, sanFangRoles, chartMode, yearlyMonthlyByPalace, activeMonth, yearlyDailyByPalace, activeDay, lunar.year, input.timeIndex, lunar.isLeap)}</div>`
         })
       })
 
@@ -1413,8 +1452,8 @@
         btn.addEventListener('click', e => {
           e.stopPropagation()
           const day = Number(btn.dataset.day)
-          const { year, month } = parseHoroscopeDateParts(horoscopeDate)
-          horoscopeDate = horoscopeDateForYearMonthDay(year, month, day)
+          const lunar = parseLunarFromSolarDate(horoscopeDate)
+          horoscopeDate = horoscopeDateFromLunarYearMonthDay(lunar.year, lunar.month, day, lunar.isLeap)
           selectedPalaceName = '命宮'
           renderChart(name, a, input)
         })
@@ -1424,9 +1463,8 @@
         btn.addEventListener('click', e => {
           e.stopPropagation()
           const month = Number(btn.dataset.month)
-          const { day } = parseHoroscopeDateParts(horoscopeDate)
-          const year = parseHoroscopeDateParts(horoscopeDate).year
-          horoscopeDate = horoscopeDateForYearMonthDay(year, month, day)
+          const lunar = parseLunarFromSolarDate(horoscopeDate)
+          horoscopeDate = horoscopeDateFromLunarYearMonthDay(lunar.year, month, lunar.day, false)
           selectedPalaceName = '命宮'
           renderChart(name, a, input)
         })
@@ -1434,16 +1472,16 @@
 
       document.getElementById('centerYearlyMonth')?.addEventListener('change', e => {
         const month = Number(e.target.value)
-        const { year, day } = parseHoroscopeDateParts(horoscopeDate)
-        horoscopeDate = horoscopeDateForYearMonthDay(year, month, day)
+        const lunar = parseLunarFromSolarDate(horoscopeDate)
+        horoscopeDate = horoscopeDateFromLunarYearMonthDay(lunar.year, month, lunar.day, false)
         selectedPalaceName = '命宮'
         renderChart(name, a, input)
       })
 
       document.getElementById('centerYearlyDay')?.addEventListener('change', e => {
         const day = Number(e.target.value)
-        const { year, month } = parseHoroscopeDateParts(horoscopeDate)
-        horoscopeDate = horoscopeDateForYearMonthDay(year, month, day)
+        const lunar = parseLunarFromSolarDate(horoscopeDate)
+        horoscopeDate = horoscopeDateFromLunarYearMonthDay(lunar.year, lunar.month, day, lunar.isLeap)
         selectedPalaceName = '命宮'
         renderChart(name, a, input)
       })
@@ -1451,7 +1489,7 @@
       document.getElementById('horoscopeDate')?.addEventListener('change', e => {
         horoscopeDate = e.target.value || todaySolarDate()
         if (initialChartType === 'yearly') {
-          yearlyYear = new Date(horoscopeDate + 'T12:00:00').getFullYear()
+          yearlyYear = parseLunarFromSolarDate(horoscopeDate).year
         }
         selectedPalaceName = '命宮'
         renderChart(name, a, input)
@@ -1461,8 +1499,8 @@
         const year = Number(e.target.value)
         if (year >= 1900 && year <= 2100) {
           yearlyYear = year
-          const { month, day } = parseHoroscopeDateParts(horoscopeDate)
-          horoscopeDate = horoscopeDateForYearMonthDay(year, month, day)
+          const lunar = parseLunarFromSolarDate(horoscopeDate)
+          horoscopeDate = horoscopeDateFromLunarYearMonthDay(year, lunar.month, lunar.day, lunar.isLeap)
           selectedPalaceName = '命宮'
           renderChart(name, a, input)
         }
@@ -1478,7 +1516,7 @@
         selectedPalaceName = '命宮'
         if (initialChartType === 'yearly') {
           yearlyYear = input.yearlyYear
-          horoscopeDate = horoscopeDateForYear(yearlyYear)
+          horoscopeDate = horoscopeDateForLunarYear(yearlyYear)
         } else {
           horoscopeDate = todaySolarDate()
         }

@@ -5,8 +5,11 @@ import type { Mutagen } from 'iztro/lib/i18n/types/mutagen'
 import type { PalaceName } from 'iztro/lib/i18n/types/Palace'
 import type { StarName } from 'iztro/lib/i18n/types/Star'
 import {
+  daysInLunarMonth,
+  solarDateFromLunar,
+} from './astrolabe'
+import {
   BRANCH_ROTATION_ORDER,
-  CHART_MONTH_BRANCH_RING,
   getMutagenForStar,
   palaceIndexByBranch,
 } from './constants'
@@ -151,35 +154,49 @@ export interface YearlyMonthlyEntry {
   gz: string
 }
 
-/** 計算指定西元年内，各宮位所對應的流月（1–12 月） */
+function lunarMonthAnchorSolar(
+  lunarYear: number,
+  lunarMonth: number,
+  isLeapMonth = false,
+): string | null {
+  try {
+    return solarDateFromLunar(lunarYear, lunarMonth, 15, isLeapMonth)
+  } catch {
+    return null
+  }
+}
+
+/** 計算指定農曆年內，各宮位所對應的流月（正月–腊月） */
 export function computeYearlyMonthlyByPalace(
   astrolabe: FunctionalAstrolabe,
-  year: number,
+  lunarYear: number,
   timeIndex: number,
 ): Map<number, YearlyMonthlyEntry[]> {
   const map = new Map<number, YearlyMonthlyEntry[]>()
   for (let month = 1; month <= 12; month++) {
-    const branch = CHART_MONTH_BRANCH_RING[month - 1]
-    const idx = palaceIndexByBranch(astrolabe, branch)
-    if (idx === undefined) continue
-    const date = `${year}-${String(month).padStart(2, '0')}-15`
-    const h = astrolabe.horoscope(date, timeIndex)
+    const solar = lunarMonthAnchorSolar(lunarYear, month)
+    if (!solar) continue
+    const h = astrolabe.horoscope(solar, timeIndex)
+    const idx = h.monthly.index
     const gz = `${h.monthly.heavenlyStem}${h.monthly.earthlyBranch}`
     map.set(idx, [{ month, gz }])
   }
   return map
 }
 
-/** 計算指定年月內，各宮位所對應的流日（1–31 日） */
+/** 計算指定農曆月內，各宮位所對應的流日（初一–三十） */
 export function computeMonthlyDailyByPalace(
   astrolabe: FunctionalAstrolabe,
-  year: number,
-  month: number,
+  lunarYear: number,
+  lunarMonth: number,
   timeIndex: number,
+  isLeapMonth = false,
 ): Map<number, number[]> {
   const map = new Map<number, number[]>()
-  const anchorDate = `${year}-${String(month).padStart(2, '0')}-15`
-  const h = astrolabe.horoscope(anchorDate, timeIndex)
+  const anchorSolar = lunarMonthAnchorSolar(lunarYear, lunarMonth, isLeapMonth)
+  if (!anchorSolar) return map
+
+  const h = astrolabe.horoscope(anchorSolar, timeIndex)
   const startBranch = astrolabe.palace(h.monthly.index)?.earthlyBranch
   if (!startBranch) return map
 
@@ -188,8 +205,8 @@ export function computeMonthlyDailyByPalace(
   )
   if (startIdx < 0) return map
 
-  const daysInMonth = new Date(year, month, 0).getDate()
-  for (let day = 1; day <= daysInMonth; day++) {
+  const dayCount = daysInLunarMonth(lunarYear, lunarMonth, isLeapMonth)
+  for (let day = 1; day <= dayCount; day++) {
     const branch = BRANCH_ROTATION_ORDER[(startIdx + day - 1) % 12]
     const idx = palaceIndexByBranch(astrolabe, branch)
     if (idx === undefined) continue
@@ -200,6 +217,15 @@ export function computeMonthlyDailyByPalace(
   return map
 }
 
-export function getYearlyMonthBranch(month: number): string {
-  return CHART_MONTH_BRANCH_RING[month - 1] ?? ''
+export function getYearlyMonthBranch(
+  astrolabe: FunctionalAstrolabe,
+  lunarYear: number,
+  lunarMonth: number,
+  timeIndex: number,
+  isLeapMonth = false,
+): string {
+  const solar = lunarMonthAnchorSolar(lunarYear, lunarMonth, isLeapMonth)
+  if (!solar) return ''
+  const h = astrolabe.horoscope(solar, timeIndex)
+  return astrolabe.palace(h.monthly.index)?.earthlyBranch ?? ''
 }
