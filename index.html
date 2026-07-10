@@ -527,6 +527,11 @@
       font-weight: 700;
     }
 
+    .palace.active-daily-palace {
+      outline: 1px dashed var(--line-red);
+      outline-offset: -2px;
+    }
+
     .palace.active-monthly-palace {
       outline: 1px dashed #8b4513;
       outline-offset: -2px;
@@ -893,58 +898,6 @@
       }
     }
 
-    function listLunarMonthsInYear(lunarYear) {
-      const leapMonth = LunarYear.fromYear(lunarYear).getLeapMonth()
-      const result = []
-      for (let month = 1; month <= 12; month++) {
-        result.push({ month, isLeap: false })
-        if (leapMonth === month) {
-          result.push({ month, isLeap: true })
-        }
-      }
-      return result
-    }
-
-    function getYearlyMonthBranch(a, lunarYear, lunarMonth, timeIndex, isLeapMonth = false) {
-      const solar = lunarMonthAnchorSolar(lunarYear, lunarMonth, isLeapMonth)
-      if (!solar) return ''
-      const h = a.horoscope(solar, timeIndex)
-      return a.palace(h.monthly.index)?.earthlyBranch || ''
-    }
-
-    function computeYearlyMonthlyByPalace(a, lunarYear, timeIndex) {
-      const map = new Map()
-      for (const spec of listLunarMonthsInYear(lunarYear)) {
-        const solar = lunarMonthAnchorSolar(lunarYear, spec.month, spec.isLeap)
-        if (!solar) continue
-        const h = a.horoscope(solar, timeIndex)
-        const idx = h.monthly.index
-        const gz = `${h.monthly.heavenlyStem}${h.monthly.earthlyBranch}`
-        if (!map.has(idx)) map.set(idx, [])
-        map.get(idx).push({ month: spec.month, gz, isLeap: spec.isLeap })
-      }
-      return map
-    }
-
-    function computeMonthlyDailyByPalace(a, lunarYear, lunarMonth, timeIndex, isLeapMonth = false) {
-      const map = new Map()
-      const anchorSolar = lunarMonthAnchorSolar(lunarYear, lunarMonth, isLeapMonth)
-      if (!anchorSolar) return map
-      const h = a.horoscope(anchorSolar, timeIndex)
-      const startBranch = a.palace(h.monthly.index)?.earthlyBranch
-      if (!startBranch) return map
-      const startIdx = BRANCH_ROTATION_ORDER.indexOf(startBranch)
-      if (startIdx < 0) return map
-      const dayCount = daysInLunarMonth(lunarYear, lunarMonth, isLeapMonth)
-      for (let day = 1; day <= dayCount; day++) {
-        const branch = BRANCH_ROTATION_ORDER[(startIdx + day - 1) % 12]
-        const idx = palaceIndexByBranch(a, branch)
-        if (idx === undefined) continue
-        if (!map.has(idx)) map.set(idx, [])
-        map.get(idx).push(day)
-      }
-      return map
-    }
 
     function horoscopeDateForNominalAge(solarBirthDate, nominalAge) {
       const [birthYear] = solarBirthDate.split('-').map(Number)
@@ -985,12 +938,12 @@
 
     function horoscopeScopeForMode(mode) {
       if (mode === 'decadal') return 'decadal'
-      if (mode === 'yearly') return 'monthly'
+      if (mode === 'yearly') return 'yearly'
       return 'origin'
     }
 
     function getMutagenStem(h, a, mode) {
-      if (mode === 'yearly') return h.monthly.heavenlyStem
+      if (mode === 'yearly') return h.yearly.heavenlyStem
       if (mode === 'decadal') return h.decadal.heavenlyStem
       return getNatalYearStem(a)
     }
@@ -1009,12 +962,8 @@
     function getFlowStars(h, palaceIndex, mode) {
       if (mode === 'origin' || mode === 'decadal' || !h) return []
       if (mode === 'yearly') {
-        const monthly = h.monthly.stars?.[palaceIndex] || []
         const yearly = h.yearly.stars?.[palaceIndex] || []
-        const names = new Set()
-        monthly.forEach(s => names.add(s.name))
-        yearly.forEach(s => names.add(s.name))
-        return [...names]
+        return yearly.map(s => s.name)
       }
       const decadal = h.decadal.stars?.[palaceIndex] || []
       const yearly = h.yearly.stars?.[palaceIndex] || []
@@ -1236,7 +1185,7 @@
       return stars.map(s => renderStarCol(s, role, chartMode)).join('')
     }
 
-    function renderPalace(p, h, a, sanFangRoles, chartMode, yearlyMonthlyByPalace, activeMonth, yearlyDailyByPalace, activeDay, lunarYear, timeIndex, isLeapMonth) {
+    function renderPalace(p, h, a, sanFangRoles, chartMode) {
       const { leftPurple, leftGreen, rightGreen } = splitMinors([
         ...p.minorStars.map(s => ({ name: s.name, mutagen: s.mutagen })),
         ...p.adjectiveStars.map(s => ({ name: s.name, mutagen: s.mutagen })),
@@ -1255,36 +1204,19 @@
         ? `${p.decadal.range[0]} - ${p.decadal.range[1]}`
         : ''
       const isActiveDecadal = chartMode === 'decadal' && h.decadal.index === p.index
-      const monthlyEntries = chartMode === 'yearly' ? (yearlyMonthlyByPalace?.get(p.index) || []) : []
       const daxianHtml = daxian
         ? `<button type="button" class="decadal-slot ${isActiveDecadal ? 'active' : ''}" data-palace-index="${p.index}" data-age-start="${p.decadal.range[0]}">${daxian}</button>`
         : '<span class="decadal-slot"></span>'
-      const monthlyBadges = chartMode === 'yearly' && monthlyEntries.length
-        ? `<span class="monthly-badges">${monthlyEntries.map(entry => {
-          const isActive = entry.month === activeMonth && Boolean(entry.isLeap) === Boolean(isLeapMonth)
-          const label = entry.isLeap ? `闰${entry.month}` : String(entry.month)
-          const title = entry.isLeap ? `闰${entry.month}月 ${entry.gz}` : `${entry.month}月 ${entry.gz}`
-          return `<button type="button" class="monthly-badge ${isActive ? 'active' : ''}" data-month="${entry.month}" data-is-leap="${entry.isLeap ? '1' : '0'}" title="${title}">${label}</button>`
-        }).join('')}</span>`
-        : ''
-      const dailyDays = chartMode === 'yearly' ? (yearlyDailyByPalace?.get(p.index) || []) : []
-      const dailyHtml = dailyDays.length
-        ? `<div class="daily-days">${dailyDays.map((day, i) =>
-          `${i > 0 ? ',' : ''}<button type="button" class="daily-day ${day === activeDay ? 'active' : ''}" data-day="${day}" title="${day} 日">${day}</button>`
-        ).join('')}</div>`
-        : ''
 
       const displayName = getScopePalaceName(h, p.index, chartMode, p.name)
       const scopeName = displayName
       const shen = p.isBodyPalace && chartMode === 'origin' ? '<div class="shen">身</div>' : ''
       const hl = sanFangRoles.all.has(p.earthlyBranch) ? 'highlight' : ''
       const focus = sanFangRoles.target === p.earthlyBranch ? 'focus-palace' : ''
-      const activeMonthly = chartMode === 'yearly' && p.earthlyBranch === getYearlyMonthBranch(a, lunarYear, activeMonth, timeIndex, isLeapMonth) ? 'active-monthly-palace' : ''
       const footerDim = sanFangRoles.related.has(p.earthlyBranch)
 
-      return `<div class="palace ${hl} ${focus} ${activeMonthly}" data-scope-palace="${scopeName}" title="點選查看三方四正">
+      return `<div class="palace ${hl} ${focus}" data-scope-palace="${scopeName}" title="點選查看三方四正">
         ${shen}
-        ${dailyHtml}
         <div class="palace-stars">
           <div class="stars-left">
             <div class="stars-row stars-row-1">${renderStarsVertical(leftPurpleM, 'left-purple', chartMode)}</div>
@@ -1296,7 +1228,7 @@
           <div class="palace-footer-grid">
             ${daxianHtml}
             <span class="gz-gan">${p.heavenlyStem}</span>
-            <div class="palace-label">${monthlyBadges}(${formatPalaceName(displayName)})</div>
+            <div class="palace-label">(${formatPalaceName(displayName)})</div>
             <span class="gz-zhi">${p.earthlyBranch}</span>
           </div>
         </div>
@@ -1312,22 +1244,9 @@
       const scopeGz = scopeItem ? `${scopeItem.heavenlyStem}${scopeItem.earthlyBranch}` : ''
       const decadalPalace = chartMode === 'decadal' ? a.palace(h.decadal.index) : null
       const decadalRange = decadalPalace?.decadal?.range
-      const lunar = parseLunarFromSolarDate(horoscopeDate)
-      const daysInMonth = daysInLunarMonth(lunar.year, lunar.month, lunar.isLeap)
-      const monthOptions = LUNAR_MONTH_LABELS.map((label, i) => {
-        const m = i + 1
-        return `<option value="${m}" ${m === lunar.month ? 'selected' : ''}>${label}</option>`
-      }).join('')
-      const dayOptions = Array.from({ length: daysInMonth }, (_, i) => {
-        const d = i + 1
-        return `<option value="${d}" ${d === lunar.day ? 'selected' : ''}>${d} 日</option>`
-      }).join('')
 
       const scopeLine = scopeGz
         ? `<div class="center-scope">${MODE_TAG[chartMode]}：${scopeGz}${chartMode === 'decadal' && decadalRange ? `<span class="scope-range"> (${decadalRange[0]}–${decadalRange[1]} 歲)</span>` : ''}</div>`
-        : ''
-      const flowScopeLine = chartMode === 'yearly'
-        ? `<div class="center-scope center-flow-scope"><div>流月：${h.monthly.heavenlyStem}${h.monthly.earthlyBranch}（${LUNAR_MONTH_LABELS[lunar.month - 1]}）</div><div>流日：${h.daily.heavenlyStem}${h.daily.earthlyBranch}（${lunar.day} 日）</div></div>`
         : ''
 
       const backToNatal = initialChartType === 'natal' && chartMode === 'decadal'
@@ -1335,22 +1254,18 @@
         : ''
 
       const yearControl = initialChartType === 'yearly'
-        ? `<label class="center-control-row"><span>流年年份</span><input type="number" id="centerYearlyYear" min="1900" max="2100" value="${yearlyYear}"/></label>
-           <label class="center-control-row"><span>農曆流月</span><select id="centerYearlyMonth">${monthOptions}</select></label>
-           <label class="center-control-row"><span>農曆流日</span><select id="centerYearlyDay">${dayOptions}</select></label>`
+        ? `<label class="center-control-row"><span>流年年份</span><input type="number" id="centerYearlyYear" min="1900" max="2100" value="${yearlyYear}"/></label>`
         : `<label class="center-control-row"><span>論命日期</span><input type="date" id="horoscopeDate" value="${horoscopeDate}"/></label>`
 
       return `<div class="center">
         <div class="center-top-right">
           ${yearControl}
-          <div class="center-control-meta">論命時間：${formatHoroscopeDate(horoscopeDate)}</div>
         </div>
         <div class="center-body">
           <div class="center-info">
             <div>
               ${backToNatal}
               ${scopeLine}
-              ${flowScopeLine}
               <div class="center-birth">
                 <div>${b.line1}</div>
                 <div>${b.line2}</div>
@@ -1426,16 +1341,6 @@
       const h = a.horoscope(horoscopeDate, input.timeIndex)
       const map = new Map(a.palaces.map(p => [p.earthlyBranch, p]))
       const sanFangRoles = getSanFangBranchRoles(a, h, selectedPalaceName, chartMode)
-      const lunar = parseLunarFromSolarDate(horoscopeDate)
-      const activeMonth = lunar.month
-      const activeDay = lunar.day
-      const isLeapMonth = lunar.isLeap
-      const yearlyMonthlyByPalace = chartMode === 'yearly'
-        ? computeYearlyMonthlyByPalace(a, yearlyYear, input.timeIndex)
-        : null
-      const yearlyDailyByPalace = chartMode === 'yearly'
-        ? computeMonthlyDailyByPalace(a, lunar.year, activeMonth, input.timeIndex, lunar.isLeap)
-        : null
       let centerDone = false
       let html = '<div class="chart-outer"><div class="chart-grid">'
       html += renderLines(a, h)
@@ -1451,7 +1356,7 @@
           }
           const p = map.get(cell)
           if (!p) return
-          html += `<div class="cell" style="grid-row:${ri+1};grid-column:${ci+1}">${renderPalace(p, h, a, sanFangRoles, chartMode, yearlyMonthlyByPalace, activeMonth, yearlyDailyByPalace, activeDay, lunar.year, input.timeIndex, isLeapMonth)}</div>`
+          html += `<div class="cell" style="grid-row:${ri+1};grid-column:${ci+1}">${renderPalace(p, h, a, sanFangRoles, chartMode)}</div>`
         })
       })
 
@@ -1483,63 +1388,20 @@
         renderChart(name, a, input)
       })
 
-      document.querySelectorAll('.daily-day[data-day]').forEach(btn => {
-        btn.addEventListener('click', e => {
-          e.stopPropagation()
-          const day = Number(btn.dataset.day)
-          const lunar = parseLunarFromSolarDate(horoscopeDate)
-          horoscopeDate = horoscopeDateFromLunarYearMonthDay(lunar.year, lunar.month, day, lunar.isLeap)
-          selectedPalaceName = '命宮'
-          renderChart(name, a, input)
-        })
-      })
-
-      document.querySelectorAll('.monthly-badge[data-month]').forEach(btn => {
-        btn.addEventListener('click', e => {
-          e.stopPropagation()
-          const month = Number(btn.dataset.month)
-          const isLeap = btn.dataset.isLeap === '1'
-          const lunar = parseLunarFromSolarDate(horoscopeDate)
-          horoscopeDate = horoscopeDateFromLunarYearMonthDay(lunar.year, month, lunar.day, isLeap)
-          selectedPalaceName = '命宮'
-          renderChart(name, a, input)
-        })
-      })
-
-      document.getElementById('centerYearlyMonth')?.addEventListener('change', e => {
-        const month = Number(e.target.value)
-        const lunar = parseLunarFromSolarDate(horoscopeDate)
-        horoscopeDate = horoscopeDateFromLunarYearMonthDay(lunar.year, month, lunar.day, false)
-        selectedPalaceName = '命宮'
-        renderChart(name, a, input)
-      })
-
-      document.getElementById('centerYearlyDay')?.addEventListener('change', e => {
-        const day = Number(e.target.value)
-        const lunar = parseLunarFromSolarDate(horoscopeDate)
-        horoscopeDate = horoscopeDateFromLunarYearMonthDay(lunar.year, lunar.month, day, lunar.isLeap)
-        selectedPalaceName = '命宮'
-        renderChart(name, a, input)
-      })
-
-      document.getElementById('horoscopeDate')?.addEventListener('change', e => {
-        horoscopeDate = e.target.value || todaySolarDate()
-        if (initialChartType === 'yearly') {
-          yearlyYear = parseLunarFromSolarDate(horoscopeDate).year
-        }
-        selectedPalaceName = '命宮'
-        renderChart(name, a, input)
-      })
-
       document.getElementById('centerYearlyYear')?.addEventListener('change', e => {
         const year = Number(e.target.value)
         if (year >= 1900 && year <= 2100) {
           yearlyYear = year
-          const lunar = parseLunarFromSolarDate(horoscopeDate)
-          horoscopeDate = horoscopeDateFromLunarYearMonthDay(year, lunar.month, lunar.day, lunar.isLeap)
+          horoscopeDate = horoscopeDateForYear(yearlyYear)
           selectedPalaceName = '命宮'
           renderChart(name, a, input)
         }
+      })
+
+      document.getElementById('horoscopeDate')?.addEventListener('change', e => {
+        horoscopeDate = e.target.value || todaySolarDate()
+        selectedPalaceName = '命宮'
+        renderChart(name, a, input)
       })
     }
 
@@ -1552,7 +1414,7 @@
         selectedPalaceName = '命宮'
         if (initialChartType === 'yearly') {
           yearlyYear = input.yearlyYear
-          horoscopeDate = horoscopeDateForLunarYear(yearlyYear)
+          horoscopeDate = horoscopeDateForYear(yearlyYear)
         } else {
           horoscopeDate = todaySolarDate()
         }

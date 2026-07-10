@@ -5,9 +5,7 @@ import { BirthForm } from './components/BirthForm'
 import {
   computeAstrolabe,
   currentGregorianYear,
-  horoscopeDateForLunarYear,
-  horoscopeDateFromLunarYearMonthDay,
-  parseLunarFromSolarDate,
+  horoscopeDateForYear,
   todaySolarDate,
   type BirthInput,
 } from './lib/astrolabe'
@@ -68,7 +66,7 @@ function App() {
                 setViewDecadalChart(false)
                 if (input.initialChartType === 'yearly') {
                   setYearlyYear(input.yearlyYear)
-                  setHoroscopeDate(horoscopeDateForLunarYear(input.yearlyYear))
+                  setHoroscopeDate(horoscopeDateForYear(input.yearlyYear))
                 } else {
                   setHoroscopeDate(todaySolarDate())
                 }
@@ -98,17 +96,11 @@ function App() {
                 if (!value) setHoroscopeDate(todaySolarDate())
               }}
               horoscopeDate={horoscopeDate}
-              onHoroscopeDateChange={(date) => {
-                setHoroscopeDate(date)
-                if (submitted.initialChartType === 'yearly') {
-                  setYearlyYear(parseLunarFromSolarDate(date).year)
-                }
-              }}
+              onHoroscopeDateChange={setHoroscopeDate}
               yearlyYear={yearlyYear}
               onYearlyYearChange={(year) => {
                 setYearlyYear(year)
-                const { month, day, isLeap } = parseLunarFromSolarDate(horoscopeDate)
-                setHoroscopeDate(horoscopeDateFromLunarYearMonthDay(year, month, day, isLeap))
+                setHoroscopeDate(horoscopeDateForYear(year))
               }}
             />
           ) : (

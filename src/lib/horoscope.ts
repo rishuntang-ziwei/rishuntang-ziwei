@@ -4,24 +4,15 @@ import type { IFunctionalAstrolabe } from 'iztro/lib/astro/FunctionalAstrolabe'
 import type { Mutagen } from 'iztro/lib/i18n/types/mutagen'
 import type { PalaceName } from 'iztro/lib/i18n/types/Palace'
 import type { StarName } from 'iztro/lib/i18n/types/Star'
-import {
-  daysInLunarMonth,
-  listLunarMonthsInYear,
-  solarDateFromLunar,
-} from './astrolabe'
-import {
-  BRANCH_ROTATION_ORDER,
-  getMutagenForStar,
-  palaceIndexByBranch,
-} from './constants'
+import { getMutagenForStar } from './constants'
 
 export type ChartMode = 'origin' | 'decadal' | 'yearly'
-export type HoroscopeScope = 'decadal' | 'yearly' | 'monthly'
+export type HoroscopeScope = 'decadal' | 'yearly' | 'monthly' | 'daily'
 
-/** 流年盤以流月為宮名與三方四正基準（流月所在宮為命宮） */
+/** 流年盤以流年為宮名與三方四正基準（流年所在宮為命宮） */
 export function chartModeToScope(mode: ChartMode): HoroscopeScope | 'origin' {
   if (mode === 'decadal') return 'decadal'
-  if (mode === 'yearly') return 'monthly'
+  if (mode === 'yearly') return 'yearly'
   return 'origin'
 }
 
@@ -55,13 +46,8 @@ export function getFlowStars(
   if (mode === 'decadal') return []
 
   if (mode === 'yearly') {
-    const monthlyStars = horoscope.monthly.stars?.[palaceIndex] ?? []
     const yearlyStars = horoscope.yearly.stars?.[palaceIndex] ?? []
-    const names = new Set<StarName>()
-    for (const star of [...monthlyStars, ...yearlyStars]) {
-      names.add(star.name)
-    }
-    return [...names]
+    return yearlyStars.map((star) => star.name)
   }
 
   return []
@@ -77,7 +63,7 @@ export function getMutagenStem(
   horoscope: IFunctionalHoroscope,
   mode: ChartMode,
 ): string {
-  if (mode === 'yearly') return horoscope.monthly.heavenlyStem
+  if (mode === 'yearly') return horoscope.yearly.heavenlyStem
   if (mode === 'decadal') return horoscope.decadal.heavenlyStem
   return getNatalYearStem(horoscope.astrolabe)
 }
@@ -154,88 +140,4 @@ export function resolveEffectiveChartMode(
   if (initialChartType === 'yearly') return 'yearly'
   if (showDecadalIndicator) return 'decadal'
   return 'origin'
-}
-
-export interface YearlyMonthlyEntry {
-  month: number
-  gz: string
-  isLeap?: boolean
-}
-
-function lunarMonthAnchorSolar(
-  lunarYear: number,
-  lunarMonth: number,
-  isLeapMonth = false,
-): string | null {
-  try {
-    return solarDateFromLunar(lunarYear, lunarMonth, 1, isLeapMonth)
-  } catch {
-    return null
-  }
-}
-
-/** 依本命與流年，計算各宮位所對應的農曆流月（正月–腊月，含閏月） */
-export function computeYearlyMonthlyByPalace(
-  astrolabe: FunctionalAstrolabe,
-  lunarYear: number,
-  timeIndex: number,
-): Map<number, YearlyMonthlyEntry[]> {
-  const map = new Map<number, YearlyMonthlyEntry[]>()
-  for (const spec of listLunarMonthsInYear(lunarYear)) {
-    const solar = lunarMonthAnchorSolar(lunarYear, spec.month, spec.isLeap)
-    if (!solar) continue
-    const h = astrolabe.horoscope(solar, timeIndex)
-    const idx = h.monthly.index
-    const gz = `${h.monthly.heavenlyStem}${h.monthly.earthlyBranch}`
-    const list = map.get(idx) ?? []
-    list.push({ month: spec.month, gz, isLeap: spec.isLeap })
-    map.set(idx, list)
-  }
-  return map
-}
-
-/** 計算指定農曆月內，各宮位所對應的流日（初一–三十） */
-export function computeMonthlyDailyByPalace(
-  astrolabe: FunctionalAstrolabe,
-  lunarYear: number,
-  lunarMonth: number,
-  timeIndex: number,
-  isLeapMonth = false,
-): Map<number, number[]> {
-  const map = new Map<number, number[]>()
-  const anchorSolar = lunarMonthAnchorSolar(lunarYear, lunarMonth, isLeapMonth)
-  if (!anchorSolar) return map
-
-  const h = astrolabe.horoscope(anchorSolar, timeIndex)
-  const startBranch = astrolabe.palace(h.monthly.index)?.earthlyBranch
-  if (!startBranch) return map
-
-  const startIdx = BRANCH_ROTATION_ORDER.indexOf(
-    startBranch as (typeof BRANCH_ROTATION_ORDER)[number],
-  )
-  if (startIdx < 0) return map
-
-  const dayCount = daysInLunarMonth(lunarYear, lunarMonth, isLeapMonth)
-  for (let day = 1; day <= dayCount; day++) {
-    const branch = BRANCH_ROTATION_ORDER[(startIdx + day - 1) % 12]
-    const idx = palaceIndexByBranch(astrolabe, branch)
-    if (idx === undefined) continue
-    const list = map.get(idx) ?? []
-    list.push(day)
-    map.set(idx, list)
-  }
-  return map
-}
-
-export function getYearlyMonthBranch(
-  astrolabe: FunctionalAstrolabe,
-  lunarYear: number,
-  lunarMonth: number,
-  timeIndex: number,
-  isLeapMonth = false,
-): string {
-  const solar = lunarMonthAnchorSolar(lunarYear, lunarMonth, isLeapMonth)
-  if (!solar) return ''
-  const h = astrolabe.horoscope(solar, timeIndex)
-  return astrolabe.palace(h.monthly.index)?.earthlyBranch ?? ''
 }
