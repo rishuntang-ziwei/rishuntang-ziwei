@@ -12,6 +12,7 @@ interface PalaceCellProps {
   palace: IFunctionalPalace
   highlight?: boolean
   focused?: boolean
+  footerDimmed?: boolean
   chartMode?: ChartMode
   horoscope?: IFunctionalHoroscope | null
   activeDecadalIndex?: number
@@ -44,6 +45,7 @@ export function PalaceCell({
   palace,
   highlight,
   focused,
+  footerDimmed,
   chartMode = 'origin',
   horoscope = null,
   activeDecadalIndex = -1,
@@ -59,8 +61,11 @@ export function PalaceCell({
 
   const displayPalaceName = getScopePalaceName(horoscope, palace.index, chartMode, palace.name)
 
+  const showDecadalAge = chartMode === 'origin' || chartMode === 'decadal'
   const decadalRange =
-    palace.decadal && shouldShowDecadal(palace.decadal.range) ? palace.decadal.range : null
+    showDecadalAge && palace.decadal && shouldShowDecadal(palace.decadal.range)
+      ? palace.decadal.range
+      : null
   const isActiveDecadal =
     chartMode === 'decadal' && activeDecadalIndex >= 0 && palace.index === activeDecadalIndex
 
@@ -83,7 +88,7 @@ export function PalaceCell({
         </div>
       </div>
 
-      <div className="palace-bottom">
+      <div className={`palace-bottom ${footerDimmed ? 'palace-footer-dimmed' : ''}`}>
         <div className="palace-footer-grid">
           {decadalRange ? (
             <button

@@ -157,6 +157,19 @@
     .palace.highlight { background: #fff8e1; }
     .palace.focus-palace { outline: 2px solid var(--line-red); outline-offset: -2px; }
 
+    .palace-footer-dimmed .decadal-slot,
+    .palace-footer-dimmed .gz-gan,
+    .palace-footer-dimmed .palace-label,
+    .palace-footer-dimmed .gz-zhi {
+      color: #999 !important;
+      opacity: 0.55;
+    }
+
+    .palace-footer-dimmed .decadal-slot.active {
+      color: var(--line-red) !important;
+      opacity: 0.65;
+    }
+
     .palace-stars {
       position: absolute;
       top: 1px;
@@ -390,6 +403,11 @@
       font-size: 13px;
       color: #8b4513;
       font-weight: 700;
+    }
+
+    .center-flow-scope {
+      line-height: 1.45;
+      margin-top: 2px;
     }
 
     .scope-range { font-weight: 400; color: #333; }
@@ -747,10 +765,10 @@
       return 'origin'
     }
 
-    function horoscopeDateForYear(year) {
-      const d = new Date()
-      const m = d.getMonth() + 1
-      const day = Math.min(d.getDate(), new Date(year, m, 0).getDate())
+    function horoscopeDateForYear(year, referenceDate) {
+      const ref = referenceDate ? new Date(referenceDate + 'T12:00:00') : new Date()
+      const m = ref.getMonth() + 1
+      const day = Math.min(ref.getDate(), new Date(year, m, 0).getDate())
       return `${year}-${String(m).padStart(2, '0')}-${String(day).padStart(2, '0')}`
     }
 
@@ -816,16 +834,25 @@
       return [...names]
     }
 
-    function getSanFangForScope(a, h, palaceName, mode) {
+    function getSanFangBranchRoles(a, h, palaceName, mode) {
       const s = mode === 'origin'
         ? a.surroundedPalaces(palaceName)
         : h.surroundPalaces(palaceName, mode)
-      return new Set([
-        s.target.earthlyBranch,
+      const target = s.target.earthlyBranch
+      const related = new Set([
         s.wealth.earthlyBranch,
         s.career.earthlyBranch,
         s.opposite.earthlyBranch,
       ])
+      return {
+        target,
+        related,
+        all: new Set([target, ...related]),
+      }
+    }
+
+    function getSanFangForScope(a, h, palaceName, mode) {
+      return getSanFangBranchRoles(a, h, palaceName, mode).all
     }
 
     function formatHoroscopeDate(dateStr) {
@@ -1018,8 +1045,7 @@
       return stars.map(s => renderStarCol(s, role, chartMode)).join('')
     }
 
-    function renderPalace(p, h, a, highlightBranches) {
-      const chartMode = resolveEffectiveChartMode()
+    function renderPalace(p, h, a, sanFangRoles, chartMode) {
       const { leftPurple, leftGreen, rightGreen } = splitMinors([
         ...p.minorStars.map(s => ({ name: s.name, mutagen: s.mutagen })),
         ...p.adjectiveStars.map(s => ({ name: s.name, mutagen: s.mutagen })),
@@ -1033,7 +1059,8 @@
         brightness: s.brightness,
       }, chartMode, h, a))
 
-      const daxian = p.decadal && shouldShowDecadal(p.decadal.range)
+      const showDecadalAge = chartMode === 'origin' || chartMode === 'decadal'
+      const daxian = showDecadalAge && p.decadal && shouldShowDecadal(p.decadal.range)
         ? `${p.decadal.range[0]} - ${p.decadal.range[1]}`
         : ''
       const isActiveDecadal = chartMode === 'decadal' && h.decadal.index === p.index
@@ -1042,13 +1069,11 @@
         : '<span class="decadal-slot"></span>'
 
       const displayName = getScopePalaceName(h, p.index, chartMode, p.name)
-      const flowStars = []
-      const flowHtml = ''
-
+      const scopeName = displayName
       const shen = p.isBodyPalace && chartMode === 'origin' ? '<div class="shen">身</div>' : ''
-      const scopeName = getScopePalaceName(h, p.index, chartMode, p.name)
-      const hl = highlightBranches.has(p.earthlyBranch) ? 'highlight' : ''
-      const focus = scopeName === selectedPalaceName ? 'focus-palace' : ''
+      const hl = sanFangRoles.all.has(p.earthlyBranch) ? 'highlight' : ''
+      const focus = sanFangRoles.target === p.earthlyBranch ? 'focus-palace' : ''
+      const footerDim = (chartMode === 'origin' || chartMode === 'yearly') && sanFangRoles.related.has(p.earthlyBranch)
 
       return `<div class="palace ${hl} ${focus}" data-scope-palace="${scopeName}" title="點選查看三方四正">
         ${shen}
@@ -1057,10 +1082,9 @@
             <div class="stars-row stars-row-1">${renderStarsVertical(leftPurpleM, 'left-purple', chartMode)}</div>
             <div class="stars-row stars-row-2">${renderStarsVertical(leftGreenM, 'left-green', chartMode)}</div>
           </div>
-          ${flowHtml}
           <div class="stars-right">${renderStarsVertical(rightGreenM, 'right-green', chartMode)}${renderStarsVertical(majors, 'major', chartMode)}</div>
         </div>
-        <div class="palace-bottom">
+        <div class="palace-bottom ${footerDim ? 'palace-footer-dimmed' : ''}">
           <div class="palace-footer-grid">
             ${daxianHtml}
             <span class="gz-gan">${p.heavenlyStem}</span>
@@ -1083,13 +1107,17 @@
       const scopeLine = scopeGz
         ? `<div class="center-scope">${MODE_TAG[chartMode]}：${scopeGz}${chartMode === 'decadal' && decadalRange ? `<span class="scope-range"> (${decadalRange[0]}–${decadalRange[1]} 歲)</span>` : ''}</div>`
         : ''
+      const flowScopeLine = chartMode === 'yearly'
+        ? `<div class="center-scope center-flow-scope"><div>流月：${h.monthly.heavenlyStem}${h.monthly.earthlyBranch}</div><div>流日：${h.daily.heavenlyStem}${h.daily.earthlyBranch}</div></div>`
+        : ''
 
       const backToNatal = initialChartType === 'natal' && chartMode === 'decadal'
         ? `<button type="button" class="back-to-natal" id="backToNatal">回到本命盤</button>`
         : ''
 
       const yearControl = initialChartType === 'yearly'
-        ? `<label class="center-control-row"><span>流年年份</span><input type="number" id="centerYearlyYear" min="1900" max="2100" value="${yearlyYear}"/></label>`
+        ? `<label class="center-control-row"><span>流年年份</span><input type="number" id="centerYearlyYear" min="1900" max="2100" value="${yearlyYear}"/></label>
+           <label class="center-control-row"><span>論命日期</span><input type="date" id="horoscopeDate" value="${horoscopeDate}"/></label>`
         : `<label class="center-control-row"><span>論命日期</span><input type="date" id="horoscopeDate" value="${horoscopeDate}"/></label>`
 
       return `<div class="center">
@@ -1102,6 +1130,7 @@
             <div>
               ${backToNatal}
               ${scopeLine}
+              ${flowScopeLine}
               <div class="center-birth">
                 <div>${b.line1}</div>
                 <div>${b.line2}</div>
@@ -1175,7 +1204,7 @@
       const chartMode = resolveEffectiveChartMode()
       const h = a.horoscope(horoscopeDate, input.timeIndex)
       const map = new Map(a.palaces.map(p => [p.earthlyBranch, p]))
-      const highlightBranches = getSanFangForScope(a, h, selectedPalaceName, chartMode)
+      const sanFangRoles = getSanFangBranchRoles(a, h, selectedPalaceName, chartMode)
       let centerDone = false
       let html = '<div class="chart-outer"><div class="chart-grid">'
       html += renderLines(a, h)
@@ -1191,7 +1220,7 @@
           }
           const p = map.get(cell)
           if (!p) return
-          html += `<div class="cell" style="grid-row:${ri+1};grid-column:${ci+1}">${renderPalace(p, h, a, highlightBranches)}</div>`
+          html += `<div class="cell" style="grid-row:${ri+1};grid-column:${ci+1}">${renderPalace(p, h, a, sanFangRoles, chartMode)}</div>`
         })
       })
 
@@ -1225,6 +1254,9 @@
 
       document.getElementById('horoscopeDate')?.addEventListener('change', e => {
         horoscopeDate = e.target.value || todaySolarDate()
+        if (initialChartType === 'yearly') {
+          yearlyYear = new Date(horoscopeDate + 'T12:00:00').getFullYear()
+        }
         selectedPalaceName = '命宮'
         renderChart(name, a, input)
       })
@@ -1233,7 +1265,7 @@
         const year = Number(e.target.value)
         if (year >= 1900 && year <= 2100) {
           yearlyYear = year
-          horoscopeDate = horoscopeDateForYear(year)
+          horoscopeDate = horoscopeDateForYear(year, horoscopeDate)
           selectedPalaceName = '命宮'
           renderChart(name, a, input)
         }

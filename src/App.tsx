@@ -96,11 +96,16 @@ function App() {
                 if (!value) setHoroscopeDate(todaySolarDate())
               }}
               horoscopeDate={horoscopeDate}
-              onHoroscopeDateChange={setHoroscopeDate}
+              onHoroscopeDateChange={(date) => {
+                setHoroscopeDate(date)
+                if (submitted.initialChartType === 'yearly') {
+                  setYearlyYear(new Date(date + 'T12:00:00').getFullYear())
+                }
+              }}
               yearlyYear={yearlyYear}
               onYearlyYearChange={(year) => {
                 setYearlyYear(year)
-                setHoroscopeDate(horoscopeDateForYear(year))
+                setHoroscopeDate(horoscopeDateForYear(year, horoscopeDate))
               }}
             />
           ) : (

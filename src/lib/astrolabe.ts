@@ -78,9 +78,10 @@ export function todaySolarDate(referenceDate = new Date()): string {
   return `${y}-${m}-${d}`
 }
 
-export function horoscopeDateForYear(year: number, referenceDate = new Date()): string {
-  const m = referenceDate.getMonth() + 1
-  const d = referenceDate.getDate()
+export function horoscopeDateForYear(year: number, referenceDate: string | Date = new Date()): string {
+  const ref = typeof referenceDate === 'string' ? new Date(referenceDate + 'T12:00:00') : referenceDate
+  const m = ref.getMonth() + 1
+  const d = ref.getDate()
   const daysInMonth = new Date(year, m, 0).getDate()
   const day = Math.min(d, daysInMonth)
   return `${year}-${String(m).padStart(2, '0')}-${String(day).padStart(2, '0')}`

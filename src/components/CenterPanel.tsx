@@ -52,21 +52,31 @@ export function CenterPanel({
     <div className="center">
       <div className="center-top-right">
         {initialChartType === 'yearly' ? (
-          <label className="center-control-row">
-            <span>流年年份</span>
-            <input
-              type="number"
-              min={1900}
-              max={2100}
-              value={yearlyYear}
-              onChange={(e) => {
-                const year = Number(e.target.value)
-                if (year >= 1900 && year <= 2100) {
-                  onYearlyYearChange(year)
-                }
-              }}
-            />
-          </label>
+          <>
+            <label className="center-control-row">
+              <span>流年年份</span>
+              <input
+                type="number"
+                min={1900}
+                max={2100}
+                value={yearlyYear}
+                onChange={(e) => {
+                  const year = Number(e.target.value)
+                  if (year >= 1900 && year <= 2100) {
+                    onYearlyYearChange(year)
+                  }
+                }}
+              />
+            </label>
+            <label className="center-control-row">
+              <span>論命日期</span>
+              <input
+                type="date"
+                value={horoscopeDate}
+                onChange={(e) => onHoroscopeDateChange(e.target.value)}
+              />
+            </label>
+          </>
         ) : (
           <label className="center-control-row">
             <span>論命日期</span>
@@ -98,6 +108,18 @@ export function CenterPanel({
                     ({decadalRange[0]}–{decadalRange[1]} 歲)
                   </span>
                 )}
+              </div>
+            )}
+            {chartMode === 'yearly' && (
+              <div className="center-scope center-flow-scope">
+                <div>
+                  流月：{horoscope.monthly.heavenlyStem}
+                  {horoscope.monthly.earthlyBranch}
+                </div>
+                <div>
+                  流日：{horoscope.daily.heavenlyStem}
+                  {horoscope.daily.earthlyBranch}
+                </div>
               </div>
             )}
             <div className="center-birth">

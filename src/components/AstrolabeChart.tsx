@@ -7,7 +7,7 @@ import { horoscopeDateForNominalAge } from '../lib/astrolabe'
 import { branchChartPoint, CHART_VIEW_H, CHART_VIEW_W, shouldShowDecadal } from '../lib/constants'
 import {
   computeHoroscope,
-  getSanFangBranchesForScope,
+  getSanFangBranchRoles,
   getScopePalaceName,
   resolveEffectiveChartMode,
 } from '../lib/horoscope'
@@ -71,9 +71,11 @@ export function AstrolabeChart({
     return map
   }, [astrolabe])
 
-  const highlightBranches = useMemo(() => {
-    return getSanFangBranchesForScope(horoscope, focusPalace, chartMode)
+  const sanFangRoles = useMemo(() => {
+    return getSanFangBranchRoles(horoscope, focusPalace, chartMode)
   }, [horoscope, focusPalace, chartMode])
+
+  const dimRelatedFooter = chartMode === 'origin' || chartMode === 'yearly'
 
   const activeDecadalIndex = chartMode === 'decadal' ? horoscope.decadal.index : -1
 
@@ -176,8 +178,9 @@ export function AstrolabeChart({
               >
                 <PalaceCell
                   palace={palace}
-                  highlight={highlightBranches.has(cell)}
-                  focused={scopePalaceName === focusPalace}
+                  highlight={sanFangRoles.all.has(cell)}
+                  focused={sanFangRoles.target === cell}
+                  footerDimmed={dimRelatedFooter && sanFangRoles.related.has(cell)}
                   chartMode={chartMode}
                   horoscope={horoscope}
                   activeDecadalIndex={activeDecadalIndex}

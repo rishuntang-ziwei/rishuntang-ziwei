@@ -409,6 +409,19 @@ body {
   outline-offset: -2px;
 }
 
+.palace-footer-dimmed .decadal-range,
+.palace-footer-dimmed .gz-gan,
+.palace-footer-dimmed .palace-name,
+.palace-footer-dimmed .gz-zhi {
+  color: #999 !important;
+  opacity: 0.55;
+}
+
+.palace-footer-dimmed .decadal-range.active {
+  color: #c62828 !important;
+  opacity: 0.65;
+}
+
 .palace-cell.highlight {
   background: var(--highlight-bg);
 }
@@ -710,6 +723,11 @@ body {
 .scope-range {
   font-weight: 400;
   color: #333;
+}
+
+.center-flow-scope {
+  line-height: 1.45;
+  margin-top: 2px;
 }
 
 .chart-placeholder {

@@ -84,6 +84,21 @@ export function getSanFangBranchesForScope(
   focusPalaceName: PalaceName | string,
   mode: ChartMode,
 ) {
+  return getSanFangBranchRoles(horoscope, focusPalaceName, mode).all
+}
+
+export interface SanFangBranchRoles {
+  target: string
+  related: Set<string>
+  all: Set<string>
+}
+
+/** 三方四正：target 為點選宮，related 為三方＋對宮（需淡化） */
+export function getSanFangBranchRoles(
+  horoscope: IFunctionalHoroscope,
+  focusPalaceName: PalaceName | string,
+  mode: ChartMode,
+): SanFangBranchRoles {
   const scope = chartModeToScope(mode)
   const surrounded =
     scope === 'origin'
@@ -91,12 +106,18 @@ export function getSanFangBranchesForScope(
       : (horoscope.surroundPalaces(focusPalaceName as PalaceName, scope) ??
         horoscope.astrolabe.surroundedPalaces(focusPalaceName as PalaceName))
 
-  return new Set<string>([
-    surrounded.target.earthlyBranch,
+  const target = surrounded.target.earthlyBranch
+  const related = new Set<string>([
     surrounded.wealth.earthlyBranch,
     surrounded.career.earthlyBranch,
     surrounded.opposite.earthlyBranch,
   ])
+
+  return {
+    target,
+    related,
+    all: new Set<string>([target, ...related]),
+  }
 }
 
 export function chartModeTitle(mode: ChartMode): string {
