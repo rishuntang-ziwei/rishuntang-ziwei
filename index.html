@@ -983,8 +983,14 @@
       return a.rawDates.chineseDate.yearly[0]
     }
 
+    function horoscopeScopeForMode(mode) {
+      if (mode === 'decadal') return 'decadal'
+      if (mode === 'yearly') return 'monthly'
+      return 'origin'
+    }
+
     function getMutagenStem(h, a, mode) {
-      if (mode === 'yearly') return h.yearly.heavenlyStem
+      if (mode === 'yearly') return h.monthly.heavenlyStem
       if (mode === 'decadal') return h.decadal.heavenlyStem
       return getNatalYearStem(a)
     }
@@ -995,11 +1001,21 @@
 
     function getScopePalaceName(h, palaceIndex, mode, natalName) {
       if (mode === 'origin' || !h) return natalName
-      return h[mode].palaceNames[palaceIndex] || natalName
+      const scope = horoscopeScopeForMode(mode)
+      if (scope === 'origin') return natalName
+      return h[scope].palaceNames[palaceIndex] || natalName
     }
 
     function getFlowStars(h, palaceIndex, mode) {
       if (mode === 'origin' || mode === 'decadal' || !h) return []
+      if (mode === 'yearly') {
+        const monthly = h.monthly.stars?.[palaceIndex] || []
+        const yearly = h.yearly.stars?.[palaceIndex] || []
+        const names = new Set()
+        monthly.forEach(s => names.add(s.name))
+        yearly.forEach(s => names.add(s.name))
+        return [...names]
+      }
       const decadal = h.decadal.stars?.[palaceIndex] || []
       const yearly = h.yearly.stars?.[palaceIndex] || []
       const names = new Set()
@@ -1009,9 +1025,10 @@
     }
 
     function getSanFangBranchRoles(a, h, palaceName, mode) {
-      const s = mode === 'origin'
+      const scope = horoscopeScopeForMode(mode)
+      const s = scope === 'origin'
         ? a.surroundedPalaces(palaceName)
-        : h.surroundPalaces(palaceName, mode)
+        : h.surroundPalaces(palaceName, scope)
       const target = s.target.earthlyBranch
       const related = new Set([
         s.wealth.earthlyBranch,
@@ -1383,9 +1400,10 @@
 
     function renderLines(a, h) {
       const chartMode = resolveEffectiveChartMode()
-      const s = chartMode === 'origin'
+      const scope = horoscopeScopeForMode(chartMode)
+      const s = scope === 'origin'
         ? a.surroundedPalaces(selectedPalaceName)
-        : h.surroundPalaces(selectedPalaceName, chartMode)
+        : h.surroundPalaces(selectedPalaceName, scope)
       const lineEls = []
 
       const soulPt = branchLinePoint(s.target.earthlyBranch)

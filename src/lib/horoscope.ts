@@ -16,11 +16,12 @@ import {
 } from './constants'
 
 export type ChartMode = 'origin' | 'decadal' | 'yearly'
-export type HoroscopeScope = 'decadal' | 'yearly'
+export type HoroscopeScope = 'decadal' | 'yearly' | 'monthly'
 
+/** 流年盤以流月為宮名與三方四正基準（流月所在宮為命宮） */
 export function chartModeToScope(mode: ChartMode): HoroscopeScope | 'origin' {
   if (mode === 'decadal') return 'decadal'
-  if (mode === 'yearly') return 'yearly'
+  if (mode === 'yearly') return 'monthly'
   return 'origin'
 }
 
@@ -39,7 +40,9 @@ export function getScopePalaceName(
   natalName: PalaceName | string,
 ): string {
   if (mode === 'origin' || !horoscope) return natalName
-  return horoscope[mode].palaceNames[palaceIndex] ?? natalName
+  const scope = chartModeToScope(mode)
+  if (scope === 'origin') return natalName
+  return horoscope[scope].palaceNames[palaceIndex] ?? natalName
 }
 
 export function getFlowStars(
@@ -51,14 +54,17 @@ export function getFlowStars(
 
   if (mode === 'decadal') return []
 
-  const decadalStars = horoscope.decadal.stars?.[palaceIndex] ?? []
-
-  const yearlyStars = horoscope.yearly.stars?.[palaceIndex] ?? []
-  const names = new Set<StarName>()
-  for (const star of [...decadalStars, ...yearlyStars]) {
-    names.add(star.name)
+  if (mode === 'yearly') {
+    const monthlyStars = horoscope.monthly.stars?.[palaceIndex] ?? []
+    const yearlyStars = horoscope.yearly.stars?.[palaceIndex] ?? []
+    const names = new Set<StarName>()
+    for (const star of [...monthlyStars, ...yearlyStars]) {
+      names.add(star.name)
+    }
+    return [...names]
   }
-  return [...names]
+
+  return []
 }
 
 /** 生年天干（本命四化用） */
@@ -71,7 +77,7 @@ export function getMutagenStem(
   horoscope: IFunctionalHoroscope,
   mode: ChartMode,
 ): string {
-  if (mode === 'yearly') return horoscope.yearly.heavenlyStem
+  if (mode === 'yearly') return horoscope.monthly.heavenlyStem
   if (mode === 'decadal') return horoscope.decadal.heavenlyStem
   return getNatalYearStem(horoscope.astrolabe)
 }

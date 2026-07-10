@@ -6,6 +6,7 @@ import type { CalendarType, InitialChartType } from '../lib/astrolabe'
 import { horoscopeDateForNominalAge, horoscopeDateFromLunarYearMonthDay, parseLunarFromSolarDate } from '../lib/astrolabe'
 import { branchChartPoint, CHART_VIEW_H, CHART_VIEW_W, shouldShowDecadal } from '../lib/constants'
 import {
+  chartModeToScope,
   computeHoroscope,
   computeMonthlyDailyByPalace,
   computeYearlyMonthlyByPalace,
@@ -123,10 +124,11 @@ export function AstrolabeChart({
   }
 
   const lines = useMemo(() => {
+    const scope = chartModeToScope(chartMode)
     const surrounded =
       chartMode === 'origin'
         ? astrolabe.surroundedPalaces(focusPalace)
-        : (horoscope.surroundPalaces(focusPalace, chartMode) ??
+        : (horoscope.surroundPalaces(focusPalace, scope) ??
           astrolabe.surroundedPalaces(focusPalace))
 
     const target = surrounded.target.earthlyBranch
