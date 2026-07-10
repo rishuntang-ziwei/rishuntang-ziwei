@@ -141,3 +141,27 @@ export function resolveEffectiveChartMode(
   if (showDecadalIndicator) return 'decadal'
   return 'origin'
 }
+
+export interface YearlyMonthlyEntry {
+  month: number
+  gz: string
+}
+
+/** 計算指定西元年内，各宮位所對應的流月（1–12 月） */
+export function computeYearlyMonthlyByPalace(
+  astrolabe: FunctionalAstrolabe,
+  year: number,
+  timeIndex: number,
+): Map<number, YearlyMonthlyEntry[]> {
+  const map = new Map<number, YearlyMonthlyEntry[]>()
+  for (let month = 1; month <= 12; month++) {
+    const date = `${year}-${String(month).padStart(2, '0')}-15`
+    const h = astrolabe.horoscope(date, timeIndex)
+    const idx = h.monthly.index
+    const gz = `${h.monthly.heavenlyStem}${h.monthly.earthlyBranch}`
+    const list = map.get(idx) ?? []
+    list.push({ month, gz })
+    map.set(idx, list)
+  }
+  return map
+}

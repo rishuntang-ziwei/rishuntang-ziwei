@@ -844,6 +844,18 @@ body {
   width: 118px;
 }
 
+.center-check-row {
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.center-check-row input[type='checkbox'] {
+  width: auto;
+  margin: 0;
+}
+
 .center-control-meta {
   color: #444;
   white-space: nowrap;

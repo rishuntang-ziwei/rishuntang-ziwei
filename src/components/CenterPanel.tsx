@@ -1,7 +1,12 @@
+import { useState } from 'react'
 import type FunctionalAstrolabe from 'iztro/lib/astro/FunctionalAstrolabe'
 import type { IFunctionalHoroscope } from 'iztro/lib/astro/FunctionalHoroscope'
 import type { CalendarType, InitialChartType } from '../lib/astrolabe'
-import { getYearStemBranch } from '../lib/astrolabe'
+import {
+  getYearStemBranch,
+  horoscopeDateForYearMonthDay,
+  parseHoroscopeDateParts,
+} from '../lib/astrolabe'
 import {
   type ChartMode,
   chartModeTag,
@@ -37,8 +42,11 @@ export function CenterPanel({
   onYearlyYearChange,
   onBackToNatal,
 }: CenterPanelProps) {
+  const [showDaily, setShowDaily] = useState(false)
   const birth = centerBirthText(astrolabe, calendar, birthDate)
   const age = horoscope.age.nominalAge
+  const { month: activeMonth, day: activeDay } = parseHoroscopeDateParts(horoscopeDate)
+  const daysInMonth = new Date(yearlyYear, activeMonth, 0).getDate()
 
   const scopeItem = chartMode === 'decadal' ? horoscope.decadal : chartMode === 'yearly' ? horoscope.yearly : null
   const scopeGz = scopeItem ? `${scopeItem.heavenlyStem}${scopeItem.earthlyBranch}` : ''
@@ -47,25 +55,67 @@ export function CenterPanel({
       ? astrolabe.palace(horoscope.decadal.index)?.decadal?.range
       : null
 
+  const updateYearlyDate = (month: number, day: number) => {
+    onHoroscopeDateChange(horoscopeDateForYearMonthDay(yearlyYear, month, day))
+  }
+
   return (
     <div className="center">
       <div className="center-top-right">
         {initialChartType === 'yearly' ? (
-          <label className="center-control-row">
-            <span>流年年份</span>
-            <input
-              type="number"
-              min={1900}
-              max={2100}
-              value={yearlyYear}
-              onChange={(e) => {
-                const year = Number(e.target.value)
-                if (year >= 1900 && year <= 2100) {
-                  onYearlyYearChange(year)
-                }
-              }}
-            />
-          </label>
+          <>
+            <label className="center-control-row">
+              <span>流年年份</span>
+              <input
+                type="number"
+                min={1900}
+                max={2100}
+                value={yearlyYear}
+                onChange={(e) => {
+                  const year = Number(e.target.value)
+                  if (year >= 1900 && year <= 2100) {
+                    onYearlyYearChange(year)
+                  }
+                }}
+              />
+            </label>
+            <label className="center-control-row">
+              <span>流月</span>
+              <select
+                value={activeMonth}
+                onChange={(e) => updateYearlyDate(Number(e.target.value), activeDay)}
+              >
+                {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                  <option key={m} value={m}>
+                    {m} 月
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="center-control-row center-check-row">
+              <input
+                type="checkbox"
+                checked={showDaily}
+                onChange={(e) => setShowDaily(e.target.checked)}
+              />
+              <span>流日</span>
+            </label>
+            {showDaily && (
+              <label className="center-control-row">
+                <span>流日日期</span>
+                <select
+                  value={activeDay}
+                  onChange={(e) => updateYearlyDate(activeMonth, Number(e.target.value))}
+                >
+                  {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((d) => (
+                    <option key={d} value={d}>
+                      {d} 日
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+          </>
         ) : (
           <label className="center-control-row">
             <span>論命日期</span>
@@ -95,6 +145,20 @@ export function CenterPanel({
                     {' '}
                     ({decadalRange[0]}–{decadalRange[1]} 歲)
                   </span>
+                )}
+              </div>
+            )}
+            {chartMode === 'yearly' && (
+              <div className="center-scope center-flow-scope">
+                <div>
+                  流月：{horoscope.monthly.heavenlyStem}
+                  {horoscope.monthly.earthlyBranch}（{activeMonth} 月）
+                </div>
+                {showDaily && (
+                  <div>
+                    流日：{horoscope.daily.heavenlyStem}
+                    {horoscope.daily.earthlyBranch}（{activeDay} 日）
+                  </div>
                 )}
               </div>
             )}

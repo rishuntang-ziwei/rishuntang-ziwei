@@ -5,6 +5,7 @@ import {
   type ChartMode,
   getDisplayMutagen,
   getScopePalaceName,
+  type YearlyMonthlyEntry,
 } from '../lib/horoscope'
 import { StarDisplay } from './StarDisplay'
 
@@ -17,6 +18,10 @@ interface PalaceCellProps {
   horoscope?: IFunctionalHoroscope | null
   activeDecadalIndex?: number
   onDecadalSelect?: (palace: IFunctionalPalace) => void
+  yearlyMonthlyEntries?: YearlyMonthlyEntry[]
+  activeYearlyMonth?: number
+  isActiveMonthlyPalace?: boolean
+  onYearlyMonthSelect?: (month: number) => void
 }
 
 function mapStarForDisplay(
@@ -50,6 +55,10 @@ export function PalaceCell({
   horoscope = null,
   activeDecadalIndex = -1,
   onDecadalSelect,
+  yearlyMonthlyEntries = [],
+  activeYearlyMonth = 1,
+  isActiveMonthlyPalace = false,
+  onYearlyMonthSelect,
 }: PalaceCellProps) {
   const { leftPurple, leftGreen, rightGreen } = splitPalaceMinors([
     ...palace.minorStars.map((s) => ({ name: s.name, mutagen: s.mutagen })),
@@ -71,7 +80,7 @@ export function PalaceCell({
 
   return (
     <div
-      className={`palace-cell ${highlight ? 'highlight' : ''} ${focused ? 'focus-palace' : ''}`}
+      className={`palace-cell ${highlight ? 'highlight' : ''} ${focused ? 'focus-palace' : ''} ${isActiveMonthlyPalace ? 'active-monthly-palace' : ''}`}
     >
       {palace.isBodyPalace && chartMode === 'origin' && <span className="body-badge">身</span>}
 
@@ -107,7 +116,27 @@ export function PalaceCell({
             <span className="decadal-range" />
           )}
           <span className="gz-gan">{palace.heavenlyStem}</span>
-          <span className="palace-name">({formatPalaceName(displayPalaceName)})</span>
+          <span className="palace-name">
+            {chartMode === 'yearly' && yearlyMonthlyEntries.length > 0 && (
+              <span className="monthly-badges">
+                {yearlyMonthlyEntries.map((entry) => (
+                  <button
+                    key={entry.month}
+                    type="button"
+                    className={`monthly-badge ${entry.month === activeYearlyMonth ? 'active' : ''}`}
+                    title={`${entry.month}月 ${entry.gz}`}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onYearlyMonthSelect?.(entry.month)
+                    }}
+                  >
+                    {entry.month}
+                  </button>
+                ))}
+              </span>
+            )}
+            ({formatPalaceName(displayPalaceName)})
+          </span>
           <span className="gz-zhi">{palace.earthlyBranch}</span>
         </div>
       </div>
