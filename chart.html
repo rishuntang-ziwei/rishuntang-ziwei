@@ -301,9 +301,15 @@
       border: 3px double var(--border);
       background: var(--paper);
       width: 100%;
-      max-width: min(1280px, calc(100vw - 360px), calc((100vh - 80px) * 1.5));
+      max-width: 100%;
       aspect-ratio: 6 / 4;
       margin: 0 auto;
+    }
+
+    @media (min-width: 901px) {
+      .chart-outer {
+        max-width: min(1280px, calc(100vw - 360px), calc((100vh - 80px) * 1.5));
+      }
     }
 
     .chart-grid {
@@ -943,8 +949,201 @@
     [hidden] { display: none !important; }
 
     @media (max-width: 900px) {
-      .layout { flex-direction: column; }
-      .form-panel { width: 100%; }
+      body {
+        padding: 8px;
+      }
+
+      .layout {
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .form-panel {
+        width: 100%;
+      }
+
+      .chart-panel {
+        width: 100%;
+        min-width: 0;
+      }
+
+      .chart-outer {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+      }
+
+      .cell {
+        overflow: hidden;
+      }
+
+      .palace {
+        font-size: 12px;
+        padding: 1px 3px 0 2px;
+      }
+
+      .palace-stars {
+        max-height: calc(100% - 40px);
+        padding-right: 2px;
+        left: 1px;
+      }
+
+      .palace-bottom {
+        height: 38px;
+      }
+
+      .daily-days {
+        bottom: 40px;
+        font-size: 10px;
+      }
+
+      .star-vcol.major .vname {
+        font-size: 15px;
+        letter-spacing: 1px;
+      }
+
+      .star-vcol.g-lg .vname {
+        font-size: 15px;
+        letter-spacing: 1px;
+      }
+
+      .star-vcol.p-sm .vname {
+        font-size: 11px;
+        letter-spacing: 1px;
+      }
+
+      .star-vcol.g-sm .vname {
+        font-size: 11px;
+        letter-spacing: 1px;
+      }
+
+      .star-vcol .vbright {
+        font-size: 10px;
+      }
+
+      .star-vcol.flow .vname {
+        font-size: 11px;
+      }
+
+      .mutagen,
+      .star-vcol.major .mutagen,
+      .mutagen-circle {
+        width: 14px;
+        height: 14px;
+        line-height: 12px;
+        font-size: 12px;
+      }
+
+      .mutagen.horoscope {
+        width: 12px;
+        height: 12px;
+        line-height: 10px;
+        font-size: 11px;
+      }
+
+      .star-vcol.g-lg .mutagen-circle,
+      .star-vcol.g-sm .mutagen-circle,
+      .star-vcol.p-sm .mutagen-circle {
+        width: 12px;
+        height: 12px;
+        line-height: 10px;
+        font-size: 11px;
+      }
+
+      .palace-label {
+        font-size: 13px;
+        letter-spacing: 1px;
+        gap: 1px;
+      }
+
+      .monthly-badge {
+        width: 16px;
+        height: 16px;
+        font-size: 11px;
+      }
+
+      .daxian,
+      .decadal-slot,
+      .gz-gan,
+      .gz-zhi {
+        font-size: 10px;
+      }
+
+      .center-body {
+        gap: 4px;
+      }
+
+      .center-info {
+        font-size: 12px;
+      }
+
+      .center-birth {
+        margin-top: 4px;
+        font-size: 12px;
+      }
+
+      .center-birth .lunar-note {
+        font-size: 10px;
+      }
+
+      .center-age {
+        font-size: 12px;
+      }
+
+      .center-brand {
+        font-size: 11px;
+      }
+
+      .vtext.tag {
+        font-size: 12px;
+        letter-spacing: 1px;
+      }
+
+      .vtext.name {
+        font-size: 16px;
+        letter-spacing: 3px;
+      }
+
+      .vtext.title {
+        font-size: 18px;
+        letter-spacing: 2px;
+      }
+
+      .center-top-right {
+        font-size: 10px;
+      }
+
+      .center-control-row input[type="date"],
+      .center-control-row input[type="number"],
+      .center-control-row select {
+        width: 96px;
+        font-size: 10px;
+      }
+
+      #userBar {
+        flex-wrap: wrap;
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .star-vcol.major .vname,
+      .star-vcol.g-lg .vname {
+        font-size: 13px;
+      }
+
+      .palace-label {
+        font-size: 11px;
+      }
+
+      .vtext.name {
+        font-size: 14px;
+        letter-spacing: 2px;
+      }
+
+      .vtext.title {
+        font-size: 16px;
+      }
     }
 
     .auth-card {

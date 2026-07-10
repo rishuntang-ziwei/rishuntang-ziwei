@@ -274,6 +274,81 @@ body {
   .app-main {
     grid-template-columns: 1fr;
   }
+
+  .chart-section {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .chart-wrapper {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .chart-placeholder {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .grid-cell {
+    overflow: hidden;
+  }
+
+  .palace-cell {
+    font-size: 0.72rem;
+    padding: 2px 4px 2px 3px;
+  }
+
+  .palace-stars {
+    max-height: calc(100% - 48px);
+    padding-right: 2px;
+    left: 1px;
+  }
+
+  .palace-bottom {
+    height: 46px;
+  }
+
+  .star-vcol.major .vname {
+    font-size: 0.95rem;
+    letter-spacing: 1px;
+  }
+
+  .star-vcol.g .vname,
+  .star-vcol.g-lg .vname {
+    font-size: 0.95rem;
+    letter-spacing: 1px;
+  }
+
+  .star-vcol.p-sm .vname,
+  .star-vcol.g-sm .vname {
+    font-size: 0.68rem;
+    letter-spacing: 1px;
+  }
+
+  .star-vcol .vbright {
+    font-size: 0.62rem;
+  }
+
+  .palace-label {
+    font-size: 0.82rem;
+    letter-spacing: 1px;
+  }
+
+  .center-vtext .vtext.name {
+    font-size: 1rem;
+    letter-spacing: 3px;
+  }
+
+  .center-vtext .vtext.title {
+    font-size: 1.1rem;
+    letter-spacing: 2px;
+  }
+
+  .center-info {
+    font-size: 0.72rem;
+  }
 }
 
 /* ── Form ── */
@@ -574,10 +649,20 @@ body {
 
 .chart-wrapper {
   width: 100%;
-  max-width: min(1280px, calc(100vw - 420px), calc((100vh - 200px) * 1.5));
+  max-width: 100%;
   aspect-ratio: 6 / 4;
   border: 3px double var(--border);
   background: var(--paper);
+}
+
+@media (min-width: 961px) {
+  .chart-wrapper {
+    max-width: min(1280px, calc(100vw - 420px), calc((100vh - 200px) * 1.5));
+  }
+
+  .chart-placeholder {
+    max-width: min(1280px, calc(100vw - 420px), calc((100vh - 200px) * 1.5));
+  }
 }
 
 .chart-grid {
@@ -1288,7 +1373,7 @@ body {
   border: 1px solid #ddd;
   border-radius: 8px;
   width: 100%;
-  max-width: min(1280px, calc(100vw - 420px), calc((100vh - 200px) * 1.5));
+  max-width: 100%;
   aspect-ratio: 6 / 4;
   display: flex;
   align-items: center;
