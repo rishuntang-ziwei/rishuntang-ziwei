@@ -509,7 +509,7 @@ body {
 
 .star-vcol.g .vname { color: var(--benefic); font-size: 1.08rem; }
 .star-vcol.g-lg .vname {
-  color: #00FF00;
+  color: #2e7d32;
   font-size: 1.43rem;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -636,14 +636,17 @@ body {
 
 .daily-days {
   position: absolute;
-  left: 3px;
-  top: 50%;
+  left: 0;
+  right: 0;
+  top: 52%;
   transform: translateY(-50%);
   z-index: 2;
   font-size: 0.68rem;
   line-height: 1.2;
-  color: #00838f;
+  color: #2e7d32;
   letter-spacing: 0;
+  text-align: center;
+  pointer-events: none;
 }
 
 .daily-day {
@@ -854,6 +857,27 @@ body {
 .center-check-row input[type='checkbox'] {
   width: auto;
   margin: 0;
+}
+
+.center-toggle-btn {
+  font-family: inherit;
+  font-size: 0.82rem;
+  padding: 2px 8px;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  background: #fff;
+  color: var(--accent);
+  cursor: pointer;
+  margin-bottom: 2px;
+}
+
+.center-toggle-btn:hover {
+  background: #fff8e1;
+}
+
+.center-toggle-btn.active {
+  background: var(--accent);
+  color: #fff;
 }
 
 .center-control-meta {

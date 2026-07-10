@@ -1,6 +1,6 @@
 import type { IFunctionalPalace } from 'iztro/lib/astro/FunctionalPalace'
 import type { IFunctionalHoroscope } from 'iztro/lib/astro/FunctionalHoroscope'
-import { formatPalaceName, shouldShowDecadal, splitPalaceMinors } from '../lib/constants'
+import { formatPalaceName, shouldShowDecadal, sortMajorStars, splitPalaceMinors } from '../lib/constants'
 import {
   type ChartMode,
   getDisplayMutagen,
@@ -18,7 +18,8 @@ interface PalaceCellProps {
   horoscope?: IFunctionalHoroscope | null
   activeDecadalIndex?: number
   onDecadalSelect?: (palace: IFunctionalPalace) => void
-  yearlyMonthlyEntries?: YearlyMonthlyEntry[]
+  yearlyMonthlyEntry?: YearlyMonthlyEntry | null
+  yearlyDailyDays?: number[]
   activeYearlyMonth?: number
   isActiveMonthlyPalace?: boolean
   onYearlyMonthSelect?: (month: number) => void
@@ -55,7 +56,8 @@ export function PalaceCell({
   horoscope = null,
   activeDecadalIndex = -1,
   onDecadalSelect,
-  yearlyMonthlyEntries = [],
+  yearlyMonthlyEntry = null,
+  yearlyDailyDays,
   activeYearlyMonth = 1,
   isActiveMonthlyPalace = false,
   onYearlyMonthSelect,
@@ -84,6 +86,10 @@ export function PalaceCell({
     >
       {palace.isBodyPalace && chartMode === 'origin' && <span className="body-badge">身</span>}
 
+      {yearlyDailyDays && yearlyDailyDays.length > 0 && (
+        <div className="daily-days">{yearlyDailyDays.join(',')}</div>
+      )}
+
       <div className="palace-stars">
         <div className="stars-left">
           <div className="stars-row stars-row-1" aria-hidden={leftPurple.length === 0}>
@@ -95,7 +101,7 @@ export function PalaceCell({
         </div>
         <div className="stars-right">
           <StarDisplay variant="right-green" stars={rightGreen.map(mapStar)} chartMode={chartMode} />
-          <StarDisplay variant="major" stars={palace.majorStars.map(mapStar)} chartMode={chartMode} />
+          <StarDisplay variant="major" stars={sortMajorStars(palace.majorStars).map(mapStar)} chartMode={chartMode} />
         </div>
       </div>
 
@@ -117,22 +123,19 @@ export function PalaceCell({
           )}
           <span className="gz-gan">{palace.heavenlyStem}</span>
           <span className="palace-name">
-            {chartMode === 'yearly' && yearlyMonthlyEntries.length > 0 && (
+            {chartMode === 'yearly' && yearlyMonthlyEntry && (
               <span className="monthly-badges">
-                {yearlyMonthlyEntries.map((entry) => (
-                  <button
-                    key={entry.month}
-                    type="button"
-                    className={`monthly-badge ${entry.month === activeYearlyMonth ? 'active' : ''}`}
-                    title={`${entry.month}月 ${entry.gz}`}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      onYearlyMonthSelect?.(entry.month)
-                    }}
-                  >
-                    {entry.month}
-                  </button>
-                ))}
+                <button
+                  type="button"
+                  className={`monthly-badge ${yearlyMonthlyEntry.month === activeYearlyMonth ? 'active' : ''}`}
+                  title={`${yearlyMonthlyEntry.month}月 ${yearlyMonthlyEntry.gz}`}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onYearlyMonthSelect?.(yearlyMonthlyEntry.month)
+                  }}
+                >
+                  {yearlyMonthlyEntry.month}
+                </button>
               </span>
             )}
             ({formatPalaceName(displayPalaceName)})

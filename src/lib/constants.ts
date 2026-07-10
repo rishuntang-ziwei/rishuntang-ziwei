@@ -135,6 +135,36 @@ export const LEFT_PURPLE_STARS = new Set([
 /** 左側第二列（綠色） */
 export const LEFT_GREEN_STARS = new Set(['三台', '八座', '恩光', '天貴'])
 
+/** 主星由右而左的標準順序（最右為紫微） */
+export const MAJOR_STAR_ORDER_RTL = [
+  '紫微',
+  '廉貞',
+  '武曲',
+  '天相',
+  '天府',
+  '七殺',
+  '破軍',
+  '貪狼',
+  '太陽',
+  '太陰',
+  '天機',
+  '巨門',
+  '天同',
+  '天梁',
+] as const
+
+const MAJOR_STAR_ORDER_MAP = new Map<string, number>(
+  MAJOR_STAR_ORDER_RTL.map((name, index) => [name, index]),
+)
+
+/** 依命盤慣例排序主星（畫面由左至右：…天同、天梁 → 紫微在最右） */
+export function sortMajorStars<T extends { name: string }>(stars: T[]): T[] {
+  return [...stars].sort(
+    (a, b) =>
+      (MAJOR_STAR_ORDER_MAP.get(b.name) ?? -1) - (MAJOR_STAR_ORDER_MAP.get(a.name) ?? -1),
+  )
+}
+
 /** 不顯示的輔星／雜曜 */
 export const EXCLUDED_STARS = new Set([
   '天德',

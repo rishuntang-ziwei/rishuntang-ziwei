@@ -3,12 +3,17 @@ import type { PalaceName } from 'iztro/lib/i18n/types/Palace'
 import type { IFunctionalPalace } from 'iztro/lib/astro/FunctionalPalace'
 import type FunctionalAstrolabe from 'iztro/lib/astro/FunctionalAstrolabe'
 import type { CalendarType, InitialChartType } from '../lib/astrolabe'
-import { horoscopeDateForNominalAge, horoscopeDateForYearMonthDay, parseHoroscopeDateParts } from '../lib/astrolabe'
+import {
+  horoscopeDateForNominalAge,
+  horoscopeDateFromLunarYearMonthDay,
+} from '../lib/astrolabe'
 import { branchChartPoint, CHART_VIEW_H, CHART_VIEW_W, shouldShowDecadal } from '../lib/constants'
 import {
   chartModeToScope,
   computeHoroscope,
+  computeYearlyDailyByPalace,
   computeYearlyMonthlyByPalace,
+  getLunarPartsFromHoroscopeDate,
   getSanFangBranchRoles,
   getScopePalaceName,
   resolveEffectiveChartMode,
@@ -53,6 +58,7 @@ export function AstrolabeChart({
   onYearlyYearChange,
 }: AstrolabeChartProps) {
   const [focusPalace, setFocusPalace] = useState<PalaceName>('命宮')
+  const [showYearlyDaily, setShowYearlyDaily] = useState(false)
 
   const chartMode = resolveEffectiveChartMode(initialChartType, viewDecadalChart)
 
@@ -61,9 +67,20 @@ export function AstrolabeChart({
     [astrolabe, horoscopeDate, birthTimeIndex],
   )
 
+  const activeLunar = useMemo(
+    () => getLunarPartsFromHoroscopeDate(horoscopeDate),
+    [horoscopeDate],
+  )
+
   useEffect(() => {
     setFocusPalace('命宮')
   }, [astrolabe, chartMode, horoscopeDate])
+
+  useEffect(() => {
+    if (chartMode !== 'yearly') {
+      setShowYearlyDaily(false)
+    }
+  }, [chartMode])
 
   const palaceByBranch = useMemo(() => {
     const map = new Map<string, (typeof astrolabe.palaces)[0]>()
@@ -81,15 +98,37 @@ export function AstrolabeChart({
 
   const yearlyMonthlyByPalace = useMemo(() => {
     if (chartMode !== 'yearly') return null
-    const year = parseHoroscopeDateParts(horoscopeDate).year
-    return computeYearlyMonthlyByPalace(astrolabe, year, birthTimeIndex)
-  }, [astrolabe, birthTimeIndex, chartMode, horoscopeDate])
+    return computeYearlyMonthlyByPalace(astrolabe, activeLunar.year, birthTimeIndex)
+  }, [astrolabe, activeLunar.year, birthTimeIndex, chartMode])
 
-  const { month: activeYearlyMonth } = parseHoroscopeDateParts(horoscopeDate)
+  const yearlyDailyByPalace = useMemo(() => {
+    if (chartMode !== 'yearly' || !showYearlyDaily) return null
+    return computeYearlyDailyByPalace(
+      astrolabe,
+      activeLunar.year,
+      activeLunar.month,
+      birthTimeIndex,
+      activeLunar.isLeap,
+    )
+  }, [
+    astrolabe,
+    activeLunar.year,
+    activeLunar.month,
+    activeLunar.isLeap,
+    birthTimeIndex,
+    chartMode,
+    showYearlyDaily,
+  ])
 
   const handleYearlyMonthSelect = (month: number) => {
-    const { year, day } = parseHoroscopeDateParts(horoscopeDate)
-    onHoroscopeDateChange(horoscopeDateForYearMonthDay(year, month, day))
+    onHoroscopeDateChange(
+      horoscopeDateFromLunarYearMonthDay(
+        activeLunar.year,
+        month,
+        activeLunar.day,
+        false,
+      ),
+    )
   }
 
   const activeDecadalIndex = chartMode === 'decadal' ? horoscope.decadal.index : -1
@@ -168,6 +207,8 @@ export function AstrolabeChart({
                       onHoroscopeDateChange={onHoroscopeDateChange}
                       yearlyYear={yearlyYear}
                       onYearlyYearChange={onYearlyYearChange}
+                      showYearlyDaily={showYearlyDaily}
+                      onShowYearlyDailyChange={setShowYearlyDaily}
                       onBackToNatal={
                         initialChartType === 'natal' && chartMode === 'decadal'
                           ? () => onViewDecadalChart(false)
@@ -203,12 +244,17 @@ export function AstrolabeChart({
                   onDecadalSelect={
                     initialChartType === 'natal' ? handleDecadalSelect : undefined
                   }
-                  yearlyMonthlyEntries={
+                  yearlyMonthlyEntry={
                     chartMode === 'yearly'
-                      ? yearlyMonthlyByPalace?.get(palace.index) ?? []
+                      ? yearlyMonthlyByPalace?.get(palace.index) ?? null
+                      : null
+                  }
+                  yearlyDailyDays={
+                    chartMode === 'yearly' && showYearlyDaily
+                      ? yearlyDailyByPalace?.get(palace.index) ?? []
                       : undefined
                   }
-                  activeYearlyMonth={activeYearlyMonth}
+                  activeYearlyMonth={activeLunar.month}
                   isActiveMonthlyPalace={
                     chartMode === 'yearly' && horoscope.monthly.index === palace.index
                   }

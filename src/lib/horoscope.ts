@@ -4,6 +4,11 @@ import type { IFunctionalAstrolabe } from 'iztro/lib/astro/FunctionalAstrolabe'
 import type { Mutagen } from 'iztro/lib/i18n/types/mutagen'
 import type { PalaceName } from 'iztro/lib/i18n/types/Palace'
 import type { StarName } from 'iztro/lib/i18n/types/Star'
+import {
+  daysInLunarMonth,
+  horoscopeDateFromLunarYearMonthDay,
+  parseLunarFromSolarDate,
+} from './astrolabe'
 import { getMutagenForStar } from './constants'
 
 export type ChartMode = 'origin' | 'decadal' | 'yearly'
@@ -147,21 +152,44 @@ export interface YearlyMonthlyEntry {
   gz: string
 }
 
-/** 計算指定西元年内，各宮位所對應的流月（1–12 月） */
+/** 依農曆年計算各宮位對應的流月（農曆 1–12 月，每宮僅一個月份） */
 export function computeYearlyMonthlyByPalace(
   astrolabe: FunctionalAstrolabe,
-  year: number,
+  lunarYear: number,
   timeIndex: number,
-): Map<number, YearlyMonthlyEntry[]> {
-  const map = new Map<number, YearlyMonthlyEntry[]>()
+): Map<number, YearlyMonthlyEntry> {
+  const map = new Map<number, YearlyMonthlyEntry>()
   for (let month = 1; month <= 12; month++) {
-    const date = `${year}-${String(month).padStart(2, '0')}-15`
+    const date = horoscopeDateFromLunarYearMonthDay(lunarYear, month, 15, false)
     const h = astrolabe.horoscope(date, timeIndex)
     const idx = h.monthly.index
     const gz = `${h.monthly.heavenlyStem}${h.monthly.earthlyBranch}`
+    map.set(idx, { month, gz })
+  }
+  return map
+}
+
+/** 依選定農曆月，計算各宮位對應的流日（1–30 日） */
+export function computeYearlyDailyByPalace(
+  astrolabe: FunctionalAstrolabe,
+  lunarYear: number,
+  lunarMonth: number,
+  timeIndex: number,
+  isLeapMonth = false,
+): Map<number, number[]> {
+  const map = new Map<number, number[]>()
+  const totalDays = daysInLunarMonth(lunarYear, lunarMonth, isLeapMonth)
+  for (let day = 1; day <= totalDays; day++) {
+    const date = horoscopeDateFromLunarYearMonthDay(lunarYear, lunarMonth, day, isLeapMonth)
+    const h = astrolabe.horoscope(date, timeIndex)
+    const idx = h.daily.index
     const list = map.get(idx) ?? []
-    list.push({ month, gz })
+    list.push(day)
     map.set(idx, list)
   }
   return map
+}
+
+export function getLunarPartsFromHoroscopeDate(date: string) {
+  return parseLunarFromSolarDate(date)
 }
