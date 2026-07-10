@@ -40,10 +40,9 @@ export function getFlowStars(
 ): StarName[] {
   if (mode === 'origin') return []
 
+  if (mode === 'decadal') return []
+
   const decadalStars = horoscope.decadal.stars?.[palaceIndex] ?? []
-  if (mode === 'decadal') {
-    return decadalStars.map((s) => s.name)
-  }
 
   const yearlyStars = horoscope.yearly.stars?.[palaceIndex] ?? []
   const names = new Set<StarName>()

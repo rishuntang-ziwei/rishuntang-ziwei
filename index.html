@@ -35,50 +35,51 @@
     }
 
     .form-panel {
-      width: 240px;
+      width: 320px;
       flex-shrink: 0;
       background: #fff;
       border: 1px solid #999;
-      padding: 12px;
-      font-size: 13px;
+      padding: 16px;
+      font-size: 15px;
     }
 
     .form-panel h2 {
-      font-size: 14px;
-      margin-bottom: 10px;
+      font-size: 17px;
+      margin-bottom: 12px;
       letter-spacing: 0.1em;
     }
 
-    .form-panel label { display: block; margin-bottom: 3px; color: #444; }
+    .form-panel label { display: block; margin-bottom: 4px; color: #444; font-size: 15px; }
     .form-panel input[type="text"],
     .form-panel input[type="date"],
     .form-panel select {
       width: 100%;
-      margin-bottom: 8px;
-      padding: 4px;
+      margin-bottom: 10px;
+      padding: 8px;
       font-family: inherit;
-      font-size: 13px;
+      font-size: 15px;
     }
 
     .form-panel .row { margin-bottom: 6px; }
     .form-panel .inline { display: flex; gap: 10px; align-items: center; }
     .form-panel button {
       width: 100%;
-      margin-top: 6px;
-      padding: 6px;
+      margin-top: 8px;
+      padding: 10px;
       background: #555;
       color: #fff;
       border: none;
       cursor: pointer;
       font-family: inherit;
+      font-size: 16px;
     }
 
     .form-panel input[type="number"] {
       width: 100%;
-      margin-bottom: 8px;
-      padding: 4px;
+      margin-bottom: 10px;
+      padding: 8px;
       font-family: inherit;
-      font-size: 13px;
+      font-size: 15px;
     }
 
     .date-row {
@@ -419,6 +420,39 @@
       color: #333;
       white-space: nowrap;
       min-height: 1em;
+      padding: 0;
+      border: none;
+      background: none;
+      font-family: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .decadal-slot:hover {
+      color: #8b4513;
+      text-decoration: underline;
+    }
+
+    .decadal-slot.active {
+      font-weight: 700;
+      color: var(--line-red);
+    }
+
+    .back-to-natal {
+      display: inline-block;
+      margin-bottom: 6px;
+      padding: 2px 8px;
+      border: 1px solid #8b4513;
+      border-radius: 4px;
+      background: #fff;
+      color: #8b4513;
+      font-family: inherit;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .back-to-natal:hover {
+      background: #fff8e1;
     }
 
     .gz-gan {
@@ -711,6 +745,11 @@
       return `${year}-${String(m).padStart(2, '0')}-${String(day).padStart(2, '0')}`
     }
 
+    function horoscopeDateForNominalAge(solarBirthDate, nominalAge) {
+      const [birthYear] = solarBirthDate.split('-').map(Number)
+      return horoscopeDateForYear(birthYear + nominalAge - 1)
+    }
+
     function updateChartTypeUI() {
       const yearly = document.querySelector('input[name="chartType"]:checked')?.value === 'yearly'
       document.getElementById('yearlyYearRow').classList.toggle('hidden', !yearly)
@@ -759,9 +798,8 @@
     }
 
     function getFlowStars(h, palaceIndex, mode) {
-      if (mode === 'origin' || !h) return []
+      if (mode === 'origin' || mode === 'decadal' || !h) return []
       const decadal = h.decadal.stars?.[palaceIndex] || []
-      if (mode === 'decadal') return decadal.map(s => s.name)
       const yearly = h.yearly.stars?.[palaceIndex] || []
       const names = new Set()
       decadal.forEach(s => names.add(s.name))
@@ -986,15 +1024,17 @@
         brightness: s.brightness,
       }, chartMode, h, a))
 
-      const daxian = chartMode === 'origin' && p.decadal && shouldShowDecadal(p.decadal.range)
+      const daxian = p.decadal && shouldShowDecadal(p.decadal.range)
         ? `${p.decadal.range[0]} - ${p.decadal.range[1]}`
         : ''
+      const isActiveDecadal = chartMode === 'decadal' && h.decadal.index === p.index
+      const daxianHtml = daxian
+        ? `<button type="button" class="decadal-slot ${isActiveDecadal ? 'active' : ''}" data-palace-index="${p.index}" data-age-start="${p.decadal.range[0]}">${daxian}</button>`
+        : '<span class="decadal-slot"></span>'
 
       const displayName = getScopePalaceName(h, p.index, chartMode, p.name)
-      const flowStars = chartMode === 'decadal' ? getFlowStars(h, p.index, chartMode) : []
-      const flowHtml = flowStars.length
-        ? `<div class="stars-center">${renderStarsVertical(flowStars.map(n => ({ name: n })), 'flow', chartMode)}</div>`
-        : ''
+      const flowStars = []
+      const flowHtml = ''
 
       const shen = p.isBodyPalace && chartMode === 'origin' ? '<div class="shen">身</div>' : ''
       const scopeName = getScopePalaceName(h, p.index, chartMode, p.name)
@@ -1013,7 +1053,7 @@
         </div>
         <div class="palace-bottom">
           <div class="palace-footer-grid">
-            <span class="decadal-slot">${daxian}</span>
+            ${daxianHtml}
             <span class="gz-gan">${p.heavenlyStem}</span>
             <div class="palace-label">(${formatPalaceName(displayName)})</div>
             <span class="gz-zhi">${p.earthlyBranch}</span>
@@ -1035,8 +1075,8 @@
         ? `<div class="center-scope">${MODE_TAG[chartMode]}：${scopeGz}${chartMode === 'decadal' && decadalRange ? `<span class="scope-range"> (${decadalRange[0]}–${decadalRange[1]} 歲)</span>` : ''}</div>`
         : ''
 
-      const natalToggle = initialChartType === 'natal'
-        ? `<label><input type="checkbox" id="lineToggle" ${showLines?'checked':''}/> 大限顯示</label>`
+      const backToNatal = initialChartType === 'natal' && chartMode === 'decadal'
+        ? `<button type="button" class="back-to-natal" id="backToNatal">回到本命盤</button>`
         : ''
 
       const yearControl = initialChartType === 'yearly'
@@ -1051,7 +1091,7 @@
         <div class="center-body">
           <div class="center-info">
             <div>
-              ${natalToggle}
+              ${backToNatal}
               ${scopeLine}
               <div class="center-birth">
                 <div>${b.line1}</div>
@@ -1156,8 +1196,20 @@
         })
       })
 
-      document.getElementById('lineToggle')?.addEventListener('change', e => {
-        showLines = e.target.checked
+      document.querySelectorAll('.decadal-slot[data-age-start]').forEach(btn => {
+        btn.addEventListener('click', e => {
+          e.stopPropagation()
+          if (initialChartType !== 'natal') return
+          showLines = true
+          horoscopeDate = horoscopeDateForNominalAge(a.solarDate, Number(btn.dataset.ageStart))
+          selectedPalaceName = '命宮'
+          renderChart(name, a, input)
+        })
+      })
+
+      document.getElementById('backToNatal')?.addEventListener('click', () => {
+        showLines = false
+        horoscopeDate = todaySolarDate()
         selectedPalaceName = '命宮'
         renderChart(name, a, input)
       })

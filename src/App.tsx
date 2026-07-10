@@ -28,7 +28,7 @@ function App() {
   const [input, setInput] = useState<BirthInput>(createDefaultInput)
   const [submitted, setSubmitted] = useState<BirthInput | null>(null)
   const [formError, setFormError] = useState('')
-  const [showDecadal, setShowDecadal] = useState(false)
+  const [viewDecadalChart, setViewDecadalChart] = useState(false)
   const [horoscopeDate, setHoroscopeDate] = useState(todaySolarDate())
   const [yearlyYear, setYearlyYear] = useState(currentGregorianYear())
 
@@ -45,7 +45,7 @@ function App() {
     <div className="app">
       <header className="app-header">
         <h1>紫微斗數線上排盤</h1>
-        <p>排盤時可選本命命盤或流年命盤；本命盤可切換大限顯示</p>
+        <p>排盤時可選本命命盤或流年命盤；本命盤點宮位大限歲數可切換大限</p>
       </header>
 
       <main className="app-main">
@@ -63,7 +63,7 @@ function App() {
                   }
                 }
                 setSubmitted({ ...input })
-                setShowDecadal(false)
+                setViewDecadalChart(false)
                 if (input.initialChartType === 'yearly') {
                   setYearlyYear(input.yearlyYear)
                   setHoroscopeDate(horoscopeDateForYear(input.yearlyYear))
@@ -90,8 +90,11 @@ function App() {
               birthDate={submitted.date}
               birthTimeIndex={submitted.timeIndex}
               initialChartType={submitted.initialChartType}
-              showDecadalIndicator={showDecadal}
-              onToggleDecadal={setShowDecadal}
+              viewDecadalChart={viewDecadalChart}
+              onViewDecadalChart={(value) => {
+                setViewDecadalChart(value)
+                if (!value) setHoroscopeDate(todaySolarDate())
+              }}
               horoscopeDate={horoscopeDate}
               onHoroscopeDateChange={setHoroscopeDate}
               yearlyYear={yearlyYear}

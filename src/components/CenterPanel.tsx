@@ -15,13 +15,12 @@ interface CenterPanelProps {
   calendar: CalendarType
   birthDate: string
   initialChartType: InitialChartType
-  showDecadalIndicator: boolean
-  onToggleDecadal: (value: boolean) => void
   chartMode: ChartMode
   horoscopeDate: string
   onHoroscopeDateChange: (date: string) => void
   yearlyYear: number
   onYearlyYearChange: (year: number) => void
+  onBackToNatal?: () => void
 }
 
 export function CenterPanel({
@@ -31,13 +30,12 @@ export function CenterPanel({
   calendar,
   birthDate,
   initialChartType,
-  showDecadalIndicator,
-  onToggleDecadal,
   chartMode,
   horoscopeDate,
   onHoroscopeDateChange,
   yearlyYear,
   onYearlyYearChange,
+  onBackToNatal,
 }: CenterPanelProps) {
   const birth = centerBirthText(astrolabe, calendar, birthDate)
   const age = horoscope.age.nominalAge
@@ -85,15 +83,10 @@ export function CenterPanel({
       <div className="center-body">
         <div className="center-info">
           <div>
-            {initialChartType === 'natal' && (
-              <label className="decadal-toggle">
-                <input
-                  type="checkbox"
-                  checked={showDecadalIndicator}
-                  onChange={(e) => onToggleDecadal(e.target.checked)}
-                />
-                大限顯示
-              </label>
+            {onBackToNatal && (
+              <button type="button" className="back-to-natal" onClick={onBackToNatal}>
+                回到本命盤
+              </button>
             )}
 
             {scopeGz && (

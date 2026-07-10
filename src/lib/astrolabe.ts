@@ -86,6 +86,16 @@ export function horoscopeDateForYear(year: number, referenceDate = new Date()): 
   return `${year}-${String(m).padStart(2, '0')}-${String(day).padStart(2, '0')}`
 }
 
+/** 依虛歲推算論命日期（用於切換大限） */
+export function horoscopeDateForNominalAge(
+  solarBirthDate: string,
+  nominalAge: number,
+  referenceDate = new Date(),
+): string {
+  const [birthYear] = solarBirthDate.split('-').map(Number)
+  return horoscopeDateForYear(birthYear + nominalAge - 1, referenceDate)
+}
+
 export function currentGregorianYear(referenceDate = new Date()): number {
   return referenceDate.getFullYear()
 }

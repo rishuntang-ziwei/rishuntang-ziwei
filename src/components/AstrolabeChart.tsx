@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { PalaceName } from 'iztro/lib/i18n/types/Palace'
+import type { IFunctionalPalace } from 'iztro/lib/astro/FunctionalPalace'
 import type FunctionalAstrolabe from 'iztro/lib/astro/FunctionalAstrolabe'
 import type { CalendarType, InitialChartType } from '../lib/astrolabe'
-import { branchChartPoint, CHART_VIEW_H, CHART_VIEW_W } from '../lib/constants'
+import { horoscopeDateForNominalAge } from '../lib/astrolabe'
+import { branchChartPoint, CHART_VIEW_H, CHART_VIEW_W, shouldShowDecadal } from '../lib/constants'
 import {
   computeHoroscope,
   getSanFangBranchesForScope,
@@ -19,8 +21,8 @@ interface AstrolabeChartProps {
   birthDate: string
   birthTimeIndex: number
   initialChartType: InitialChartType
-  showDecadalIndicator: boolean
-  onToggleDecadal: (value: boolean) => void
+  viewDecadalChart: boolean
+  onViewDecadalChart: (value: boolean) => void
   horoscopeDate: string
   onHoroscopeDateChange: (date: string) => void
   yearlyYear: number
@@ -41,8 +43,8 @@ export function AstrolabeChart({
   birthDate,
   birthTimeIndex,
   initialChartType,
-  showDecadalIndicator,
-  onToggleDecadal,
+  viewDecadalChart,
+  onViewDecadalChart,
   horoscopeDate,
   onHoroscopeDateChange,
   yearlyYear,
@@ -50,7 +52,7 @@ export function AstrolabeChart({
 }: AstrolabeChartProps) {
   const [focusPalace, setFocusPalace] = useState<PalaceName>('命宮')
 
-  const chartMode = resolveEffectiveChartMode(initialChartType, showDecadalIndicator)
+  const chartMode = resolveEffectiveChartMode(initialChartType, viewDecadalChart)
 
   const horoscope = useMemo(
     () => computeHoroscope(astrolabe, horoscopeDate, birthTimeIndex),
@@ -72,6 +74,17 @@ export function AstrolabeChart({
   const highlightBranches = useMemo(() => {
     return getSanFangBranchesForScope(horoscope, focusPalace, chartMode)
   }, [horoscope, focusPalace, chartMode])
+
+  const activeDecadalIndex = chartMode === 'decadal' ? horoscope.decadal.index : -1
+
+  const handleDecadalSelect = (palace: IFunctionalPalace) => {
+    if (initialChartType !== 'natal') return
+    if (!palace.decadal || !shouldShowDecadal(palace.decadal.range)) return
+    onViewDecadalChart(true)
+    onHoroscopeDateChange(
+      horoscopeDateForNominalAge(astrolabe.solarDate, palace.decadal.range[0]),
+    )
+  }
 
   const lines = useMemo(() => {
     const surrounded =
@@ -132,13 +145,16 @@ export function AstrolabeChart({
                       calendar={calendar}
                       birthDate={birthDate}
                       initialChartType={initialChartType}
-                      showDecadalIndicator={showDecadalIndicator}
-                      onToggleDecadal={onToggleDecadal}
                       chartMode={chartMode}
                       horoscopeDate={horoscopeDate}
                       onHoroscopeDateChange={onHoroscopeDateChange}
                       yearlyYear={yearlyYear}
                       onYearlyYearChange={onYearlyYearChange}
+                      onBackToNatal={
+                        initialChartType === 'natal' && chartMode === 'decadal'
+                          ? () => onViewDecadalChart(false)
+                          : undefined
+                      }
                     />
                   </div>
                 )
@@ -162,9 +178,12 @@ export function AstrolabeChart({
                   palace={palace}
                   highlight={highlightBranches.has(cell)}
                   focused={scopePalaceName === focusPalace}
-                  showDecadal={chartMode === 'origin'}
                   chartMode={chartMode}
                   horoscope={horoscope}
+                  activeDecadalIndex={activeDecadalIndex}
+                  onDecadalSelect={
+                    initialChartType === 'natal' ? handleDecadalSelect : undefined
+                  }
                 />
               </div>
             )

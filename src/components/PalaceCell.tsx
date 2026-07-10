@@ -4,7 +4,6 @@ import { formatPalaceName, shouldShowDecadal, splitPalaceMinors } from '../lib/c
 import {
   type ChartMode,
   getDisplayMutagen,
-  getFlowStars,
   getScopePalaceName,
 } from '../lib/horoscope'
 import { StarDisplay } from './StarDisplay'
@@ -13,9 +12,10 @@ interface PalaceCellProps {
   palace: IFunctionalPalace
   highlight?: boolean
   focused?: boolean
-  showDecadal?: boolean
   chartMode?: ChartMode
   horoscope?: IFunctionalHoroscope | null
+  activeDecadalIndex?: number
+  onDecadalSelect?: (palace: IFunctionalPalace) => void
 }
 
 function mapStarForDisplay(
@@ -44,9 +44,10 @@ export function PalaceCell({
   palace,
   highlight,
   focused,
-  showDecadal,
   chartMode = 'origin',
   horoscope = null,
+  activeDecadalIndex = -1,
+  onDecadalSelect,
 }: PalaceCellProps) {
   const { leftPurple, leftGreen, rightGreen } = splitPalaceMinors([
     ...palace.minorStars.map((s) => ({ name: s.name, mutagen: s.mutagen })),
@@ -56,17 +57,12 @@ export function PalaceCell({
   const mapStar = (s: { name: string; mutagen?: string; brightness?: string }) =>
     mapStarForDisplay(s, chartMode, horoscope)
 
-  const flowStars =
-    horoscope && chartMode === 'decadal'
-      ? getFlowStars(horoscope, palace.index, chartMode)
-      : []
   const displayPalaceName = getScopePalaceName(horoscope, palace.index, chartMode, palace.name)
 
-  const showDecadalRange =
-    chartMode === 'origin' &&
-    showDecadal &&
-    palace.decadal &&
-    shouldShowDecadal(palace.decadal.range)
+  const decadalRange =
+    palace.decadal && shouldShowDecadal(palace.decadal.range) ? palace.decadal.range : null
+  const isActiveDecadal =
+    chartMode === 'decadal' && activeDecadalIndex >= 0 && palace.index === activeDecadalIndex
 
   return (
     <div className={`palace-cell ${highlight ? 'highlight' : ''} ${focused ? 'focus-palace' : ''}`}>
@@ -81,14 +77,6 @@ export function PalaceCell({
             <StarDisplay variant="left-green" stars={leftGreen.map(mapStar)} chartMode={chartMode} />
           </div>
         </div>
-        {flowStars.length > 0 && (
-          <div className="stars-center">
-            <StarDisplay
-              variant="flow"
-              stars={flowStars.map((name) => ({ name }))}
-            />
-          </div>
-        )}
         <div className="stars-right">
           <StarDisplay variant="right-green" stars={rightGreen.map(mapStar)} chartMode={chartMode} />
           <StarDisplay variant="major" stars={palace.majorStars.map(mapStar)} chartMode={chartMode} />
@@ -97,11 +85,20 @@ export function PalaceCell({
 
       <div className="palace-bottom">
         <div className="palace-footer-grid">
-          <span className="decadal-range">
-            {showDecadalRange
-              ? `${palace.decadal!.range[0]} - ${palace.decadal!.range[1]}`
-              : ''}
-          </span>
+          {decadalRange ? (
+            <button
+              type="button"
+              className={`decadal-range ${isActiveDecadal ? 'active' : ''}`}
+              onClick={(e) => {
+                e.stopPropagation()
+                onDecadalSelect?.(palace)
+              }}
+            >
+              {decadalRange[0]} - {decadalRange[1]}
+            </button>
+          ) : (
+            <span className="decadal-range" />
+          )}
           <span className="gz-gan">{palace.heavenlyStem}</span>
           <span className="palace-name">({formatPalaceName(displayPalaceName)})</span>
           <span className="gz-zhi">{palace.earthlyBranch}</span>
