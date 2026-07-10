@@ -501,7 +501,7 @@ body {
 }
 
 .star-vcol.major .vname {
-  color: var(--major-star);
+  color: #0000FF;
   font-weight: 700;
   font-size: 1.43rem;
   letter-spacing: 0.12em;
@@ -509,7 +509,7 @@ body {
 
 .star-vcol.g .vname { color: var(--benefic); font-size: 1.08rem; }
 .star-vcol.g-lg .vname {
-  color: var(--benefic);
+  color: #00FF00;
   font-size: 1.43rem;
   font-weight: 700;
   letter-spacing: 0.12em;
