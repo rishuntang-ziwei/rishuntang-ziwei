@@ -87,3 +87,7 @@ export function revokeUserAdmin(id: number) {
     { method: 'POST' },
   )
 }
+
+export function deleteUserAccount(id: number) {
+  return request<{ message: string }>(`/api/admin/users/${id}`, { method: 'DELETE' })
+}

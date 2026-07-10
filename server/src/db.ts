@@ -108,6 +108,11 @@ export function updateUserRole(id: number, role: 'user' | 'admin'): PublicUser |
   return row ? toPublicUser(row) : undefined
 }
 
+export function deleteUser(id: number): boolean {
+  const result = db.prepare('DELETE FROM users WHERE id = ?').run(id)
+  return result.changes > 0
+}
+
 export async function ensureAdminUser() {
   const email = process.env.ADMIN_EMAIL?.trim().toLowerCase()
   const password = process.env.ADMIN_PASSWORD

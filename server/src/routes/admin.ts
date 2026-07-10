@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import bcrypt from 'bcryptjs'
-import { countAdmins, findUserById, listUsers, updateUserPassword, updateUserRole, updateUserStatus } from '../db.js'
+import { countAdmins, deleteUser, findUserById, listUsers, updateUserPassword, updateUserRole, updateUserStatus } from '../db.js'
 import { requireAdmin, requireAuth } from '../middleware.js'
 
 const router = Router()
@@ -123,6 +123,34 @@ router.post('/users/:id/revoke-admin', (req, res) => {
     return
   }
   res.json({ message: '已取消管理員權限', user })
+})
+
+router.delete('/users/:id', (req, res) => {
+  const id = Number(req.params.id)
+  if (!Number.isFinite(id)) {
+    res.status(400).json({ error: '無效的使用者 ID' })
+    return
+  }
+  if (req.authUser?.id === id) {
+    res.status(400).json({ error: '無法刪除自己的帳號' })
+    return
+  }
+
+  const target = findUserById(id)
+  if (!target) {
+    res.status(404).json({ error: '找不到使用者' })
+    return
+  }
+  if (target.role === 'admin') {
+    res.status(400).json({ error: '請先取消管理員權限，再刪除帳號' })
+    return
+  }
+
+  if (!deleteUser(id)) {
+    res.status(404).json({ error: '找不到使用者' })
+    return
+  }
+  res.json({ message: '帳號已刪除' })
 })
 
 export default router

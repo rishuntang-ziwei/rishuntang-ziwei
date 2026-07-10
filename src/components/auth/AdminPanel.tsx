@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { approveUser, fetchAdminUsers, makeUserAdmin, rejectUser, revokeUserAdmin } from '../../lib/api'
+import { approveUser, deleteUserAccount, fetchAdminUsers, makeUserAdmin, rejectUser, revokeUserAdmin } from '../../lib/api'
 import { useAuth } from '../../context/AuthContext'
 import type { AuthUser } from '../../types/auth'
 
@@ -51,6 +51,12 @@ export function AdminPanel({ onBack }: { onBack: () => void }) {
   async function handleRevokeAdmin(id: number, name: string) {
     if (!confirm(`確定要取消「${name}」的管理員權限？`)) return
     await revokeUserAdmin(id)
+    await loadUsers()
+  }
+
+  async function handleDelete(id: number, name: string) {
+    if (!confirm(`確定要永久刪除「${name}」的帳號？\n此操作無法復原。`)) return
+    await deleteUserAccount(id)
     await loadUsers()
   }
 
@@ -125,15 +131,25 @@ export function AdminPanel({ onBack }: { onBack: () => void }) {
                         <button type="button" onClick={() => handleMakeAdmin(item.id, item.name)}>
                           設為管理員
                         </button>
+                        <button type="button" className="danger" onClick={() => handleDelete(item.id, item.name)}>
+                          刪除
+                        </button>
                       </div>
                     ) : item.status === 'approved' ? (
                       <div className="admin-actions">
                         <button type="button" onClick={() => handleMakeAdmin(item.id, item.name)}>
                           設為管理員
                         </button>
+                        <button type="button" className="danger" onClick={() => handleDelete(item.id, item.name)}>
+                          刪除
+                        </button>
                       </div>
                     ) : (
-                      '—'
+                      <div className="admin-actions">
+                        <button type="button" className="danger" onClick={() => handleDelete(item.id, item.name)}>
+                          刪除
+                        </button>
+                      </div>
                     )}
                   </td>
                 </tr>

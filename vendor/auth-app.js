@@ -50,6 +50,10 @@
       )
     }
 
+    actions.push(
+      '<button type="button" class="danger" data-delete="' + user.id + '" data-name="' + user.name + '">刪除</button>',
+    )
+
     return '<div class="admin-actions">' + actions.join('') + '</div>'
   }
 
@@ -63,6 +67,12 @@
     if (!confirm('確定要取消「' + name + '」的管理員權限？')) return
     await auth.api('/api/admin/users/' + id + '/revoke-admin', { method: 'POST' })
     alert('已取消管理員權限')
+  }
+
+  async function deleteUserAccount(id, name) {
+    if (!confirm('確定要永久刪除「' + name + '」的帳號？\n此操作無法復原。')) return
+    await auth.api('/api/admin/users/' + id, { method: 'DELETE' })
+    alert('帳號已刪除')
   }
 
   async function resetUserPassword(id, name) {
@@ -213,6 +223,17 @@
         btn.addEventListener('click', async function () {
           try {
             await revokeUserAdmin(btn.dataset.revokeAdmin, btn.dataset.name)
+            await renderAdminPanel()
+          } catch (err) {
+            alert(err.message)
+          }
+        })
+      })
+
+      panel.querySelectorAll('[data-delete]').forEach(function (btn) {
+        btn.addEventListener('click', async function () {
+          try {
+            await deleteUserAccount(btn.dataset.delete, btn.dataset.name)
             await renderAdminPanel()
           } catch (err) {
             alert(err.message)
