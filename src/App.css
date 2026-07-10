@@ -347,6 +347,143 @@ body {
   background: #6d3610;
 }
 
+.secondary-btn,
+.danger-btn {
+  width: 100%;
+  margin-top: 0;
+  padding: 0.55rem 0.75rem;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.secondary-btn {
+  background: #fff;
+  color: #333;
+  border: 1px solid #bbb;
+}
+
+.danger-btn {
+  background: #c62828;
+  color: #fff;
+  border: none;
+}
+
+.member-section {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #ddd;
+}
+
+.member-section h3 {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  color: var(--accent);
+}
+
+.member-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.saved-charts-panel input[type='search'] {
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid #bbb;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+}
+
+.saved-chart-list {
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  background: #fafafa;
+}
+
+.saved-chart-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.55rem 0.65rem;
+  border-bottom: 1px solid #eee;
+}
+
+.saved-chart-item:last-child {
+  border-bottom: none;
+}
+
+.saved-chart-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.saved-chart-meta strong {
+  display: block;
+  font-size: 0.95rem;
+}
+
+.saved-chart-meta span {
+  color: #666;
+  font-size: 0.82rem;
+}
+
+.saved-chart-actions {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.saved-chart-actions .secondary-btn,
+.saved-chart-actions .danger-btn {
+  width: auto;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.82rem;
+}
+
+.saved-charts-empty {
+  padding: 0.75rem;
+  text-align: center;
+  color: #888;
+  font-size: 0.9rem;
+}
+
+.admin-chart-search {
+  width: 100%;
+  max-width: 420px;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #bbb;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+@media print {
+  body {
+    background: #fff;
+  }
+
+  .app-header,
+  .sidebar,
+  .password-modal {
+    display: none !important;
+  }
+
+  .app-main {
+    display: block;
+  }
+
+  .chart-section {
+    width: 100%;
+  }
+}
+
 /* ── Chart ── */
 .chart-section {
   display: flex;

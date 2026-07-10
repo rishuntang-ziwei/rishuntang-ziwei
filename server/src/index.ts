@@ -4,6 +4,7 @@ import express from 'express'
 import { ensureAdminUser } from './db.js'
 import authRoutes from './routes/auth.js'
 import adminRoutes from './routes/admin.js'
+import chartRoutes from './routes/charts.js'
 
 const app = express()
 const port = Number(process.env.PORT || 3001)
@@ -17,6 +18,7 @@ app.get('/api/health', (_req, res) => {
 
 app.use('/api/auth', authRoutes)
 app.use('/api/admin', adminRoutes)
+app.use('/api/charts', chartRoutes)
 
 await ensureAdminUser()
 

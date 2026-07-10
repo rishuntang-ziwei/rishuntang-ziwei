@@ -28,3 +28,43 @@ export interface JwtPayload {
   sub: number
   role: UserRole
 }
+
+export type ChartGender = '男' | '女'
+export type ChartCalendar = 'lunar' | 'solar'
+export type InitialChartType = 'natal' | 'yearly'
+
+export interface SavedChartPayload {
+  name: string
+  gender: ChartGender
+  calendar: ChartCalendar
+  date: string
+  timeIndex: number
+  isLeap: boolean
+  initialChartType: InitialChartType
+  yearlyYear: number
+  bazi: string
+}
+
+export interface SavedChartRow {
+  id: number
+  user_id: number
+  subject_name: string
+  gender: ChartGender
+  bazi: string
+  payload: string
+  created_at: string
+  updated_at: string
+}
+
+export interface SavedChartSummary {
+  id: number
+  subjectName: string
+  gender: ChartGender
+  bazi: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface SavedChartDetail extends SavedChartSummary {
+  payload: SavedChartPayload
+}

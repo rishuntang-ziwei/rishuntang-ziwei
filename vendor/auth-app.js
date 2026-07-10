@@ -41,11 +41,13 @@
       )
     } else if (user.status === 'approved') {
       actions.push(
+        '<button type="button" data-view-charts="' + user.id + '" data-name="' + user.name + '">查看命盤</button>',
         '<button type="button" data-reset="' + user.id + '" data-name="' + user.name + '">重設密碼</button>',
         '<button type="button" data-make-admin="' + user.id + '" data-name="' + user.name + '">設為管理員</button>',
       )
     } else {
       actions.push(
+        '<button type="button" data-view-charts="' + user.id + '" data-name="' + user.name + '">查看命盤</button>',
         '<button type="button" data-reset="' + user.id + '" data-name="' + user.name + '">重設密碼</button>',
       )
     }
@@ -146,6 +148,69 @@
     })
   }
 
+  let adminChartSearchTimer = null
+
+  async function renderUserChartsPanel(userId, userName) {
+    const panel = document.getElementById('adminPanel')
+    if (!panel) return
+
+    setView('admin')
+    panel.innerHTML = '<div class="auth-card"><p>載入中…</p></div>'
+
+    async function loadCharts(search) {
+      const q = search && search.trim() ? '?q=' + encodeURIComponent(search.trim()) : ''
+      const data = await auth.api('/api/admin/users/' + userId + '/charts' + q)
+      const charts = data.charts || []
+      const rows = charts.length
+        ? charts.map(function (chart) {
+            return (
+              '<tr>' +
+                '<td>' + chart.subjectName + '</td>' +
+                '<td>' + chart.gender + '</td>' +
+                '<td>' + chart.bazi + '</td>' +
+                '<td>' + new Date(chart.createdAt).toLocaleString('zh-TW') + '</td>' +
+              '</tr>'
+            )
+          }).join('')
+        : '<tr><td colspan="4" style="text-align:center;color:#888;">尚無已存命盤</td></tr>'
+
+      panel.innerHTML =
+        '<div id="adminPanelInner">' +
+          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">' +
+            '<h2>「' + userName + '」的已存命盤</h2>' +
+            '<button type="button" id="backToAdminBtn">返回會員管理</button>' +
+          '</div>' +
+          '<input type="search" id="adminChartSearch" placeholder="搜尋姓名…" style="width:100%;padding:8px;margin-bottom:12px;font-family:inherit;" />' +
+          '<table>' +
+            '<thead><tr><th>姓名</th><th>性別</th><th>八字</th><th>儲存時間</th></tr></thead>' +
+            '<tbody>' + rows + '</tbody>' +
+          '</table>' +
+        '</div>'
+
+      document.getElementById('backToAdminBtn').addEventListener('click', function () {
+        renderAdminPanel()
+      })
+
+      const searchInput = document.getElementById('adminChartSearch')
+      if (searchInput) {
+        searchInput.value = search || ''
+        searchInput.addEventListener('input', function (e) {
+          clearTimeout(adminChartSearchTimer)
+          const value = e.target.value
+          adminChartSearchTimer = setTimeout(function () {
+            loadCharts(value)
+          }, 250)
+        })
+      }
+    }
+
+    try {
+      await loadCharts('')
+    } catch (err) {
+      panel.innerHTML = '<div class="auth-card auth-error">' + err.message + '</div>'
+    }
+  }
+
   async function renderAdminPanel() {
     const panel = document.getElementById('adminPanel')
     if (!panel) return
@@ -235,6 +300,16 @@
           try {
             await deleteUserAccount(btn.dataset.delete, btn.dataset.name)
             await renderAdminPanel()
+          } catch (err) {
+            alert(err.message)
+          }
+        })
+      })
+
+      panel.querySelectorAll('[data-view-charts]').forEach(function (btn) {
+        btn.addEventListener('click', async function () {
+          try {
+            await renderUserChartsPanel(btn.dataset.viewCharts, btn.dataset.name)
           } catch (err) {
             alert(err.message)
           }

@@ -55,6 +55,11 @@ export function getYearStemBranch(astrolabe: FunctionalAstrolabe): string {
   return `${yearly[0]}${yearly[1]}`
 }
 
+export function formatBazi(astrolabe: FunctionalAstrolabe): string {
+  const { yearly, monthly, daily, hourly } = astrolabe.rawDates.chineseDate
+  return `${yearly[0]}${yearly[1]} ${monthly[0]}${monthly[1]} ${daily[0]}${daily[1]} ${hourly[0]}${hourly[1]}`
+}
+
 export function getSoulPalace(astrolabe: FunctionalAstrolabe): IFunctionalPalace {
   return astrolabe.palace('命宮')!
 }

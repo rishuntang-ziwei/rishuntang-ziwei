@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import bcrypt from 'bcryptjs'
-import { countAdmins, deleteUser, findUserById, listUsers, updateUserPassword, updateUserRole, updateUserStatus } from '../db.js'
+import { countAdmins, deleteUser, findUserById, listSavedChartsByUser, listUsers, updateUserPassword, updateUserRole, updateUserStatus } from '../db.js'
 import { requireAdmin, requireAuth } from '../middleware.js'
 
 const router = Router()
@@ -9,6 +9,31 @@ router.use(requireAuth, requireAdmin)
 
 router.get('/users', (_req, res) => {
   res.json({ users: listUsers() })
+})
+
+router.get('/users/:id/charts', (req, res) => {
+  const id = Number(req.params.id)
+  if (!Number.isFinite(id)) {
+    res.status(400).json({ error: '無效的使用者 ID' })
+    return
+  }
+
+  const target = findUserById(id)
+  if (!target) {
+    res.status(404).json({ error: '找不到使用者' })
+    return
+  }
+
+  const search = typeof req.query.q === 'string' ? req.query.q : undefined
+  const charts = listSavedChartsByUser(id, search)
+  res.json({
+    user: {
+      id: target.id,
+      name: target.name,
+      email: target.email,
+    },
+    charts,
+  })
 })
 
 router.post('/users/:id/approve', (req, res) => {

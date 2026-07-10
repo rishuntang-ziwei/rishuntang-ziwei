@@ -77,6 +77,138 @@
       font-size: 16px;
     }
 
+    .form-panel button.secondary {
+      background: #fff;
+      color: #333;
+      border: 1px solid #bbb;
+    }
+
+    .member-section {
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid #ddd;
+    }
+
+    .member-section h3 {
+      font-size: 15px;
+      margin-bottom: 10px;
+      letter-spacing: 0.08em;
+    }
+
+    .member-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .member-actions button {
+      margin-top: 0;
+    }
+
+    .saved-charts-panel {
+      margin-top: 12px;
+    }
+
+    .saved-charts-panel input[type="search"] {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 8px;
+      font-family: inherit;
+      font-size: 14px;
+    }
+
+    .saved-chart-list {
+      max-height: 220px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      background: #fafafa;
+    }
+
+    .saved-chart-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 10px;
+      border-bottom: 1px solid #eee;
+      font-size: 13px;
+    }
+
+    .saved-chart-item:last-child { border-bottom: none; }
+
+    .saved-chart-meta {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .saved-chart-meta strong {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 2px;
+    }
+
+    .saved-chart-meta span {
+      color: #666;
+      font-size: 12px;
+    }
+
+    .saved-chart-actions {
+      display: flex;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .saved-chart-actions button {
+      width: auto;
+      margin-top: 0;
+      padding: 4px 8px;
+      font-size: 12px;
+    }
+
+    .saved-chart-actions button.danger {
+      background: #c62828;
+    }
+
+    .saved-charts-empty {
+      padding: 12px;
+      text-align: center;
+      color: #888;
+      font-size: 13px;
+    }
+
+    @media print {
+      body {
+        background: #fff;
+        padding: 0;
+      }
+
+      #userBar,
+      #adminPanel,
+      .form-panel,
+      .password-modal {
+        display: none !important;
+      }
+
+      .layout {
+        display: block;
+        max-width: none;
+      }
+
+      .chart-panel {
+        width: 100%;
+      }
+
+      .chart-outer {
+        max-width: none;
+        width: 100%;
+        border: 2px double #222;
+      }
+
+      .palace-cell.dimmed {
+        opacity: 1 !important;
+      }
+    }
+
     .form-panel input[type="number"] {
       width: 100%;
       margin-bottom: 10px;
@@ -958,6 +1090,21 @@
         </select>
       </div>
       <button type="button" id="submitBtn">開始排盤</button>
+
+      <div class="member-section">
+        <h3>會員功能</h3>
+        <div class="member-actions">
+          <button type="button" id="printChartBtn" class="secondary">列印命盤</button>
+          <button type="button" id="saveChartBtn" class="secondary">儲存命盤</button>
+        </div>
+
+        <div class="saved-charts-panel">
+          <input type="search" id="savedChartSearch" placeholder="搜尋已存姓名…" />
+          <div class="saved-chart-list" id="savedChartList">
+            <div class="saved-charts-empty">載入中…</div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="chart-panel" id="chartPanel">
@@ -1351,6 +1498,128 @@
         initialChartType: chartType,
         yearlyYear: chartType === 'yearly' ? yearVal : new Date().getFullYear(),
       }
+    }
+
+    function formatBazi(a) {
+      const { yearly, monthly, daily, hourly } = a.rawDates.chineseDate
+      return `${yearly[0]}${yearly[1]} ${monthly[0]}${monthly[1]} ${daily[0]}${daily[1]} ${hourly[0]}${hourly[1]}`
+    }
+
+    function applyInputToForm(input) {
+      document.getElementById('name').value = input.name || ''
+      document.querySelectorAll('input[name="gender"]').forEach(el => {
+        el.checked = el.value === input.gender
+      })
+      document.querySelectorAll('input[name="calendar"]').forEach(el => {
+        el.checked = el.value === input.calendar
+      })
+      if (input.calendar === 'lunar') {
+        const [y, m, d] = normalizeDate(input.date).split('-')
+        document.getElementById('lunarYear').value = y
+        document.getElementById('lunarMonth').value = m
+        document.getElementById('lunarDay').value = d
+        document.getElementById('solarDate').value = ''
+      } else {
+        document.getElementById('solarDate').value = input.date
+        document.getElementById('lunarYear').value = ''
+        document.getElementById('lunarMonth').value = ''
+        document.getElementById('lunarDay').value = ''
+      }
+      document.getElementById('isLeap').checked = Boolean(input.isLeap)
+      document.querySelectorAll('input[name="chartType"]').forEach(el => {
+        el.checked = el.value === (input.initialChartType || 'natal')
+      })
+      document.getElementById('yearlyYear').value = input.yearlyYear || new Date().getFullYear()
+      document.getElementById('time').value = String(input.timeIndex)
+      updateCalendarUI()
+      updateChartTypeUI()
+    }
+
+    function buildSavePayload(input, a) {
+      return {
+        name: input.name,
+        gender: input.gender,
+        calendar: input.calendar,
+        date: input.date,
+        timeIndex: input.timeIndex,
+        isLeap: input.isLeap,
+        initialChartType: input.initialChartType,
+        yearlyYear: input.yearlyYear,
+        bazi: formatBazi(a),
+      }
+    }
+
+    let savedChartSearchTimer = null
+
+    function renderSavedChartList(charts) {
+      const list = document.getElementById('savedChartList')
+      if (!list) return
+      if (!charts.length) {
+        list.innerHTML = '<div class="saved-charts-empty">尚無已存命盤</div>'
+        return
+      }
+      list.innerHTML = charts.map(function (chart) {
+        return (
+          '<div class="saved-chart-item">' +
+            '<div class="saved-chart-meta">' +
+              '<strong>' + chart.subjectName + '</strong>' +
+              '<span>' + chart.gender + ' · ' + chart.bazi + '</span>' +
+            '</div>' +
+            '<div class="saved-chart-actions">' +
+              '<button type="button" class="secondary" data-load-chart="' + chart.id + '">提取</button>' +
+              '<button type="button" class="danger" data-delete-chart="' + chart.id + '" data-name="' + chart.subjectName + '">刪除</button>' +
+            '</div>' +
+          '</div>'
+        )
+      }).join('')
+
+      list.querySelectorAll('[data-load-chart]').forEach(function (btn) {
+        btn.addEventListener('click', async function () {
+          try {
+            const data = await window.ZiweiAuth.api('/api/charts/' + btn.dataset.loadChart)
+            applyInputToForm(data.chart.payload)
+            run()
+          } catch (err) {
+            alert(err.message || '載入失敗')
+          }
+        })
+      })
+
+      list.querySelectorAll('[data-delete-chart]').forEach(function (btn) {
+        btn.addEventListener('click', async function () {
+          if (!confirm('確定要刪除「' + btn.dataset.name + '」的命盤？')) return
+          try {
+            await window.ZiweiAuth.api('/api/charts/' + btn.dataset.deleteChart, { method: 'DELETE' })
+            await loadSavedCharts(document.getElementById('savedChartSearch')?.value || '')
+          } catch (err) {
+            alert(err.message || '刪除失敗')
+          }
+        })
+      })
+    }
+
+    async function loadSavedCharts(search) {
+      const list = document.getElementById('savedChartList')
+      if (!list) return
+      try {
+        const q = search && search.trim() ? '?q=' + encodeURIComponent(search.trim()) : ''
+        const data = await window.ZiweiAuth.api('/api/charts' + q)
+        renderSavedChartList(data.charts || [])
+      } catch (err) {
+        list.innerHTML = '<div class="saved-charts-empty">' + (err.message || '載入失敗') + '</div>'
+      }
+    }
+
+    async function saveCurrentChart() {
+      const input = getInput()
+      const a = compute(input)
+      const payload = buildSavePayload(input, a)
+      await window.ZiweiAuth.api('/api/charts', {
+        method: 'POST',
+        body: JSON.stringify({ payload }),
+      })
+      alert('命盤已儲存')
+      await loadSavedCharts(document.getElementById('savedChartSearch')?.value || '')
     }
 
     function normalizeDate(date) {
@@ -1763,6 +2032,33 @@
     }
 
     document.getElementById('submitBtn').addEventListener('click', run)
+
+    document.getElementById('printChartBtn')?.addEventListener('click', function () {
+      const panel = document.getElementById('chartPanel')
+      if (!panel || panel.querySelector('.chart-placeholder') || panel.querySelector('.error-box')) {
+        alert('請先完成排盤後再列印')
+        return
+      }
+      window.print()
+    })
+
+    document.getElementById('saveChartBtn')?.addEventListener('click', async function () {
+      try {
+        await saveCurrentChart()
+      } catch (err) {
+        alert(err.message || '儲存失敗')
+      }
+    })
+
+    document.getElementById('savedChartSearch')?.addEventListener('input', function (e) {
+      clearTimeout(savedChartSearchTimer)
+      const value = e.target.value
+      savedChartSearchTimer = setTimeout(function () {
+        loadSavedCharts(value)
+      }, 250)
+    })
+
+    loadSavedCharts('')
 
     document.querySelectorAll('input[name="calendar"]').forEach(el => {
       el.addEventListener('change', () => {

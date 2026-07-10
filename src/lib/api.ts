@@ -4,6 +4,12 @@ import type {
   RegisterResponse,
   UsersResponse,
 } from '../types/auth'
+import type {
+  AdminUserChartsResponse,
+  SavedChartPayload,
+  SavedChartResponse,
+  SavedChartsResponse,
+} from '../types/charts'
 
 const TOKEN_KEY = 'ziwei_auth_token'
 
@@ -90,4 +96,29 @@ export function revokeUserAdmin(id: number) {
 
 export function deleteUserAccount(id: number) {
   return request<{ message: string }>(`/api/admin/users/${id}`, { method: 'DELETE' })
+}
+
+export function fetchSavedCharts(search?: string) {
+  const q = search?.trim() ? `?q=${encodeURIComponent(search.trim())}` : ''
+  return request<SavedChartsResponse>(`/api/charts${q}`)
+}
+
+export function saveChart(payload: SavedChartPayload) {
+  return request<SavedChartResponse>('/api/charts', {
+    method: 'POST',
+    body: JSON.stringify({ payload }),
+  })
+}
+
+export function fetchSavedChart(id: number) {
+  return request<SavedChartResponse>(`/api/charts/${id}`)
+}
+
+export function deleteSavedChart(id: number) {
+  return request<{ message: string }>(`/api/charts/${id}`, { method: 'DELETE' })
+}
+
+export function fetchAdminUserCharts(userId: number, search?: string) {
+  const q = search?.trim() ? `?q=${encodeURIComponent(search.trim())}` : ''
+  return request<AdminUserChartsResponse>(`/api/admin/users/${userId}/charts${q}`)
 }

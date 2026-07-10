@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import type FunctionalAstrolabe from 'iztro/lib/astro/FunctionalAstrolabe'
 import { AstrolabeChart } from './components/AstrolabeChart'
 import { BirthForm } from './components/BirthForm'
+import { SavedChartsPanel } from './components/SavedChartsPanel'
 import { useAuth } from './context/AuthContext'
 import {
   computeAstrolabe,
@@ -32,6 +33,29 @@ export function ChartApp({ onOpenAdmin }: { onOpenAdmin?: () => void }) {
   const [viewDecadalChart, setViewDecadalChart] = useState(false)
   const [horoscopeDate, setHoroscopeDate] = useState(todaySolarDate())
   const [yearlyYear, setYearlyYear] = useState(currentGregorianYear())
+
+  function submitInput(next: BirthInput) {
+    setFormError('')
+    try {
+      computeAstrolabe(next)
+      if (next.initialChartType === 'yearly') {
+        if (!next.yearlyYear || next.yearlyYear < 1900 || next.yearlyYear > 2100) {
+          throw new Error('請輸入有效的流年年份（西元）')
+        }
+      }
+      setSubmitted({ ...next })
+      setViewDecadalChart(false)
+      if (next.initialChartType === 'yearly') {
+        setYearlyYear(next.yearlyYear)
+        setHoroscopeDate(horoscopeDateForYear(next.yearlyYear))
+      } else {
+        setHoroscopeDate(todaySolarDate())
+      }
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : '請檢查輸入資料')
+      setSubmitted(null)
+    }
+  }
 
   const astrolabe = useMemo<FunctionalAstrolabe | null>(() => {
     if (!submitted) return null
@@ -69,29 +93,16 @@ export function ChartApp({ onOpenAdmin }: { onOpenAdmin?: () => void }) {
           <BirthForm
             input={input}
             onChange={setInput}
-            onSubmit={() => {
-              setFormError('')
-              try {
-                computeAstrolabe(input)
-                if (input.initialChartType === 'yearly') {
-                  if (!input.yearlyYear || input.yearlyYear < 1900 || input.yearlyYear > 2100) {
-                    throw new Error('請輸入有效的流年年份（西元）')
-                  }
-                }
-                setSubmitted({ ...input })
-                setViewDecadalChart(false)
-                if (input.initialChartType === 'yearly') {
-                  setYearlyYear(input.yearlyYear)
-                  setHoroscopeDate(horoscopeDateForYear(input.yearlyYear))
-                } else {
-                  setHoroscopeDate(todaySolarDate())
-                }
-              } catch (err) {
-                setFormError(err instanceof Error ? err.message : '請檢查輸入資料')
-                setSubmitted(null)
-              }
-            }}
+            onSubmit={() => submitInput(input)}
             error={formError}
+          />
+          <SavedChartsPanel
+            input={input}
+            hasChart={Boolean(submitted && astrolabe)}
+            onLoad={(loaded) => {
+              setInput(loaded)
+              submitInput(loaded)
+            }}
           />
         </aside>
 

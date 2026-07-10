@@ -3,7 +3,14 @@ import bcrypt from 'bcryptjs'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import type { PublicUser, UserRow } from './types.js'
+import type {
+  PublicUser,
+  SavedChartDetail,
+  SavedChartPayload,
+  SavedChartRow,
+  SavedChartSummary,
+  UserRow,
+} from './types.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const dataDir = process.env.DB_PATH
@@ -27,7 +34,42 @@ db.exec(`
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     approved_at TEXT
   );
+
+  CREATE TABLE IF NOT EXISTS saved_charts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    subject_name TEXT NOT NULL,
+    gender TEXT NOT NULL CHECK(gender IN ('男', '女')),
+    bazi TEXT NOT NULL,
+    payload TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_saved_charts_user_name ON saved_charts(user_id, subject_name);
 `)
+
+function parseSavedChartPayload(raw: string): SavedChartPayload {
+  return JSON.parse(raw) as SavedChartPayload
+}
+
+function toSavedChartSummary(row: SavedChartRow): SavedChartSummary {
+  return {
+    id: row.id,
+    subjectName: row.subject_name,
+    gender: row.gender,
+    bazi: row.bazi,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  }
+}
+
+function toSavedChartDetail(row: SavedChartRow): SavedChartDetail {
+  return {
+    ...toSavedChartSummary(row),
+    payload: parseSavedChartPayload(row.payload),
+  }
+}
 
 function toPublicUser(row: UserRow): PublicUser {
   return {
@@ -110,6 +152,56 @@ export function updateUserRole(id: number, role: 'user' | 'admin'): PublicUser |
 
 export function deleteUser(id: number): boolean {
   const result = db.prepare('DELETE FROM users WHERE id = ?').run(id)
+  return result.changes > 0
+}
+
+export function listSavedChartsByUser(userId: number, search?: string): SavedChartSummary[] {
+  const q = search?.trim()
+  const rows = q
+    ? (db
+        .prepare(
+          `SELECT * FROM saved_charts
+           WHERE user_id = ? AND subject_name LIKE ?
+           ORDER BY updated_at DESC, id DESC`,
+        )
+        .all(userId, `%${q}%`) as SavedChartRow[])
+    : (db
+        .prepare(
+          `SELECT * FROM saved_charts
+           WHERE user_id = ?
+           ORDER BY updated_at DESC, id DESC`,
+        )
+        .all(userId) as SavedChartRow[])
+  return rows.map(toSavedChartSummary)
+}
+
+export function findSavedChartById(id: number): SavedChartRow | undefined {
+  return db.prepare('SELECT * FROM saved_charts WHERE id = ?').get(id) as SavedChartRow | undefined
+}
+
+export function findSavedChartForUser(id: number, userId: number): SavedChartRow | undefined {
+  return db
+    .prepare('SELECT * FROM saved_charts WHERE id = ? AND user_id = ?')
+    .get(id, userId) as SavedChartRow | undefined
+}
+
+export function createSavedChart(userId: number, payload: SavedChartPayload): SavedChartDetail {
+  const name = payload.name.trim()
+  const bazi = payload.bazi.trim()
+  const payloadJson = JSON.stringify(payload)
+  const result = db
+    .prepare(
+      `INSERT INTO saved_charts (user_id, subject_name, gender, bazi, payload)
+       VALUES (?, ?, ?, ?, ?)`,
+    )
+    .run(userId, name, payload.gender, bazi, payloadJson)
+  const row = findSavedChartById(Number(result.lastInsertRowid))
+  if (!row) throw new Error('儲存命盤失敗')
+  return toSavedChartDetail(row)
+}
+
+export function deleteSavedChart(id: number, userId: number): boolean {
+  const result = db.prepare('DELETE FROM saved_charts WHERE id = ? AND user_id = ?').run(id, userId)
   return result.changes > 0
 }
 

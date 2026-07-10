@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { approveUser, deleteUserAccount, fetchAdminUsers, makeUserAdmin, rejectUser, revokeUserAdmin } from '../../lib/api'
 import { useAuth } from '../../context/AuthContext'
 import type { AuthUser } from '../../types/auth'
+import { AdminUserChartsPanel } from './AdminUserChartsPanel'
 
 function statusLabel(status: AuthUser['status']) {
   if (status === 'pending') return '待審核'
@@ -14,6 +15,7 @@ export function AdminPanel({ onBack }: { onBack: () => void }) {
   const [users, setUsers] = useState<AuthUser[]>([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
+  const [viewingCharts, setViewingCharts] = useState<{ id: number; name: string } | null>(null)
 
   const loadUsers = useCallback(async () => {
     setLoading(true)
@@ -58,6 +60,16 @@ export function AdminPanel({ onBack }: { onBack: () => void }) {
     if (!confirm(`確定要永久刪除「${name}」的帳號？\n此操作無法復原。`)) return
     await deleteUserAccount(id)
     await loadUsers()
+  }
+
+  if (viewingCharts) {
+    return (
+      <AdminUserChartsPanel
+        userId={viewingCharts.id}
+        userName={viewingCharts.name}
+        onBack={() => setViewingCharts(null)}
+      />
+    )
   }
 
   return (
@@ -137,6 +149,12 @@ export function AdminPanel({ onBack }: { onBack: () => void }) {
                       </div>
                     ) : item.status === 'approved' ? (
                       <div className="admin-actions">
+                        <button
+                          type="button"
+                          onClick={() => setViewingCharts({ id: item.id, name: item.name })}
+                        >
+                          查看命盤
+                        </button>
                         <button type="button" onClick={() => handleMakeAdmin(item.id, item.name)}>
                           設為管理員
                         </button>
@@ -146,6 +164,12 @@ export function AdminPanel({ onBack }: { onBack: () => void }) {
                       </div>
                     ) : (
                       <div className="admin-actions">
+                        <button
+                          type="button"
+                          onClick={() => setViewingCharts({ id: item.id, name: item.name })}
+                        >
+                          查看命盤
+                        </button>
                         <button type="button" className="danger" onClick={() => handleDelete(item.id, item.name)}>
                           刪除
                         </button>
