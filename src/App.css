@@ -638,13 +638,14 @@ body {
   position: absolute;
   left: 0;
   right: 0;
-  top: calc(52% + 2.4em);
-  z-index: 2;
+  bottom: 56px;
+  z-index: 4;
   font-size: 0.88rem;
   line-height: 1.3;
   color: #2e7d32;
   letter-spacing: 0;
   text-align: center;
+  white-space: nowrap;
   pointer-events: none;
 }
 
@@ -676,6 +677,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: flex-end;
+  z-index: 1;
 }
 
 .palace-footer-grid {

@@ -164,14 +164,27 @@
       position: absolute;
       left: 0;
       right: 0;
-      top: calc(52% + 2.4em);
-      z-index: 2;
+      bottom: 56px;
+      z-index: 4;
       font-size: 14px;
       line-height: 1.3;
       color: var(--green);
       letter-spacing: 0;
       text-align: center;
+      white-space: nowrap;
       pointer-events: none;
+    }
+
+    .palace-bottom {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 51px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      z-index: 1;
     }
 
     .daily-day {
@@ -448,17 +461,6 @@
       font-size: 12px;
       padding: 2px 4px;
       width: 100%;
-    }
-
-    .palace-bottom {
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      height: 51px;
-      display: flex;
-      justify-content: center;
-      align-items: flex-end;
     }
 
     .palace-footer-grid {
@@ -1096,7 +1098,8 @@
 
     function daysInLunarMonth(lunarYear, lunarMonth, isLeapMonth = false) {
       const ym = isLeapMonth ? -lunarMonth : lunarMonth
-      return LunarMonth.fromYm(lunarYear, ym).getDayCount()
+      const month = LunarMonth.fromYm(lunarYear, ym)
+      return month ? month.getDayCount() : 30
     }
 
     function horoscopeDateFromLunarYearMonthDay(lunarYear, lunarMonth, lunarDay, isLeapMonth = false) {
@@ -1465,7 +1468,7 @@
         ? `<span class="monthly-badge ${yearlyMonthSelected && monthlyEntry.month === activeLunar.month ? 'active' : ''}" title="${monthlyEntry.month}月 ${monthlyEntry.gz}">${monthlyEntry.month}</span>`
         : ''
       const dailyDaysHtml = dailyDays.length
-        ? `<div class="daily-days">${dailyDays.join(',')}</div>`
+        ? `<div class="daily-days">${dailyDays.join(', ')}</div>`
         : ''
 
       return `<div class="palace ${hl} ${focus} ${activeMonthly}" data-scope-palace="${scopeName}" data-flow-month="${monthlyEntry ? monthlyEntry.month : ''}" title="單擊：三方四正；雙擊：流月命宮">

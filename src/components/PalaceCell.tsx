@@ -94,7 +94,7 @@ export function PalaceCell({
       {palace.isBodyPalace && chartMode === 'origin' && <span className="body-badge">身</span>}
 
       {yearlyDailyDays && yearlyDailyDays.length > 0 && (
-        <div className="daily-days">{yearlyDailyDays.join(',')}</div>
+        <div className="daily-days">{yearlyDailyDays.join(', ')}</div>
       )}
 
       <div className="palace-stars">
