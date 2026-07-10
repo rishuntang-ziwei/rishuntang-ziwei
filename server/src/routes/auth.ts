@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import bcrypt from 'bcryptjs'
-import { createUser, findUserByEmail } from '../db.js'
+import { createUser, findUserByEmail, updateUserPassword } from '../db.js'
 import { requireAuth, signToken } from '../middleware.js'
 
 const router = Router()
@@ -96,6 +96,35 @@ router.post('/login', async (req, res) => {
 
 router.get('/me', requireAuth, (req, res) => {
   res.json({ user: req.authUser })
+})
+
+router.post('/change-password', requireAuth, async (req, res) => {
+  const currentPassword = String(req.body?.currentPassword ?? '')
+  const newPassword = String(req.body?.newPassword ?? '')
+  const confirmPassword = String(req.body?.confirmPassword ?? '')
+
+  if (!currentPassword || !newPassword) {
+    res.status(400).json({ error: '請填寫目前密碼與新密碼' })
+    return
+  }
+  if (newPassword.length < 8) {
+    res.status(400).json({ error: '新密碼至少 8 個字元' })
+    return
+  }
+  if (newPassword !== confirmPassword) {
+    res.status(400).json({ error: '兩次新密碼不一致' })
+    return
+  }
+
+  const user = findUserByEmail(req.authUser!.email)
+  if (!user || !(await bcrypt.compare(currentPassword, user.password_hash))) {
+    res.status(401).json({ error: '目前密碼錯誤' })
+    return
+  }
+
+  const passwordHash = await bcrypt.hash(newPassword, 10)
+  updateUserPassword(user.id, passwordHash)
+  res.json({ message: '密碼已更新' })
 })
 
 export default router

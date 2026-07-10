@@ -761,6 +761,73 @@
     #adminPanel .danger {
       color: #c62828;
     }
+
+    .password-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      z-index: 100;
+    }
+
+    .password-modal-card {
+      width: min(100%, 400px);
+      background: #fff;
+      border: 1px solid #999;
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .password-modal-card h3 {
+      margin: 0 0 12px;
+      font-size: 18px;
+    }
+
+    .password-modal-card label {
+      display: block;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    .password-modal-card input {
+      display: block;
+      width: 100%;
+      margin-top: 4px;
+      padding: 8px;
+      font-family: inherit;
+      font-size: 15px;
+      border: 1px solid #bbb;
+      border-radius: 6px;
+    }
+
+    .password-modal-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .password-modal-actions button {
+      flex: 1;
+      padding: 10px;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    .password-modal-actions .primary {
+      border: none;
+      background: #555;
+      color: #fff;
+    }
+
+    .password-modal-actions .secondary {
+      border: 1px solid #bbb;
+      background: #fff;
+    }
   </style>
   <script>
     window.API_BASE = window.API_BASE || (

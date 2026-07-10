@@ -16,6 +16,7 @@
       '<form id="loginForm" class="auth-form">' +
         '<h2>會員登入</h2>' +
         '<p class="auth-note">請使用已開通的 Email 與密碼登入</p>' +
+        '<p class="auth-note auth-note-muted">忘記密碼？請聯絡管理員，提供註冊時的姓名與電話協助重設。</p>' +
         '<label>Email<input type="email" name="email" required></label>' +
         '<label>密碼<input type="password" name="password" required minlength="8"></label>' +
         '<div class="auth-error" id="loginError" hidden></div>' +

@@ -83,6 +83,12 @@ export function updateUserStatus(id: number, status: 'approved' | 'rejected'): P
   return row ? toPublicUser(row) : undefined
 }
 
+export function updateUserPassword(id: number, passwordHash: string): PublicUser | undefined {
+  db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(passwordHash, id)
+  const row = findUserById(id)
+  return row ? toPublicUser(row) : undefined
+}
+
 export async function ensureAdminUser() {
   const email = process.env.ADMIN_EMAIL?.trim().toLowerCase()
   const password = process.env.ADMIN_PASSWORD
