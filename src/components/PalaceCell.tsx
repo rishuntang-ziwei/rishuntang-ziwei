@@ -20,10 +20,11 @@ interface PalaceCellProps {
   onDecadalSelect?: (palace: IFunctionalPalace) => void
   yearlyMonthlyEntries?: YearlyMonthlyEntry[]
   activeYearlyMonth?: number
+  activeYearlyMonthIsLeap?: boolean
   yearlyDailyDays?: number[]
   activeYearlyDay?: number
   isActiveMonthlyPalace?: boolean
-  onYearlyMonthSelect?: (month: number) => void
+  onYearlyMonthSelect?: (month: number, isLeap?: boolean) => void
   onYearlyDaySelect?: (day: number) => void
 }
 
@@ -60,6 +61,7 @@ export function PalaceCell({
   onDecadalSelect,
   yearlyMonthlyEntries = [],
   activeYearlyMonth = 1,
+  activeYearlyMonthIsLeap = false,
   yearlyDailyDays = [],
   activeYearlyDay = 1,
   isActiveMonthlyPalace = false,
@@ -146,20 +148,29 @@ export function PalaceCell({
           <span className="palace-name">
             {chartMode === 'yearly' && yearlyMonthlyEntries.length > 0 && (
               <span className="monthly-badges">
-                {yearlyMonthlyEntries.map((entry) => (
+                {yearlyMonthlyEntries.map((entry) => {
+                  const isActive =
+                    entry.month === activeYearlyMonth &&
+                    Boolean(entry.isLeap) === activeYearlyMonthIsLeap
+                  const monthLabel = entry.isLeap ? `闰${entry.month}` : String(entry.month)
+                  const monthTitle = entry.isLeap
+                    ? `闰${entry.month}月 ${entry.gz}`
+                    : `${entry.month}月 ${entry.gz}`
+                  return (
                   <button
-                    key={entry.month}
+                    key={`${entry.month}-${entry.isLeap ? 'leap' : 'norm'}`}
                     type="button"
-                    className={`monthly-badge ${entry.month === activeYearlyMonth ? 'active' : ''}`}
-                    title={`${entry.month}月 ${entry.gz}`}
+                    className={`monthly-badge ${isActive ? 'active' : ''}`}
+                    title={monthTitle}
                     onClick={(e) => {
                       e.stopPropagation()
-                      onYearlyMonthSelect?.(entry.month)
+                      onYearlyMonthSelect?.(entry.month, entry.isLeap)
                     }}
                   >
-                    {entry.month}
+                    {monthLabel}
                   </button>
-                ))}
+                  )
+                })}
               </span>
             )}
             ({formatPalaceName(displayPalaceName)})

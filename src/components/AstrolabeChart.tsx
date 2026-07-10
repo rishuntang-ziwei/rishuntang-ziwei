@@ -99,9 +99,9 @@ export function AstrolabeChart({
   const activeYearlyMonth = lunar.month
   const activeYearlyDay = lunar.day
 
-  const handleYearlyMonthSelect = (month: number) => {
+  const handleYearlyMonthSelect = (month: number, isLeap = false) => {
     onHoroscopeDateChange(
-      horoscopeDateFromLunarYearMonthDay(lunar.year, month, lunar.day, lunar.isLeap),
+      horoscopeDateFromLunarYearMonthDay(lunar.year, month, lunar.day, isLeap),
     )
   }
 
@@ -227,6 +227,7 @@ export function AstrolabeChart({
                       : undefined
                   }
                   activeYearlyMonth={activeYearlyMonth}
+                  activeYearlyMonthIsLeap={lunar.isLeap}
                   yearlyDailyDays={
                     chartMode === 'yearly'
                       ? yearlyDailyByPalace?.get(palace.index) ?? []

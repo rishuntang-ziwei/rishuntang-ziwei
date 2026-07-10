@@ -6,6 +6,7 @@ import type { PalaceName } from 'iztro/lib/i18n/types/Palace'
 import type { StarName } from 'iztro/lib/i18n/types/Star'
 import {
   daysInLunarMonth,
+  listLunarMonthsInYear,
   solarDateFromLunar,
 } from './astrolabe'
 import {
@@ -152,6 +153,7 @@ export function resolveEffectiveChartMode(
 export interface YearlyMonthlyEntry {
   month: number
   gz: string
+  isLeap?: boolean
 }
 
 function lunarMonthAnchorSolar(
@@ -160,26 +162,28 @@ function lunarMonthAnchorSolar(
   isLeapMonth = false,
 ): string | null {
   try {
-    return solarDateFromLunar(lunarYear, lunarMonth, 15, isLeapMonth)
+    return solarDateFromLunar(lunarYear, lunarMonth, 1, isLeapMonth)
   } catch {
     return null
   }
 }
 
-/** 計算指定農曆年內，各宮位所對應的流月（正月–腊月） */
+/** 依本命與流年，計算各宮位所對應的農曆流月（正月–腊月，含閏月） */
 export function computeYearlyMonthlyByPalace(
   astrolabe: FunctionalAstrolabe,
   lunarYear: number,
   timeIndex: number,
 ): Map<number, YearlyMonthlyEntry[]> {
   const map = new Map<number, YearlyMonthlyEntry[]>()
-  for (let month = 1; month <= 12; month++) {
-    const solar = lunarMonthAnchorSolar(lunarYear, month)
+  for (const spec of listLunarMonthsInYear(lunarYear)) {
+    const solar = lunarMonthAnchorSolar(lunarYear, spec.month, spec.isLeap)
     if (!solar) continue
     const h = astrolabe.horoscope(solar, timeIndex)
     const idx = h.monthly.index
     const gz = `${h.monthly.heavenlyStem}${h.monthly.earthlyBranch}`
-    map.set(idx, [{ month, gz }])
+    const list = map.get(idx) ?? []
+    list.push({ month: spec.month, gz, isLeap: spec.isLeap })
+    map.set(idx, list)
   }
   return map
 }

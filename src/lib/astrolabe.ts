@@ -3,7 +3,7 @@ import type FunctionalAstrolabe from 'iztro/lib/astro/FunctionalAstrolabe'
 import type { IFunctionalPalace } from 'iztro/lib/astro/FunctionalPalace'
 import type { PalaceName } from 'iztro/lib/i18n/types/Palace'
 import { lunar2solar, solar2lunar } from 'lunar-lite/lib/convertor'
-import { LunarMonth } from 'lunar-typescript'
+import { LunarMonth, LunarYear } from 'lunar-typescript'
 
 export type CalendarType = 'solar' | 'lunar'
 export type Gender = '男' | '女'
@@ -161,6 +161,24 @@ export function horoscopeDateForLunarYear(lunarYear: number, referenceDate = new
     )
   }
   return horoscopeDateFromLunarYearMonthDay(lunarYear, 1, 1, false)
+}
+
+export interface LunarMonthSpec {
+  month: number
+  isLeap: boolean
+}
+
+/** 列出農曆年所有月份（含閏月） */
+export function listLunarMonthsInYear(lunarYear: number): LunarMonthSpec[] {
+  const leapMonth = LunarYear.fromYear(lunarYear).getLeapMonth()
+  const result: LunarMonthSpec[] = []
+  for (let month = 1; month <= 12; month++) {
+    result.push({ month, isLeap: false })
+    if (leapMonth === month) {
+      result.push({ month, isLeap: true })
+    }
+  }
+  return result
 }
 
 export function currentGregorianMonth(referenceDate = new Date()): number {

@@ -779,7 +779,7 @@
   <script src="./vendor/iztro.min.js"></script>
   <script>
     const { astro } = iztro
-    const { Lunar, LunarMonth, Solar } = LunarLib
+    const { Lunar, LunarMonth, LunarYear, Solar } = LunarLib
 
     const BRANCH_POS = {
       巳: [0,0], 午: [0,1], 未: [0,2], 申: [0,3],
@@ -887,10 +887,22 @@
 
     function lunarMonthAnchorSolar(lunarYear, lunarMonth, isLeapMonth = false) {
       try {
-        return solarDateFromLunar(lunarYear, lunarMonth, 15, isLeapMonth)
+        return solarDateFromLunar(lunarYear, lunarMonth, 1, isLeapMonth)
       } catch {
         return null
       }
+    }
+
+    function listLunarMonthsInYear(lunarYear) {
+      const leapMonth = LunarYear.fromYear(lunarYear).getLeapMonth()
+      const result = []
+      for (let month = 1; month <= 12; month++) {
+        result.push({ month, isLeap: false })
+        if (leapMonth === month) {
+          result.push({ month, isLeap: true })
+        }
+      }
+      return result
     }
 
     function getYearlyMonthBranch(a, lunarYear, lunarMonth, timeIndex, isLeapMonth = false) {
@@ -902,13 +914,14 @@
 
     function computeYearlyMonthlyByPalace(a, lunarYear, timeIndex) {
       const map = new Map()
-      for (let month = 1; month <= 12; month++) {
-        const solar = lunarMonthAnchorSolar(lunarYear, month)
+      for (const spec of listLunarMonthsInYear(lunarYear)) {
+        const solar = lunarMonthAnchorSolar(lunarYear, spec.month, spec.isLeap)
         if (!solar) continue
         const h = a.horoscope(solar, timeIndex)
         const idx = h.monthly.index
         const gz = `${h.monthly.heavenlyStem}${h.monthly.earthlyBranch}`
-        map.set(idx, [{ month, gz }])
+        if (!map.has(idx)) map.set(idx, [])
+        map.get(idx).push({ month: spec.month, gz, isLeap: spec.isLeap })
       }
       return map
     }
@@ -1230,9 +1243,12 @@
         ? `<button type="button" class="decadal-slot ${isActiveDecadal ? 'active' : ''}" data-palace-index="${p.index}" data-age-start="${p.decadal.range[0]}">${daxian}</button>`
         : '<span class="decadal-slot"></span>'
       const monthlyBadges = chartMode === 'yearly' && monthlyEntries.length
-        ? `<span class="monthly-badges">${monthlyEntries.map(entry =>
-          `<button type="button" class="monthly-badge ${entry.month === activeMonth ? 'active' : ''}" data-month="${entry.month}" title="${entry.month}月 ${entry.gz}">${entry.month}</button>`
-        ).join('')}</span>`
+        ? `<span class="monthly-badges">${monthlyEntries.map(entry => {
+          const isActive = entry.month === activeMonth && Boolean(entry.isLeap) === Boolean(isLeapMonth)
+          const label = entry.isLeap ? `闰${entry.month}` : String(entry.month)
+          const title = entry.isLeap ? `闰${entry.month}月 ${entry.gz}` : `${entry.month}月 ${entry.gz}`
+          return `<button type="button" class="monthly-badge ${isActive ? 'active' : ''}" data-month="${entry.month}" data-is-leap="${entry.isLeap ? '1' : '0'}" title="${title}">${label}</button>`
+        }).join('')}</span>`
         : ''
       const dailyDays = chartMode === 'yearly' ? (yearlyDailyByPalace?.get(p.index) || []) : []
       const dailyHtml = dailyDays.length
@@ -1395,6 +1411,7 @@
       const lunar = parseLunarFromSolarDate(horoscopeDate)
       const activeMonth = lunar.month
       const activeDay = lunar.day
+      const isLeapMonth = lunar.isLeap
       const yearlyMonthlyByPalace = chartMode === 'yearly'
         ? computeYearlyMonthlyByPalace(a, yearlyYear, input.timeIndex)
         : null
@@ -1416,7 +1433,7 @@
           }
           const p = map.get(cell)
           if (!p) return
-          html += `<div class="cell" style="grid-row:${ri+1};grid-column:${ci+1}">${renderPalace(p, h, a, sanFangRoles, chartMode, yearlyMonthlyByPalace, activeMonth, yearlyDailyByPalace, activeDay, lunar.year, input.timeIndex, lunar.isLeap)}</div>`
+          html += `<div class="cell" style="grid-row:${ri+1};grid-column:${ci+1}">${renderPalace(p, h, a, sanFangRoles, chartMode, yearlyMonthlyByPalace, activeMonth, yearlyDailyByPalace, activeDay, lunar.year, input.timeIndex, isLeapMonth)}</div>`
         })
       })
 
@@ -1463,8 +1480,9 @@
         btn.addEventListener('click', e => {
           e.stopPropagation()
           const month = Number(btn.dataset.month)
+          const isLeap = btn.dataset.isLeap === '1'
           const lunar = parseLunarFromSolarDate(horoscopeDate)
-          horoscopeDate = horoscopeDateFromLunarYearMonthDay(lunar.year, month, lunar.day, false)
+          horoscopeDate = horoscopeDateFromLunarYearMonthDay(lunar.year, month, lunar.day, isLeap)
           selectedPalaceName = '命宮'
           renderChart(name, a, input)
         })
