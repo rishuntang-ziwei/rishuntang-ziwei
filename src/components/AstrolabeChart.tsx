@@ -9,13 +9,13 @@ import {
 } from '../lib/astrolabe'
 import { branchChartPoint, CHART_VIEW_H, CHART_VIEW_W, shouldShowDecadal } from '../lib/constants'
 import {
-  chartModeToScope,
   computeHoroscope,
   computeYearlyDailyByPalace,
   computeYearlyMonthlyByPalace,
   getLunarPartsFromHoroscopeDate,
   getSanFangBranchRoles,
   getScopePalaceName,
+  palaceNameScopeForMode,
   resolveEffectiveChartMode,
 } from '../lib/horoscope'
 import { CenterPanel } from './CenterPanel'
@@ -143,7 +143,7 @@ export function AstrolabeChart({
   }
 
   const lines = useMemo(() => {
-    const scope = chartModeToScope(chartMode)
+    const scope = palaceNameScopeForMode(chartMode)
     const surrounded =
       chartMode === 'origin'
         ? astrolabe.surroundedPalaces(focusPalace)

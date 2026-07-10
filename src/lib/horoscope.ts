@@ -21,6 +21,13 @@ export function chartModeToScope(mode: ChartMode): HoroscopeScope | 'origin' {
   return 'origin'
 }
 
+/** 宮名與三方四正：流年盤以流月為基準（流月命宮所在宮為命宮） */
+export function palaceNameScopeForMode(mode: ChartMode): HoroscopeScope | 'origin' {
+  if (mode === 'decadal') return 'decadal'
+  if (mode === 'yearly') return 'monthly'
+  return 'origin'
+}
+
 export function computeHoroscope(
   astrolabe: FunctionalAstrolabe,
   referenceDate: string | Date,
@@ -36,7 +43,7 @@ export function getScopePalaceName(
   natalName: PalaceName | string,
 ): string {
   if (mode === 'origin' || !horoscope) return natalName
-  const scope = chartModeToScope(mode)
+  const scope = palaceNameScopeForMode(mode)
   if (scope === 'origin') return natalName
   return horoscope[scope].palaceNames[palaceIndex] ?? natalName
 }
@@ -105,7 +112,7 @@ export function getSanFangBranchRoles(
   focusPalaceName: PalaceName | string,
   mode: ChartMode,
 ): SanFangBranchRoles {
-  const scope = chartModeToScope(mode)
+  const scope = palaceNameScopeForMode(mode)
   const surrounded =
     scope === 'origin'
       ? horoscope.astrolabe.surroundedPalaces(focusPalaceName as PalaceName)

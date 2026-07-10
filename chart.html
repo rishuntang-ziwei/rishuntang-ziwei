@@ -1169,6 +1169,12 @@
       return 'origin'
     }
 
+    function palaceNameScopeForMode(mode) {
+      if (mode === 'decadal') return 'decadal'
+      if (mode === 'yearly') return 'monthly'
+      return 'origin'
+    }
+
     function getMutagenStem(h, a, mode) {
       if (mode === 'yearly') return h.yearly.heavenlyStem
       if (mode === 'decadal') return h.decadal.heavenlyStem
@@ -1181,7 +1187,7 @@
 
     function getScopePalaceName(h, palaceIndex, mode, natalName) {
       if (mode === 'origin' || !h) return natalName
-      const scope = horoscopeScopeForMode(mode)
+      const scope = palaceNameScopeForMode(mode)
       if (scope === 'origin') return natalName
       return h[scope].palaceNames[palaceIndex] || natalName
     }
@@ -1201,7 +1207,7 @@
     }
 
     function getSanFangBranchRoles(a, h, palaceName, mode) {
-      const scope = horoscopeScopeForMode(mode)
+      const scope = palaceNameScopeForMode(mode)
       const s = scope === 'origin'
         ? a.surroundedPalaces(palaceName)
         : h.surroundPalaces(palaceName, scope)
@@ -1571,7 +1577,7 @@
 
     function renderLines(a, h) {
       const chartMode = resolveEffectiveChartMode()
-      const scope = horoscopeScopeForMode(chartMode)
+      const scope = palaceNameScopeForMode(chartMode)
       const s = scope === 'origin'
         ? a.surroundedPalaces(selectedPalaceName)
         : h.surroundPalaces(selectedPalaceName, scope)
