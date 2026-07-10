@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import bcrypt from 'bcryptjs'
-import { findUserById, listUsers, updateUserPassword, updateUserStatus } from '../db.js'
+import { countAdmins, findUserById, listUsers, updateUserPassword, updateUserRole, updateUserStatus } from '../db.js'
 import { requireAdmin, requireAuth } from '../middleware.js'
 
 const router = Router()
@@ -65,6 +65,64 @@ router.post('/users/:id/reset-password', async (req, res) => {
     return
   }
   res.json({ message: '密碼已重設', user })
+})
+
+router.post('/users/:id/make-admin', (req, res) => {
+  const id = Number(req.params.id)
+  if (!Number.isFinite(id)) {
+    res.status(400).json({ error: '無效的使用者 ID' })
+    return
+  }
+
+  const target = findUserById(id)
+  if (!target) {
+    res.status(404).json({ error: '找不到使用者' })
+    return
+  }
+  if (target.role === 'admin') {
+    res.status(400).json({ error: '此帳號已是管理員' })
+    return
+  }
+  if (target.status === 'rejected') {
+    res.status(400).json({ error: '已拒絕的帳號需先重新開通，才能設為管理員' })
+    return
+  }
+
+  const user = updateUserRole(id, 'admin')
+  if (!user) {
+    res.status(404).json({ error: '找不到使用者' })
+    return
+  }
+  res.json({ message: '已設為管理員', user })
+})
+
+router.post('/users/:id/revoke-admin', (req, res) => {
+  const id = Number(req.params.id)
+  if (!Number.isFinite(id)) {
+    res.status(400).json({ error: '無效的使用者 ID' })
+    return
+  }
+  if (req.authUser?.id === id) {
+    res.status(400).json({ error: '無法取消自己的管理員權限' })
+    return
+  }
+
+  const target = findUserById(id)
+  if (!target || target.role !== 'admin') {
+    res.status(404).json({ error: '找不到管理員帳號' })
+    return
+  }
+  if (countAdmins() <= 1) {
+    res.status(400).json({ error: '至少需要保留一位管理員' })
+    return
+  }
+
+  const user = updateUserRole(id, 'user')
+  if (!user) {
+    res.status(404).json({ error: '找不到使用者' })
+    return
+  }
+  res.json({ message: '已取消管理員權限', user })
 })
 
 export default router

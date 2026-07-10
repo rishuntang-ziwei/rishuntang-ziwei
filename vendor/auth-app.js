@@ -20,17 +20,49 @@
   }
 
   function renderUserActions(user) {
-    if (user.role === 'admin') return '—'
-
     const actions = []
+
+    if (user.role === 'admin') {
+      if (user.id !== currentUser.id) {
+        actions.push(
+          '<button type="button" data-revoke-admin="' + user.id + '" data-name="' + user.name + '">取消管理員</button>',
+        )
+      }
+      return actions.length
+        ? '<div class="admin-actions">' + actions.join('') + '</div>'
+        : '—'
+    }
+
     if (user.status === 'pending') {
       actions.push(
         '<button type="button" data-approve="' + user.id + '">開通</button>',
         '<button type="button" class="danger" data-reject="' + user.id + '">拒絕</button>',
+        '<button type="button" data-make-admin="' + user.id + '" data-name="' + user.name + '">設為管理員</button>',
+      )
+    } else if (user.status === 'approved') {
+      actions.push(
+        '<button type="button" data-reset="' + user.id + '" data-name="' + user.name + '">重設密碼</button>',
+        '<button type="button" data-make-admin="' + user.id + '" data-name="' + user.name + '">設為管理員</button>',
+      )
+    } else {
+      actions.push(
+        '<button type="button" data-reset="' + user.id + '" data-name="' + user.name + '">重設密碼</button>',
       )
     }
-    actions.push('<button type="button" data-reset="' + user.id + '" data-name="' + user.name + '">重設密碼</button>')
+
     return '<div class="admin-actions">' + actions.join('') + '</div>'
+  }
+
+  async function makeUserAdmin(id, name) {
+    if (!confirm('確定要將「' + name + '」設為管理員？\n對方將可審核會員並管理帳號。')) return
+    await auth.api('/api/admin/users/' + id + '/make-admin', { method: 'POST' })
+    alert('已設為管理員')
+  }
+
+  async function revokeUserAdmin(id, name) {
+    if (!confirm('確定要取消「' + name + '」的管理員權限？')) return
+    await auth.api('/api/admin/users/' + id + '/revoke-admin', { method: 'POST' })
+    alert('已取消管理員權限')
   }
 
   async function resetUserPassword(id, name) {
@@ -160,6 +192,28 @@
         btn.addEventListener('click', async function () {
           try {
             await resetUserPassword(btn.dataset.reset, btn.dataset.name)
+          } catch (err) {
+            alert(err.message)
+          }
+        })
+      })
+
+      panel.querySelectorAll('[data-make-admin]').forEach(function (btn) {
+        btn.addEventListener('click', async function () {
+          try {
+            await makeUserAdmin(btn.dataset.makeAdmin, btn.dataset.name)
+            await renderAdminPanel()
+          } catch (err) {
+            alert(err.message)
+          }
+        })
+      })
+
+      panel.querySelectorAll('[data-revoke-admin]').forEach(function (btn) {
+        btn.addEventListener('click', async function () {
+          try {
+            await revokeUserAdmin(btn.dataset.revokeAdmin, btn.dataset.name)
+            await renderAdminPanel()
           } catch (err) {
             alert(err.message)
           }

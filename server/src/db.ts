@@ -89,6 +89,25 @@ export function updateUserPassword(id: number, passwordHash: string): PublicUser
   return row ? toPublicUser(row) : undefined
 }
 
+export function countAdmins(): number {
+  const row = db.prepare("SELECT COUNT(*) AS count FROM users WHERE role = 'admin'").get() as { count: number }
+  return row.count
+}
+
+export function updateUserRole(id: number, role: 'user' | 'admin'): PublicUser | undefined {
+  if (role === 'admin') {
+    db.prepare(
+      `UPDATE users
+       SET role = 'admin', status = 'approved', approved_at = COALESCE(approved_at, datetime('now'))
+       WHERE id = ?`,
+    ).run(id)
+  } else {
+    db.prepare(`UPDATE users SET role = 'user' WHERE id = ?`).run(id)
+  }
+  const row = findUserById(id)
+  return row ? toPublicUser(row) : undefined
+}
+
 export async function ensureAdminUser() {
   const email = process.env.ADMIN_EMAIL?.trim().toLowerCase()
   const password = process.env.ADMIN_PASSWORD

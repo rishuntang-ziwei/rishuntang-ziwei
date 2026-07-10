@@ -73,3 +73,17 @@ export function rejectUser(id: number) {
     method: 'POST',
   })
 }
+
+export function makeUserAdmin(id: number) {
+  return request<{ message: string; user: UsersResponse['users'][number] }>(
+    `/api/admin/users/${id}/make-admin`,
+    { method: 'POST' },
+  )
+}
+
+export function revokeUserAdmin(id: number) {
+  return request<{ message: string; user: UsersResponse['users'][number] }>(
+    `/api/admin/users/${id}/revoke-admin`,
+    { method: 'POST' },
+  )
+}

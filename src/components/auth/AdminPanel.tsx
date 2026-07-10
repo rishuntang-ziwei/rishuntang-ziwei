@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { approveUser, fetchAdminUsers, rejectUser } from '../../lib/api'
+import { approveUser, fetchAdminUsers, makeUserAdmin, rejectUser, revokeUserAdmin } from '../../lib/api'
 import { useAuth } from '../../context/AuthContext'
 import type { AuthUser } from '../../types/auth'
 
@@ -39,6 +39,18 @@ export function AdminPanel({ onBack }: { onBack: () => void }) {
 
   async function handleReject(id: number) {
     await rejectUser(id)
+    await loadUsers()
+  }
+
+  async function handleMakeAdmin(id: number, name: string) {
+    if (!confirm(`確定要將「${name}」設為管理員？\n對方將可審核會員並管理帳號。`)) return
+    await makeUserAdmin(id)
+    await loadUsers()
+  }
+
+  async function handleRevokeAdmin(id: number, name: string) {
+    if (!confirm(`確定要取消「${name}」的管理員權限？`)) return
+    await revokeUserAdmin(id)
     await loadUsers()
   }
 
@@ -88,13 +100,36 @@ export function AdminPanel({ onBack }: { onBack: () => void }) {
                   </td>
                   <td>{new Date(item.createdAt).toLocaleString('zh-TW')}</td>
                   <td>
-                    {item.role === 'user' && item.status === 'pending' ? (
+                    {item.role === 'admin' ? (
+                      item.id === user?.id ? (
+                        '—'
+                      ) : (
+                        <div className="admin-actions">
+                          <button
+                            type="button"
+                            className="danger"
+                            onClick={() => handleRevokeAdmin(item.id, item.name)}
+                          >
+                            取消管理員
+                          </button>
+                        </div>
+                      )
+                    ) : item.status === 'pending' ? (
                       <div className="admin-actions">
                         <button type="button" onClick={() => handleApprove(item.id)}>
                           開通
                         </button>
                         <button type="button" className="danger" onClick={() => handleReject(item.id)}>
                           拒絕
+                        </button>
+                        <button type="button" onClick={() => handleMakeAdmin(item.id, item.name)}>
+                          設為管理員
+                        </button>
+                      </div>
+                    ) : item.status === 'approved' ? (
+                      <div className="admin-actions">
+                        <button type="button" onClick={() => handleMakeAdmin(item.id, item.name)}>
+                          設為管理員
                         </button>
                       </div>
                     ) : (
