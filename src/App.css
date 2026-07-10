@@ -638,11 +638,10 @@ body {
   position: absolute;
   left: 0;
   right: 0;
-  top: 52%;
-  transform: translateY(-50%);
+  top: calc(52% + 2.4em);
   z-index: 2;
-  font-size: 0.68rem;
-  line-height: 1.2;
+  font-size: 0.88rem;
+  line-height: 1.3;
   color: #2e7d32;
   letter-spacing: 0;
   text-align: center;
@@ -725,14 +724,14 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.15em;
-  height: 1.15em;
+  width: 1.4em;
+  height: 1.4em;
   padding: 0;
   border: 1px solid var(--line-soul);
   border-radius: 50%;
   background: #fff;
   font-family: inherit;
-  font-size: 0.62rem;
+  font-size: 0.78rem;
   line-height: 1;
   color: #333;
   vertical-align: middle;
@@ -773,11 +772,11 @@ body {
   grid-row: 2;
   text-align: left;
   letter-spacing: 0.12em;
-  font-size: 1.08rem;
+  font-size: 1.28rem;
   white-space: nowrap;
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 3px;
 }
 
 .gz-zhi {
