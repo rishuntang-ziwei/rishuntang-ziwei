@@ -212,7 +212,7 @@ body {
   flex-direction: row;
   justify-content: space-between;
   align-items: flex-start;
-  max-height: calc(100% - 54px);
+  max-height: calc(100% - 62px);
   overflow: visible;
 }
 
@@ -424,6 +424,37 @@ body {
   background: var(--highlight-bg);
 }
 
+.daily-days {
+  position: absolute;
+  left: 3px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  font-size: 0.68rem;
+  line-height: 1.2;
+  color: #00838f;
+  letter-spacing: 0;
+}
+
+.daily-day {
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.daily-day:hover {
+  text-decoration: underline;
+}
+
+.daily-day.active {
+  font-weight: 700;
+  color: #006064;
+}
+
 .palace-bottom {
   position: absolute;
   left: 0;
@@ -469,6 +500,47 @@ body {
   color: var(--line-soul);
 }
 
+.monthly-badges {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-right: 3px;
+  vertical-align: middle;
+}
+
+.monthly-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.15em;
+  height: 1.15em;
+  padding: 0;
+  border: 1px solid var(--line-soul);
+  border-radius: 50%;
+  background: #fff;
+  font-family: inherit;
+  font-size: 0.62rem;
+  line-height: 1;
+  color: #333;
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+.monthly-badge:hover {
+  background: #fff8e1;
+}
+
+.monthly-badge.active {
+  background: var(--line-soul);
+  color: #fff;
+  font-weight: 700;
+}
+
+.palace-cell.active-monthly-palace {
+  outline: 1px dashed var(--accent);
+  outline-offset: -2px;
+}
+
 .gz-gan {
   grid-column: 2;
   grid-row: 1;
@@ -485,6 +557,9 @@ body {
   letter-spacing: 0.12em;
   font-size: 1.08rem;
   white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 2px;
 }
 
 .gz-zhi {
@@ -546,7 +621,8 @@ body {
 }
 
 .center-control-row input[type='date'],
-.center-control-row input[type='number'] {
+.center-control-row input[type='number'],
+.center-control-row select {
   font-family: inherit;
   font-size: 0.82rem;
   padding: 1px 3px;

@@ -87,6 +87,30 @@ export function horoscopeDateForYear(year: number, referenceDate: string | Date 
   return `${year}-${String(m).padStart(2, '0')}-${String(day).padStart(2, '0')}`
 }
 
+/** 依西元年月日組成論命日期（流年流月流日用） */
+export function horoscopeDateForYearMonthDay(
+  year: number,
+  month: number,
+  day: number,
+): string {
+  const daysInMonth = new Date(year, month, 0).getDate()
+  const safeDay = Math.min(Math.max(day, 1), daysInMonth)
+  return `${year}-${String(month).padStart(2, '0')}-${String(safeDay).padStart(2, '0')}`
+}
+
+export function parseHoroscopeDateParts(date: string): { year: number; month: number; day: number } {
+  const [year, month, day] = date.split('-').map(Number)
+  return { year, month, day }
+}
+
+export function currentGregorianMonth(referenceDate = new Date()): number {
+  return referenceDate.getMonth() + 1
+}
+
+export function currentGregorianDay(referenceDate = new Date()): number {
+  return referenceDate.getDate()
+}
+
 /** 依虛歲推算論命日期（用於切換大限） */
 export function horoscopeDateForNominalAge(
   solarBirthDate: string,

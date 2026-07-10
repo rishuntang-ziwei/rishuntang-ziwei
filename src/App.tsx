@@ -6,6 +6,8 @@ import {
   computeAstrolabe,
   currentGregorianYear,
   horoscopeDateForYear,
+  horoscopeDateForYearMonthDay,
+  parseHoroscopeDateParts,
   todaySolarDate,
   type BirthInput,
 } from './lib/astrolabe'
@@ -105,7 +107,8 @@ function App() {
               yearlyYear={yearlyYear}
               onYearlyYearChange={(year) => {
                 setYearlyYear(year)
-                setHoroscopeDate(horoscopeDateForYear(year, horoscopeDate))
+                const { month, day } = parseHoroscopeDateParts(horoscopeDate)
+                setHoroscopeDate(horoscopeDateForYearMonthDay(year, month, day))
               }}
             />
           ) : (

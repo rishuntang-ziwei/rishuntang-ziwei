@@ -5,6 +5,7 @@ import {
   type ChartMode,
   getDisplayMutagen,
   getScopePalaceName,
+  type YearlyMonthlyEntry,
 } from '../lib/horoscope'
 import { StarDisplay } from './StarDisplay'
 
@@ -17,6 +18,13 @@ interface PalaceCellProps {
   horoscope?: IFunctionalHoroscope | null
   activeDecadalIndex?: number
   onDecadalSelect?: (palace: IFunctionalPalace) => void
+  yearlyMonthlyEntries?: YearlyMonthlyEntry[]
+  activeYearlyMonth?: number
+  yearlyDailyDays?: number[]
+  activeYearlyDay?: number
+  isActiveMonthlyPalace?: boolean
+  onYearlyMonthSelect?: (month: number) => void
+  onYearlyDaySelect?: (day: number) => void
 }
 
 function mapStarForDisplay(
@@ -50,6 +58,13 @@ export function PalaceCell({
   horoscope = null,
   activeDecadalIndex = -1,
   onDecadalSelect,
+  yearlyMonthlyEntries = [],
+  activeYearlyMonth = 1,
+  yearlyDailyDays = [],
+  activeYearlyDay = 1,
+  isActiveMonthlyPalace = false,
+  onYearlyMonthSelect,
+  onYearlyDaySelect,
 }: PalaceCellProps) {
   const { leftPurple, leftGreen, rightGreen } = splitPalaceMinors([
     ...palace.minorStars.map((s) => ({ name: s.name, mutagen: s.mutagen })),
@@ -70,8 +85,31 @@ export function PalaceCell({
     chartMode === 'decadal' && activeDecadalIndex >= 0 && palace.index === activeDecadalIndex
 
   return (
-    <div className={`palace-cell ${highlight ? 'highlight' : ''} ${focused ? 'focus-palace' : ''}`}>
+    <div
+      className={`palace-cell ${highlight ? 'highlight' : ''} ${focused ? 'focus-palace' : ''} ${isActiveMonthlyPalace ? 'active-monthly-palace' : ''}`}
+    >
       {palace.isBodyPalace && chartMode === 'origin' && <span className="body-badge">身</span>}
+
+      {chartMode === 'yearly' && yearlyDailyDays.length > 0 && (
+        <div className="daily-days">
+          {yearlyDailyDays.map((day, index) => (
+            <span key={day}>
+              {index > 0 && ','}
+              <button
+                type="button"
+                className={`daily-day ${day === activeYearlyDay ? 'active' : ''}`}
+                title={`${day} 日`}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onYearlyDaySelect?.(day)
+                }}
+              >
+                {day}
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
 
       <div className="palace-stars">
         <div className="stars-left">
@@ -105,7 +143,27 @@ export function PalaceCell({
             <span className="decadal-range" />
           )}
           <span className="gz-gan">{palace.heavenlyStem}</span>
-          <span className="palace-name">({formatPalaceName(displayPalaceName)})</span>
+          <span className="palace-name">
+            {chartMode === 'yearly' && yearlyMonthlyEntries.length > 0 && (
+              <span className="monthly-badges">
+                {yearlyMonthlyEntries.map((entry) => (
+                  <button
+                    key={entry.month}
+                    type="button"
+                    className={`monthly-badge ${entry.month === activeYearlyMonth ? 'active' : ''}`}
+                    title={`${entry.month}月 ${entry.gz}`}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onYearlyMonthSelect?.(entry.month)
+                    }}
+                  >
+                    {entry.month}
+                  </button>
+                ))}
+              </span>
+            )}
+            ({formatPalaceName(displayPalaceName)})
+          </span>
           <span className="gz-zhi">{palace.earthlyBranch}</span>
         </div>
       </div>

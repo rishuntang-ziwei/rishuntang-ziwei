@@ -1,7 +1,12 @@
 import type FunctionalAstrolabe from 'iztro/lib/astro/FunctionalAstrolabe'
 import type { IFunctionalHoroscope } from 'iztro/lib/astro/FunctionalHoroscope'
 import type { CalendarType, InitialChartType } from '../lib/astrolabe'
-import { formatAnalysisDate, getYearStemBranch } from '../lib/astrolabe'
+import {
+  formatAnalysisDate,
+  getYearStemBranch,
+  horoscopeDateForYearMonthDay,
+  parseHoroscopeDateParts,
+} from '../lib/astrolabe'
 import {
   type ChartMode,
   chartModeTag,
@@ -39,7 +44,9 @@ export function CenterPanel({
 }: CenterPanelProps) {
   const birth = centerBirthText(astrolabe, calendar, birthDate)
   const age = horoscope.age.nominalAge
-  const analysisDate = formatAnalysisDate(new Date(horoscopeDate))
+  const analysisDate = formatAnalysisDate(new Date(horoscopeDate + 'T12:00:00'))
+  const { month: activeMonth, day: activeDay } = parseHoroscopeDateParts(horoscopeDate)
+  const daysInMonth = new Date(yearlyYear, activeMonth, 0).getDate()
 
   const scopeItem = chartMode === 'decadal' ? horoscope.decadal : chartMode === 'yearly' ? horoscope.yearly : null
   const scopeGz = scopeItem ? `${scopeItem.heavenlyStem}${scopeItem.earthlyBranch}` : ''
@@ -47,6 +54,10 @@ export function CenterPanel({
     chartMode === 'decadal' && horoscope.decadal.index >= 0
       ? astrolabe.palace(horoscope.decadal.index)?.decadal?.range
       : null
+
+  const updateYearlyDate = (month: number, day: number) => {
+    onHoroscopeDateChange(horoscopeDateForYearMonthDay(yearlyYear, month, day))
+  }
 
   return (
     <div className="center">
@@ -69,12 +80,30 @@ export function CenterPanel({
               />
             </label>
             <label className="center-control-row">
-              <span>論命日期</span>
-              <input
-                type="date"
-                value={horoscopeDate}
-                onChange={(e) => onHoroscopeDateChange(e.target.value)}
-              />
+              <span>流月</span>
+              <select
+                value={activeMonth}
+                onChange={(e) => updateYearlyDate(Number(e.target.value), activeDay)}
+              >
+                {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                  <option key={m} value={m}>
+                    {m} 月
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="center-control-row">
+              <span>流日</span>
+              <select
+                value={activeDay}
+                onChange={(e) => updateYearlyDate(activeMonth, Number(e.target.value))}
+              >
+                {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((d) => (
+                  <option key={d} value={d}>
+                    {d} 日
+                  </option>
+                ))}
+              </select>
             </label>
           </>
         ) : (
@@ -114,11 +143,11 @@ export function CenterPanel({
               <div className="center-scope center-flow-scope">
                 <div>
                   流月：{horoscope.monthly.heavenlyStem}
-                  {horoscope.monthly.earthlyBranch}
+                  {horoscope.monthly.earthlyBranch}（{activeMonth} 月）
                 </div>
                 <div>
                   流日：{horoscope.daily.heavenlyStem}
-                  {horoscope.daily.earthlyBranch}
+                  {horoscope.daily.earthlyBranch}（{activeDay} 日）
                 </div>
               </div>
             )}
@@ -128,7 +157,7 @@ export function CenterPanel({
               {birth.lunarNote && <div className="lunar-note">{birth.lunarNote}</div>}
             </div>
             <div className="center-age">
-              {new Date(horoscopeDate).getFullYear()}
+              {new Date(horoscopeDate + 'T12:00:00').getFullYear()}
               <br />
               {age} 歲
             </div>
