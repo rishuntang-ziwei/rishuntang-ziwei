@@ -18,7 +18,7 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
   }
 
   try {
-    const payload = jwt.verify(token, JWT_SECRET) as JwtPayload
+    const payload = jwt.verify(token, JWT_SECRET) as unknown as JwtPayload
     const user = findUserById(payload.sub)
     if (!user) {
       res.status(401).json({ error: '帳號不存在' })

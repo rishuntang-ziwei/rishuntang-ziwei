@@ -20,6 +20,6 @@ app.use('/api/admin', adminRoutes)
 
 await ensureAdminUser()
 
-app.listen(port, () => {
-  console.log(`[server] http://localhost:${port}`)
+app.listen(port, '0.0.0.0', () => {
+  console.log(`[server] listening on port ${port}`)
 })

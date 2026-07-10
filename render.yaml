@@ -3,12 +3,15 @@ services:
     name: rishuntang-ziwei-api
     runtime: node
     rootDir: server
-    buildCommand: npm install
-    startCommand: npm start
+    buildCommand: npm install --include=dev && npm run build
+    startCommand: node dist/index.js
+    healthCheckPath: /api/health
     plan: free
     envVars:
       - key: NODE_VERSION
         value: "22.12.0"
+      - key: NODE_OPTIONS
+        value: --experimental-sqlite
       - key: JWT_SECRET
         generateValue: true
       - key: ADMIN_EMAIL

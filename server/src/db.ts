@@ -68,7 +68,7 @@ export function createUser(input: {
 }
 
 export function listUsers(): PublicUser[] {
-  const rows = db.prepare('SELECT * FROM users ORDER BY created_at DESC').all() as UserRow[]
+  const rows = db.prepare('SELECT * FROM users ORDER BY created_at DESC').all() as unknown as UserRow[]
   return rows.map(toPublicUser)
 }
 
