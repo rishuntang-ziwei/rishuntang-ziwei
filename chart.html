@@ -1,0 +1,1529 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>紫微斗數線上排盤</title>
+  <style>
+    :root {
+      --paper: #fff;
+      --ink: #111;
+      --border: #222;
+      --major: #1a237e;
+      --green: #2e7d32;
+      --red: #c62828;
+      --purple: #6a1b9a;
+      --line-red: #d32f2f;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DFKai-SB', '標楷體', 'BiauKai', 'KaiTi', serif;
+      background: #ddd;
+      color: var(--ink);
+      min-height: 100vh;
+      margin: 0;
+      padding: 12px;
+      overflow-x: hidden;
+    }
+
+    .layout {
+      display: flex;
+      gap: 16px;
+      max-width: 100%;
+      margin: 0 auto;
+      align-items: flex-start;
+      box-sizing: border-box;
+    }
+
+    .form-panel {
+      width: 320px;
+      flex-shrink: 0;
+      background: #fff;
+      border: 1px solid #999;
+      padding: 16px;
+      font-size: 15px;
+    }
+
+    .form-panel h2 {
+      font-size: 17px;
+      margin-bottom: 12px;
+      letter-spacing: 0.1em;
+    }
+
+    .form-panel label { display: block; margin-bottom: 4px; color: #444; font-size: 15px; }
+    .form-panel input[type="text"],
+    .form-panel input[type="date"],
+    .form-panel select {
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 8px;
+      font-family: inherit;
+      font-size: 15px;
+    }
+
+    .form-panel .row { margin-bottom: 6px; }
+    .form-panel .inline { display: flex; gap: 10px; align-items: center; }
+    .form-panel button {
+      width: 100%;
+      margin-top: 8px;
+      padding: 10px;
+      background: #555;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 16px;
+    }
+
+    .form-panel input[type="number"] {
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 8px;
+      font-family: inherit;
+      font-size: 15px;
+    }
+
+    .date-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 6px;
+    }
+
+    .date-row label { font-size: 11px; margin-bottom: 2px; }
+
+    .calendar-note {
+      font-size: 11px;
+      color: #2e7d32;
+      margin: -2px 0 8px;
+      font-weight: 600;
+    }
+
+    .chart-panel { flex: 1; min-width: 0; }
+
+    .chart-outer {
+      border: 3px double var(--border);
+      background: var(--paper);
+      width: 100%;
+      max-width: min(1280px, calc(100vw - 360px), calc((100vh - 80px) * 1.5));
+      aspect-ratio: 6 / 4;
+      margin: 0 auto;
+    }
+
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-template-rows: repeat(4, 1fr);
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    .chart-lines {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    .chart-lines line { stroke: var(--line-red); stroke-width: 1.5; }
+
+    .cell {
+      border: 1px solid var(--border);
+      position: relative;
+      z-index: 2;
+      background: var(--paper);
+      overflow: visible;
+    }
+
+    .cell.center {
+      grid-row: 2 / 4;
+      grid-column: 2 / 4;
+      z-index: 4;
+      overflow: hidden;
+    }
+
+    /* ── 宮位 ── */
+    .palace {
+      height: 100%;
+      position: relative;
+      padding: 2px 8px 0 3px;
+      font-size: 18px;
+      line-height: 1.15;
+      cursor: pointer;
+      overflow: visible;
+    }
+
+    .palace.highlight { background: #fff8e1; }
+    .palace.focus-palace { outline: 2px solid var(--line-red); outline-offset: -2px; }
+
+    .daily-days {
+      position: absolute;
+      left: 3px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 2;
+      font-size: 11px;
+      line-height: 1.2;
+      color: #00838f;
+      letter-spacing: 0;
+    }
+
+    .daily-day {
+      padding: 0;
+      border: none;
+      background: none;
+      font-family: inherit;
+      font-size: inherit;
+      color: inherit;
+      cursor: pointer;
+    }
+
+    .daily-day:hover {
+      text-decoration: underline;
+    }
+
+    .daily-day.active {
+      font-weight: 700;
+      color: #006064;
+    }
+
+    .palace-footer-dimmed .decadal-slot,
+    .palace-footer-dimmed .gz-gan,
+    .palace-footer-dimmed .palace-label,
+    .palace-footer-dimmed .gz-zhi {
+      color: #999 !important;
+      opacity: 0.55;
+    }
+
+    .palace-footer-dimmed .decadal-slot.active {
+      color: var(--line-red) !important;
+      opacity: 0.65;
+    }
+
+    .palace-stars {
+      position: absolute;
+      top: 1px;
+      left: 2px;
+      right: 0;
+      padding-right: 8px;
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: flex-start;
+      max-height: calc(100% - 54px);
+      overflow: visible;
+    }
+
+    .stars-left {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2px;
+      flex-shrink: 0;
+    }
+
+    .stars-row {
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+      gap: 2px;
+      flex-wrap: nowrap;
+    }
+
+    .stars-right {
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+      gap: 2px;
+      flex-wrap: nowrap;
+      justify-content: flex-end;
+      margin-left: auto;
+      padding-right: 2px;
+    }
+
+    .star-vcol {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .vcol-inner {
+      writing-mode: vertical-rl;
+      text-orientation: upright;
+      line-height: 1;
+      display: inline-flex;
+      align-items: flex-start;
+    }
+
+    .star-vcol .vname {
+      writing-mode: vertical-rl;
+      text-orientation: upright;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .star-vcol.major .vname {
+      color: var(--major);
+      font-weight: 700;
+      font-size: 24px;
+      letter-spacing: 4px;
+    }
+
+    .star-vcol.g-lg .vname {
+      color: var(--green);
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: 4px;
+    }
+
+    .star-vcol.p-sm .vname {
+      color: var(--purple);
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 2px;
+    }
+
+    .star-vcol.g-sm .vname {
+      color: var(--green);
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 2px;
+    }
+
+    .star-vcol .vbright {
+      writing-mode: vertical-rl;
+      text-orientation: upright;
+      font-size: 15px;
+      font-weight: 400;
+      color: var(--ink);
+    }
+
+    .star-vcol .vtags { display: none; }
+
+    .stars-row-1 {
+      min-height: 20px;
+    }
+
+    .star-vcol.major .mutagen {
+      writing-mode: horizontal-tb;
+      width: 22px;
+      height: 22px;
+      line-height: 20px;
+      font-size: 23px;
+      margin-top: 2px;
+      border: 1px solid;
+      background: transparent;
+    }
+
+    .mutagen {
+      display: inline-block;
+      width: 22px;
+      height: 22px;
+      line-height: 20px;
+      text-align: center;
+      font-size: 23px;
+      font-weight: 700;
+      vertical-align: middle;
+      border: 1px solid;
+      background: transparent;
+    }
+
+    .mutagen.lu { color: var(--green); border-color: var(--green); }
+    .mutagen.quan { color: #1565c0; border-color: #1565c0; }
+    .mutagen.ke { color: var(--green); border-color: var(--green); }
+    .mutagen.ji { color: var(--red); border-color: var(--red); }
+
+    .mutagen.horoscope {
+      border-style: dashed;
+      width: 20px;
+      height: 20px;
+      line-height: 18px;
+      font-size: 20px;
+    }
+
+    .mutagen-circle {
+      display: inline-block;
+      width: 22px;
+      height: 22px;
+      line-height: 20px;
+      text-align: center;
+      font-size: 23px;
+      font-weight: 700;
+      vertical-align: middle;
+      border: 1px solid;
+      border-radius: 50%;
+      background: transparent;
+      margin-top: 2px;
+    }
+
+    .mutagen-circle.lu { color: var(--green); border-color: var(--green); }
+    .mutagen-circle.quan { color: #1565c0; border-color: #1565c0; }
+    .mutagen-circle.ke { color: var(--green); border-color: var(--green); }
+    .mutagen-circle.ji { color: var(--red); border-color: var(--red); }
+
+    .star-vcol.g-lg .mutagen-circle,
+    .star-vcol.g-sm .mutagen-circle,
+    .star-vcol.p-sm .mutagen-circle {
+      width: 18px;
+      height: 18px;
+      line-height: 16px;
+      font-size: 18px;
+    }
+
+    .stars-center {
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+      gap: 2px;
+      flex-shrink: 0;
+      align-self: center;
+      margin: 0 auto;
+    }
+
+    .star-vcol.flow .vname {
+      color: #8b4513;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .chart-mode-tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 4px;
+    }
+
+    .mode-tab {
+      flex: 1;
+      padding: 3px 0;
+      border: 1px solid #999;
+      background: #f5f5f5;
+      font-family: inherit;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .mode-tab.active {
+      background: #555;
+      color: #fff;
+      border-color: #555;
+    }
+
+    .horoscope-date {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      margin-top: 4px;
+      font-size: 12px;
+    }
+
+    .horoscope-date input[type="date"] {
+      font-family: inherit;
+      font-size: 12px;
+      padding: 2px 4px;
+    }
+
+    .center-scope {
+      margin-top: 3px;
+      font-size: 13px;
+      color: #8b4513;
+      font-weight: 700;
+    }
+
+    .center-flow-scope {
+      line-height: 1.45;
+      margin-top: 2px;
+    }
+
+    .scope-range { font-weight: 400; color: #333; }
+
+    .yearly-year input[type="number"] {
+      font-family: inherit;
+      font-size: 12px;
+      padding: 2px 4px;
+      width: 100%;
+    }
+
+    .palace-bottom {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 51px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+    }
+
+    .palace-footer-grid {
+      display: grid;
+      grid-template-columns: auto auto;
+      column-gap: 4px;
+      row-gap: 0;
+      align-items: end;
+      line-height: 1.12;
+    }
+
+    .daxian,
+    .decadal-slot {
+      grid-column: 1;
+      grid-row: 1;
+      font-size: 13px;
+      color: #333;
+      white-space: nowrap;
+      min-height: 1em;
+      padding: 0;
+      border: none;
+      background: none;
+      font-family: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .decadal-slot:hover {
+      color: #8b4513;
+      text-decoration: underline;
+    }
+
+    .decadal-slot.active {
+      font-weight: 700;
+      color: var(--line-red);
+    }
+
+    .monthly-badges {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      margin-right: 3px;
+    }
+
+    .monthly-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
+      padding: 0;
+      border: 1px solid var(--line-red);
+      border-radius: 50%;
+      background: #fff;
+      font-family: inherit;
+      font-size: 10px;
+      line-height: 1;
+      color: #333;
+      cursor: pointer;
+    }
+
+    .monthly-badge:hover {
+      background: #fff8e1;
+    }
+
+    .monthly-badge.active {
+      background: var(--line-red);
+      color: #fff;
+      font-weight: 700;
+    }
+
+    .palace.active-daily-palace {
+      outline: 1px dashed var(--line-red);
+      outline-offset: -2px;
+    }
+
+    .palace.active-monthly-palace {
+      outline: 1px dashed #8b4513;
+      outline-offset: -2px;
+    }
+
+    .palace-label {
+      grid-column: 1;
+      grid-row: 2;
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      font-size: 17px;
+      letter-spacing: 4px;
+      white-space: nowrap;
+      text-align: left;
+    }
+
+    .back-to-natal {
+      display: inline-block;
+      margin-bottom: 6px;
+      padding: 2px 8px;
+      border: 1px solid #8b4513;
+      border-radius: 4px;
+      background: #fff;
+      color: #8b4513;
+      font-family: inherit;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .back-to-natal:hover {
+      background: #fff8e1;
+    }
+
+    .gz-gan {
+      grid-column: 2;
+      grid-row: 1;
+      font-size: 13px;
+      color: #8b4513;
+      text-align: center;
+      min-width: 1em;
+    }
+
+    .gz-zhi {
+      grid-column: 2;
+      grid-row: 2;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--major);
+      text-align: center;
+      min-width: 1em;
+    }
+
+    .shen {
+      position: absolute;
+      left: 3px;
+      bottom: 24px;
+      background: var(--ink);
+      color: #fff;
+      border: 1px solid var(--ink);
+      font-size: 15px;
+      padding: 0 4px;
+      line-height: 21px;
+      z-index: 2;
+    }
+
+    .vtext {
+      writing-mode: vertical-rl;
+      text-orientation: upright;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .center-info label { display: flex; align-items: center; gap: 3px; cursor: pointer; }
+    .center-brand { font-size: 15px; color: #333; line-height: 1.45; }
+    .center {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      padding: 6px 8px 4px;
+      overflow: hidden;
+      writing-mode: horizontal-tb;
+      box-sizing: border-box;
+    }
+
+    .center-top-right {
+      flex-shrink: 0;
+      align-self: flex-end;
+      text-align: right;
+      font-size: 12px;
+      line-height: 1.35;
+      margin-bottom: 4px;
+    }
+
+    .center-control-row {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 2px;
+      margin-bottom: 2px;
+    }
+
+    .center-control-row input[type="date"],
+    .center-control-row input[type="number"] {
+      font-family: inherit;
+      font-size: 12px;
+      padding: 1px 3px;
+      width: 118px;
+    }
+
+    .center-control-meta { color: #444; white-space: nowrap; }
+
+    .center-body {
+      flex: 1;
+      display: flex;
+      flex-direction: row;
+      align-items: stretch;
+      gap: 8px;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .center-info {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      font-size: 17px;
+      line-height: 1.45;
+      writing-mode: horizontal-tb;
+    }
+
+    .center-vtext {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding-left: 4px;
+    }
+
+    .center-birth { margin-top: 6px; font-size: 18px; line-height: 1.5; }
+    .center-birth .lunar-note { font-size: 15px; color: #666; margin-top: 2px; }
+    .center-age { margin-top: 4px; font-size: 18px; line-height: 1.35; }
+
+    .vtext.tag { font-size: 18px; letter-spacing: 3px; }
+    .vtext.name { font-size: 27px; letter-spacing: 9px; }
+    .vtext.title { font-size: 30px; letter-spacing: 8px; font-weight: 800; }
+
+    .error-box,
+    .chart-placeholder {
+      padding: 20px;
+      background: #fff;
+      border: 1px solid #ccc;
+      text-align: center;
+    }
+
+    .chart-placeholder { color: #666; }
+    .error-box { color: var(--red); }
+
+    .hidden { display: none !important; }
+
+    [hidden] { display: none !important; }
+
+    @media (max-width: 900px) {
+      .layout { flex-direction: column; }
+      .form-panel { width: 100%; }
+    }
+
+    .auth-card {
+      width: min(100%, 420px);
+      background: #fff;
+      border: 1px solid #999;
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .auth-error { margin: 8px 0; color: #c62828; font-size: 14px; }
+
+    #userBar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      justify-content: flex-end;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    #userBar button {
+      border: 1px solid #bbb;
+      background: #fff;
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    #adminPanel {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    #adminPanel table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border: 1px solid #999;
+    }
+
+    #adminPanel th,
+    #adminPanel td {
+      padding: 8px 10px;
+      border-bottom: 1px solid #eee;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    #adminPanel .admin-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    #adminPanel .danger {
+      color: #c62828;
+    }
+  </style>
+  <script>
+    window.API_BASE = window.API_BASE || (
+      location.hostname.endsWith('github.io')
+        ? 'https://rishuntang-ziwei-api.onrender.com'
+        : ''
+    )
+  </script>
+  </head>
+  <body>
+  <div id="adminPanel" hidden></div>
+  <div id="userBar" hidden></div>
+  <div class="layout" id="appRoot">
+    <div class="form-panel" autocomplete="off">
+      <h2>排盤資料</h2>
+      <div class="row">
+        <label>姓名</label>
+        <input id="name" type="text" value="" placeholder="請輸入姓名" autocomplete="off" />
+      </div>
+      <div class="row inline">
+        <label><input type="radio" name="gender" value="男" /> 男</label>
+        <label><input type="radio" name="gender" value="女" /> 女</label>
+      </div>
+      <div class="row inline">
+        <label><input type="radio" name="calendar" value="lunar" /> 農曆</label>
+        <label><input type="radio" name="calendar" value="solar" checked /> 國曆</label>
+      </div>
+      <div class="row">
+        <label id="dateLabel">國曆出生日期</label>
+        <p class="calendar-note" id="calendarNote">以國曆排盤（陽曆）</p>
+        <div id="lunarDateFields" class="hidden">
+          <div class="date-row">
+            <div>
+              <label for="lunarYear">年</label>
+              <input id="lunarYear" type="number" placeholder="年" min="1900" max="2100" />
+            </div>
+            <div>
+              <label for="lunarMonth">月</label>
+              <input id="lunarMonth" type="number" placeholder="月" min="1" max="12" />
+            </div>
+            <div>
+              <label for="lunarDay">日</label>
+              <input id="lunarDay" type="number" placeholder="日" min="1" max="30" />
+            </div>
+          </div>
+        </div>
+        <div id="solarDateFields">
+          <input id="solarDate" type="date" />
+        </div>
+      </div>
+      <div class="row hidden" id="leapRow">
+        <label><input id="isLeap" type="checkbox" /> 閏月</label>
+      </div>
+      <div class="row inline">
+        <label>排盤類型</label>
+        <label><input type="radio" name="chartType" value="natal" checked /> 本命命盤</label>
+        <label><input type="radio" name="chartType" value="yearly" /> 流年命盤</label>
+      </div>
+      <div class="row hidden" id="yearlyYearRow">
+        <label for="yearlyYear">流年年份（西元）</label>
+        <input id="yearlyYear" type="number" min="1900" max="2100" />
+      </div>
+      <div class="row">
+        <label>出生時辰</label>
+        <select id="time">
+          <option value="" selected>請選擇時辰</option>
+          <option value="0">早子時 (00:00-01:00)</option>
+          <option value="1">丑時 (01:00-03:00)</option>
+          <option value="2">寅時 (03:00-05:00)</option>
+          <option value="3">卯時 (05:00-07:00)</option>
+          <option value="4">辰時 (07:00-09:00)</option>
+          <option value="5">巳時 (09:00-11:00)</option>
+          <option value="6">午時 (11:00-13:00)</option>
+          <option value="7">未時 (13:00-15:00)</option>
+          <option value="8">申時 (15:00-17:00)</option>
+          <option value="9">酉時 (17:00-19:00)</option>
+          <option value="10">戌時 (19:00-21:00)</option>
+          <option value="11">亥時 (21:00-23:00)</option>
+          <option value="12">晚子時 (23:00-00:00)</option>
+        </select>
+      </div>
+      <button type="button" id="submitBtn">開始排盤</button>
+    </div>
+
+    <div class="chart-panel" id="chartPanel">
+      <div class="chart-placeholder">請輸入資料後按「開始排盤」</div>
+    </div>
+  </div>
+
+  <script src="./vendor/lunar.min.js"></script>
+  <script src="./vendor/iztro.min.js"></script>
+  <script>
+    function initChartApp() {
+    const { astro } = iztro
+    const { Lunar, LunarMonth, LunarYear, Solar } = LunarLib
+
+    const BRANCH_POS = {
+      巳: [0,0], 午: [0,1], 未: [0,2], 申: [0,3],
+      辰: [1,0],                   酉: [1,3],
+      卯: [2,0],                   戌: [2,3],
+      寅: [3,0], 丑: [3,1], 子: [3,2], 亥: [3,3],
+    }
+
+    const GRID = [
+      ['巳','午','未','申'],
+      ['辰','C','C','酉'],
+      ['卯','C','C','戌'],
+      ['寅','丑','子','亥'],
+    ]
+
+    const HIGHLIGHT_GREEN = new Set([
+      '天馬','天鉞','天魁','左輔','右弼','文昌','文曲',
+      '地劫','地空','擎羊','祿存','鈴星','火星','陀羅',
+    ])
+    const LEFT_PURPLE = new Set([
+      '解神','天刑','天廚','咸池','天空','天姚','陰煞','紅鸞','華蓋',
+    ])
+    const LEFT_GREEN = new Set(['三台','八座','恩光','天貴'])
+
+    const EXCLUDED = new Set([
+      '天德','台輔','天月','天喜','寡宿','天才','年解','鳳閣','天使','天哭',
+      '天官','天虛','天福','天巫','月德','天壽','龍池','孤辰',
+      '破碎','封誥','旬空','空亡','截路','蜚廉','截空','天傷',
+    ])
+
+    function filterStars(stars) {
+      return stars.filter(s => !EXCLUDED.has(s.name))
+    }
+
+    function splitMinors(stars) {
+      const filtered = filterStars(stars)
+      return {
+        leftPurple: filtered.filter(s => LEFT_PURPLE.has(s.name)),
+        leftGreen: filtered.filter(s => LEFT_GREEN.has(s.name)),
+        rightGreen: filtered.filter(s => HIGHLIGHT_GREEN.has(s.name)),
+      }
+    }
+
+    let showLines = false
+    let selectedPalaceName = '命宮'
+    let initialChartType = 'natal'
+    let yearlyYear = new Date().getFullYear()
+    let horoscopeDate = ''
+    let currentInput = null
+    let currentAstrolabe = null
+
+    function resolveEffectiveChartMode() {
+      if (initialChartType === 'yearly') return 'yearly'
+      if (showLines) return 'decadal'
+      return 'origin'
+    }
+
+    function horoscopeDateForYear(year, referenceDate) {
+      const ref = referenceDate ? new Date(referenceDate + 'T12:00:00') : new Date()
+      const m = ref.getMonth() + 1
+      const day = Math.min(ref.getDate(), new Date(year, m, 0).getDate())
+      return `${year}-${String(m).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+    }
+
+    const LUNAR_MONTH_LABELS = ['正月','二月','三月','四月','五月','六月','七月','八月','九月','十月','冬月','腊月']
+    const BRANCH_ROTATION_ORDER = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥']
+
+    function parseLunarFromSolarDate(solarDate) {
+      const [y, m, d] = solarDate.split('-').map(Number)
+      const l = Solar.fromYmd(y, m, d).getLunar()
+      const month = Math.abs(l.getMonth())
+      return { year: l.getYear(), month, day: l.getDay(), isLeap: l.getMonth() < 0 }
+    }
+
+    function solarDateFromLunar(lunarYear, lunarMonth, lunarDay, isLeapMonth = false) {
+      const ym = isLeapMonth ? -lunarMonth : lunarMonth
+      const s = Lunar.fromYmd(lunarYear, ym, lunarDay).getSolar()
+      const [y, m, d] = s.toYmd().split('-').map(Number)
+      return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+    }
+
+    function daysInLunarMonth(lunarYear, lunarMonth, isLeapMonth = false) {
+      const ym = isLeapMonth ? -lunarMonth : lunarMonth
+      return LunarMonth.fromYm(lunarYear, ym).getDayCount()
+    }
+
+    function horoscopeDateFromLunarYearMonthDay(lunarYear, lunarMonth, lunarDay, isLeapMonth = false) {
+      const maxDay = daysInLunarMonth(lunarYear, lunarMonth, isLeapMonth)
+      const safeDay = Math.min(Math.max(lunarDay, 1), maxDay)
+      return solarDateFromLunar(lunarYear, lunarMonth, safeDay, isLeapMonth)
+    }
+
+    function horoscopeDateForLunarYear(lunarYear, referenceDate = new Date()) {
+      const refSolar = todaySolarDate(referenceDate)
+      const refLunar = parseLunarFromSolarDate(refSolar)
+      if (refLunar.year === lunarYear) {
+        return horoscopeDateFromLunarYearMonthDay(refLunar.year, refLunar.month, refLunar.day, refLunar.isLeap)
+      }
+      return horoscopeDateFromLunarYearMonthDay(lunarYear, 1, 1, false)
+    }
+
+    function palaceIndexByBranch(a, branch) {
+      return a.palaces.find(p => p.earthlyBranch === branch)?.index
+    }
+
+    function lunarMonthAnchorSolar(lunarYear, lunarMonth, isLeapMonth = false) {
+      try {
+        return solarDateFromLunar(lunarYear, lunarMonth, 1, isLeapMonth)
+      } catch {
+        return null
+      }
+    }
+
+
+    function horoscopeDateForNominalAge(solarBirthDate, nominalAge) {
+      const [birthYear] = solarBirthDate.split('-').map(Number)
+      return horoscopeDateForYear(birthYear + nominalAge - 1)
+    }
+
+    function updateChartTypeUI() {
+      const yearly = document.querySelector('input[name="chartType"]:checked')?.value === 'yearly'
+      document.getElementById('yearlyYearRow').classList.toggle('hidden', !yearly)
+    }
+
+    const MODE_TAG = { origin: '本命', decadal: '大限', yearly: '流年' }
+    const MODE_TITLE = { origin: '本命盤', decadal: '大限盤', yearly: '流年盤' }
+    const MUTAGEN_BY_STEM = {
+      甲: ['廉貞', '破軍', '武曲', '太陽'],
+      乙: ['天機', '天梁', '紫微', '太陰'],
+      丙: ['天同', '天機', '文昌', '廉貞'],
+      丁: ['太陰', '天同', '天機', '巨門'],
+      戊: ['貪狼', '太陰', '右弼', '天機'],
+      己: ['武曲', '貪狼', '天梁', '文曲'],
+      庚: ['太陽', '武曲', '太陰', '天同'],
+      辛: ['巨門', '太陽', '文曲', '文昌'],
+      壬: ['天梁', '紫微', '左輔', '武曲'],
+      癸: ['破軍', '巨門', '太陰', '貪狼'],
+    }
+    const MUTAGEN_LABELS = ['祿', '權', '科', '忌']
+
+    function getMutagenForStar(stem, starName) {
+      const stars = MUTAGEN_BY_STEM[stem]
+      if (!stars) return ''
+      const idx = stars.indexOf(starName)
+      return idx >= 0 ? MUTAGEN_LABELS[idx] : ''
+    }
+
+    function getNatalYearStem(a) {
+      return a.rawDates.chineseDate.yearly[0]
+    }
+
+    function horoscopeScopeForMode(mode) {
+      if (mode === 'decadal') return 'decadal'
+      if (mode === 'yearly') return 'yearly'
+      return 'origin'
+    }
+
+    function getMutagenStem(h, a, mode) {
+      if (mode === 'yearly') return h.yearly.heavenlyStem
+      if (mode === 'decadal') return h.decadal.heavenlyStem
+      return getNatalYearStem(a)
+    }
+
+    function getDisplayMutagen(h, a, mode, starName) {
+      return getMutagenForStar(getMutagenStem(h, a, mode), starName)
+    }
+
+    function getScopePalaceName(h, palaceIndex, mode, natalName) {
+      if (mode === 'origin' || !h) return natalName
+      const scope = horoscopeScopeForMode(mode)
+      if (scope === 'origin') return natalName
+      return h[scope].palaceNames[palaceIndex] || natalName
+    }
+
+    function getFlowStars(h, palaceIndex, mode) {
+      if (mode === 'origin' || mode === 'decadal' || !h) return []
+      if (mode === 'yearly') {
+        const yearly = h.yearly.stars?.[palaceIndex] || []
+        return yearly.map(s => s.name)
+      }
+      const decadal = h.decadal.stars?.[palaceIndex] || []
+      const yearly = h.yearly.stars?.[palaceIndex] || []
+      const names = new Set()
+      decadal.forEach(s => names.add(s.name))
+      yearly.forEach(s => names.add(s.name))
+      return [...names]
+    }
+
+    function getSanFangBranchRoles(a, h, palaceName, mode) {
+      const scope = horoscopeScopeForMode(mode)
+      const s = scope === 'origin'
+        ? a.surroundedPalaces(palaceName)
+        : h.surroundPalaces(palaceName, scope)
+      const target = s.target.earthlyBranch
+      const related = new Set([
+        s.wealth.earthlyBranch,
+        s.career.earthlyBranch,
+        s.opposite.earthlyBranch,
+      ])
+      return {
+        target,
+        related,
+        all: new Set([target, ...related]),
+      }
+    }
+
+    function getSanFangForScope(a, h, palaceName, mode) {
+      return getSanFangBranchRoles(a, h, palaceName, mode).all
+    }
+
+    function formatHoroscopeDate(dateStr) {
+      const [y, m, d] = dateStr.split('-').map(Number)
+      return `${y}/${m}/${d}`
+    }
+
+    function starClassFor(name, role) {
+      if (role === 'major') return 'major'
+      if (role === 'left-purple') return 'p-sm'
+      if (role === 'left-green') return 'g-sm'
+      if (role === 'flow') return 'flow'
+      return 'g-lg'
+    }
+
+    function shouldShowDecadal(range) {
+      const [start, end] = range
+      return end <= 90 && start <= 80
+    }
+
+    function formatBrightness(b) {
+      if (!b) return ''
+      if (b === '得' || b === '不') return '平'
+      return b
+    }
+
+    function mutagenClass(m) {
+      return { 祿:'lu', 權:'quan', 科:'ke', 忌:'ji' }[m] || 'lu'
+    }
+
+    function mutagenHtml(m, style) {
+      if (!m) return ''
+      if (style === 'circle') {
+        return `<span class="mutagen-circle ${mutagenClass(m)}">${m}</span>`
+      }
+      const extra = style === 'horoscope' ? ' horoscope' : ''
+      return `<span class="mutagen${extra} ${mutagenClass(m)}">${m}</span>`
+    }
+
+    function formatPalaceName(n) {
+      const map = { '官祿': '事業', '僕役': '交友' }
+      const display = map[n] || n
+      return display.split('').join(' ')
+    }
+
+    function getSanFangBranches(a, palaceName) {
+      const s = a.surroundedPalaces(palaceName)
+      return new Set([
+        s.target.earthlyBranch,
+        s.wealth.earthlyBranch,
+        s.career.earthlyBranch,
+        s.opposite.earthlyBranch,
+      ])
+    }
+
+    function todayStr() {
+      const d = new Date()
+      return `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`
+    }
+
+    function getAge(solarDate) {
+      const [y] = solarDate.split('-').map(Number)
+      return new Date().getFullYear() - y + 1
+    }
+
+    function todaySolarDate() {
+      const d = new Date()
+      const y = d.getFullYear()
+      const m = String(d.getMonth() + 1).padStart(2, '0')
+      const day = String(d.getDate()).padStart(2, '0')
+      return `${y}-${m}-${day}`
+    }
+
+    function getInput() {
+      const genderEl = document.querySelector('input[name="gender"]:checked')
+      if (!genderEl) throw new Error('請選擇性別')
+
+      const calendar = document.querySelector('input[name="calendar"]:checked').value
+      let date
+      if (calendar === 'lunar') {
+        const y = document.getElementById('lunarYear').value
+        const m = document.getElementById('lunarMonth').value
+        const d = document.getElementById('lunarDay').value
+        if (!y || !m || !d) throw new Error('請輸入農曆出生日期')
+        date = `${y}-${m}-${d}`
+      } else {
+        date = document.getElementById('solarDate').value
+        if (!date) throw new Error('請輸入國曆出生日期')
+      }
+
+      const timeVal = document.getElementById('time').value
+      if (timeVal === '') throw new Error('請選擇出生時辰')
+
+      const chartType = document.querySelector('input[name="chartType"]:checked')?.value || 'natal'
+      const yearVal = Number(document.getElementById('yearlyYear').value)
+      if (chartType === 'yearly' && (!yearVal || yearVal < 1900 || yearVal > 2100)) {
+        throw new Error('請輸入有效的流年年份（西元）')
+      }
+
+      return {
+        name: document.getElementById('name').value.trim(),
+        gender: genderEl.value,
+        calendar,
+        date,
+        timeIndex: Number(timeVal),
+        isLeap: document.getElementById('isLeap').checked,
+        initialChartType: chartType,
+        yearlyYear: chartType === 'yearly' ? yearVal : new Date().getFullYear(),
+      }
+    }
+
+    function normalizeDate(date) {
+      const [y, m, d] = date.split('-')
+      return `${Number(y)}-${Number(m)}-${Number(d)}`
+    }
+
+    function compute(input) {
+      const { gender, calendar, date, timeIndex, isLeap } = input
+      const d = normalizeDate(date)
+      if (calendar === 'lunar') {
+        return astro.byLunar(d, timeIndex, gender, isLeap, true, 'zh-TW')
+      }
+      return astro.bySolar(d, timeIndex, gender, true, 'zh-TW')
+    }
+
+    function centerBirthText(a, input) {
+      const { yearly, hourly } = a.rawDates.chineseDate
+      const gz = yearly[0] + yearly[1]
+      const hour = hourly[1] || '寅'
+
+      const lm = a.lunarDate.match(/([正二三四五六七八九十冬臘閏]+)月([初十廿三]*[一二三四五六七八九十]+)/)
+      const lunarLine = lm ? `農曆 ${lm[1]}月${lm[2]}` : ''
+
+      if (input.calendar === 'lunar') {
+        const [y, m, d] = normalizeDate(input.date).split('-')
+        return {
+          line1: `${y} ${gz} 年`,
+          line2: `${m} 月 ${d} 日 ${hour} 時`,
+          lunarNote: '',
+        }
+      }
+
+      const [sy, sm, sd] = a.solarDate.split('-').map(Number)
+      return {
+        line1: `${sy} ${gz} 年`,
+        line2: `${sm} 月 ${sd} 日 ${hour} 時`,
+        lunarNote: lunarLine,
+      }
+    }
+
+    function updateCalendarUI() {
+      const lunar = document.querySelector('input[name="calendar"]:checked').value === 'lunar'
+      document.getElementById('lunarDateFields').classList.toggle('hidden', !lunar)
+      document.getElementById('solarDateFields').classList.toggle('hidden', lunar)
+      document.getElementById('leapRow').classList.toggle('hidden', !lunar)
+      document.getElementById('dateLabel').textContent = lunar ? '農曆出生日期' : '國曆出生日期'
+      document.getElementById('calendarNote').textContent = lunar
+        ? '以農曆排盤（陰曆）'
+        : '以國曆排盤（陽曆）'
+    }
+
+    function mapStarForDisplay(star, chartMode, h, a) {
+      const tableMutagen = getDisplayMutagen(h, a, chartMode, star.name)
+      if (chartMode === 'yearly' || chartMode === 'decadal') {
+        return {
+          name: star.name,
+          brightness: star.brightness,
+          horoscopeMutagen: tableMutagen,
+        }
+      }
+      return {
+        name: star.name,
+        brightness: star.brightness,
+        mutagen: tableMutagen,
+      }
+    }
+
+    function renderStarCol(star, role, chartMode) {
+      const cls = starClassFor(star.name, role)
+      const bright = star.brightness && role === 'major'
+        ? `<span class="vbright">${formatBrightness(star.brightness)}</span>` : ''
+      const mut = star.mutagen && chartMode !== 'yearly'
+        ? mutagenHtml(star.mutagen, 'box') : ''
+      const hMut = star.horoscopeMutagen && chartMode !== 'origin'
+        ? mutagenHtml(star.horoscopeMutagen, chartMode === 'yearly' ? 'circle' : 'horoscope') : ''
+      return `<span class="star-vcol ${cls}"><span class="vcol-inner"><span class="vname">${star.name}</span>${bright}</span>${mut}${hMut}</span>`
+    }
+
+    function renderStarsVertical(stars, role, chartMode) {
+      return stars.map(s => renderStarCol(s, role, chartMode)).join('')
+    }
+
+    function renderPalace(p, h, a, sanFangRoles, chartMode) {
+      const { leftPurple, leftGreen, rightGreen } = splitMinors([
+        ...p.minorStars.map(s => ({ name: s.name, mutagen: s.mutagen })),
+        ...p.adjectiveStars.map(s => ({ name: s.name, mutagen: s.mutagen })),
+      ])
+      const mapStar = s => mapStarForDisplay(s, chartMode, h, a)
+      const leftPurpleM = leftPurple.map(mapStar)
+      const leftGreenM = leftGreen.map(mapStar)
+      const rightGreenM = rightGreen.map(mapStar)
+      const majors = p.majorStars.map(s => mapStarForDisplay({
+        name: s.name,
+        brightness: s.brightness,
+      }, chartMode, h, a))
+
+      const showDecadalAge = chartMode === 'origin' || chartMode === 'decadal'
+      const daxian = showDecadalAge && p.decadal && shouldShowDecadal(p.decadal.range)
+        ? `${p.decadal.range[0]} - ${p.decadal.range[1]}`
+        : ''
+      const isActiveDecadal = chartMode === 'decadal' && h.decadal.index === p.index
+      const daxianHtml = daxian
+        ? `<button type="button" class="decadal-slot ${isActiveDecadal ? 'active' : ''}" data-palace-index="${p.index}" data-age-start="${p.decadal.range[0]}">${daxian}</button>`
+        : '<span class="decadal-slot"></span>'
+
+      const displayName = getScopePalaceName(h, p.index, chartMode, p.name)
+      const scopeName = displayName
+      const shen = p.isBodyPalace && chartMode === 'origin' ? '<div class="shen">身</div>' : ''
+      const hl = sanFangRoles.all.has(p.earthlyBranch) ? 'highlight' : ''
+      const focus = sanFangRoles.target === p.earthlyBranch ? 'focus-palace' : ''
+      const footerDim = sanFangRoles.related.has(p.earthlyBranch)
+
+      return `<div class="palace ${hl} ${focus}" data-scope-palace="${scopeName}" title="點選查看三方四正">
+        ${shen}
+        <div class="palace-stars">
+          <div class="stars-left">
+            <div class="stars-row stars-row-1">${renderStarsVertical(leftPurpleM, 'left-purple', chartMode)}</div>
+            <div class="stars-row stars-row-2">${renderStarsVertical(leftGreenM, 'left-green', chartMode)}</div>
+          </div>
+          <div class="stars-right">${renderStarsVertical(rightGreenM, 'right-green', chartMode)}${renderStarsVertical(majors, 'major', chartMode)}</div>
+        </div>
+        <div class="palace-bottom ${footerDim ? 'palace-footer-dimmed' : ''}">
+          <div class="palace-footer-grid">
+            ${daxianHtml}
+            <span class="gz-gan">${p.heavenlyStem}</span>
+            <div class="palace-label">(${formatPalaceName(displayName)})</div>
+            <span class="gz-zhi">${p.earthlyBranch}</span>
+          </div>
+        </div>
+      </div>`
+    }
+
+    function renderCenter(name, a, h, input) {
+      const chartMode = resolveEffectiveChartMode()
+      const b = centerBirthText(a, input)
+      const age = h.age.nominalAge
+      const lunarNote = b.lunarNote ? `<div class="lunar-note">${b.lunarNote}</div>` : ''
+      const scopeItem = chartMode === 'decadal' ? h.decadal : chartMode === 'yearly' ? h.yearly : null
+      const scopeGz = scopeItem ? `${scopeItem.heavenlyStem}${scopeItem.earthlyBranch}` : ''
+      const decadalPalace = chartMode === 'decadal' ? a.palace(h.decadal.index) : null
+      const decadalRange = decadalPalace?.decadal?.range
+
+      const scopeLine = scopeGz
+        ? `<div class="center-scope">${MODE_TAG[chartMode]}：${scopeGz}${chartMode === 'decadal' && decadalRange ? `<span class="scope-range"> (${decadalRange[0]}–${decadalRange[1]} 歲)</span>` : ''}</div>`
+        : ''
+
+      const backToNatal = initialChartType === 'natal' && chartMode === 'decadal'
+        ? `<button type="button" class="back-to-natal" id="backToNatal">回到本命盤</button>`
+        : ''
+
+      const yearControl = initialChartType === 'yearly'
+        ? `<label class="center-control-row"><span>流年年份</span><input type="number" id="centerYearlyYear" min="1900" max="2100" value="${yearlyYear}"/></label>`
+        : `<label class="center-control-row"><span>論命日期</span><input type="date" id="horoscopeDate" value="${horoscopeDate}"/></label>`
+
+      return `<div class="center">
+        <div class="center-top-right">
+          ${yearControl}
+        </div>
+        <div class="center-body">
+          <div class="center-info">
+            <div>
+              ${backToNatal}
+              ${scopeLine}
+              <div class="center-birth">
+                <div>${b.line1}</div>
+                <div>${b.line2}</div>
+                ${lunarNote}
+              </div>
+              <div class="center-age">${new Date(horoscopeDate).getFullYear()}<br>${age} 歲</div>
+            </div>
+            <div class="center-brand">國際日舜堂</div>
+          </div>
+          <div class="center-vtext">
+            <div class="vtext tag">${MODE_TAG[chartMode]}</div>
+            <div class="vtext name">${name || '匿名'}</div>
+            <div class="vtext title">${MODE_TITLE[chartMode]}</div>
+          </div>
+        </div>
+      </div>`
+    }
+
+    const CHART_W = 600
+    const CHART_H = 400
+
+    function branchLinePoint(branch) {
+      const p = BRANCH_POS[branch]
+      if (!p) return null
+      const cellW = CHART_W / 4
+      const cellH = CHART_H / 4
+      const centerLeft = cellW
+      const centerRight = cellW * 3
+      const centerTop = cellH
+      const centerBottom = cellH * 3
+      const [row, col] = p
+
+      if (row === 0) {
+        if (col === 0) return { x: centerLeft, y: centerTop }
+        if (col === 3) return { x: centerRight, y: centerTop }
+        return { x: (col + 0.5) * cellW, y: centerTop }
+      }
+      if (row === 3) {
+        if (col === 0) return { x: centerLeft, y: centerBottom }
+        if (col === 3) return { x: centerRight, y: centerBottom }
+        return { x: (col + 0.5) * cellW, y: centerBottom }
+      }
+      if (col === 0) return { x: centerLeft, y: (row + 0.5) * cellH }
+      if (col === 3) return { x: centerRight, y: (row + 0.5) * cellH }
+      return null
+    }
+
+    function renderLines(a, h) {
+      const chartMode = resolveEffectiveChartMode()
+      const scope = horoscopeScopeForMode(chartMode)
+      const s = scope === 'origin'
+        ? a.surroundedPalaces(selectedPalaceName)
+        : h.surroundPalaces(selectedPalaceName, scope)
+      const lineEls = []
+
+      const soulPt = branchLinePoint(s.target.earthlyBranch)
+      const wealthPt = branchLinePoint(s.wealth.earthlyBranch)
+      const careerPt = branchLinePoint(s.career.earthlyBranch)
+      const travelPt = branchLinePoint(s.opposite.earthlyBranch)
+
+      if (soulPt && wealthPt) lineEls.push(`<line x1="${soulPt.x}" y1="${soulPt.y}" x2="${wealthPt.x}" y2="${wealthPt.y}"/>`)
+      if (soulPt && careerPt) lineEls.push(`<line x1="${soulPt.x}" y1="${soulPt.y}" x2="${careerPt.x}" y2="${careerPt.y}"/>`)
+      if (soulPt && travelPt) lineEls.push(`<line x1="${soulPt.x}" y1="${soulPt.y}" x2="${travelPt.x}" y2="${travelPt.y}"/>`)
+      if (wealthPt && careerPt) lineEls.push(`<line x1="${wealthPt.x}" y1="${wealthPt.y}" x2="${careerPt.x}" y2="${careerPt.y}"/>`)
+
+      return `<svg class="chart-lines" viewBox="0 0 ${CHART_W} ${CHART_H}" preserveAspectRatio="none">${lineEls.join('')}</svg>`
+    }
+
+    function renderChart(name, a, input) {
+      currentInput = input
+      currentAstrolabe = a
+      const chartMode = resolveEffectiveChartMode()
+      const h = a.horoscope(horoscopeDate, input.timeIndex)
+      const map = new Map(a.palaces.map(p => [p.earthlyBranch, p]))
+      const sanFangRoles = getSanFangBranchRoles(a, h, selectedPalaceName, chartMode)
+      let centerDone = false
+      let html = '<div class="chart-outer"><div class="chart-grid">'
+      html += renderLines(a, h)
+
+      GRID.forEach((row, ri) => {
+        row.forEach((cell, ci) => {
+          if (cell === 'C') {
+            if (ri === 1 && ci === 1 && !centerDone) {
+              centerDone = true
+              html += `<div class="cell center" style="grid-row:2/4;grid-column:2/4">${renderCenter(name, a, h, input)}</div>`
+            }
+            return
+          }
+          const p = map.get(cell)
+          if (!p) return
+          html += `<div class="cell" style="grid-row:${ri+1};grid-column:${ci+1}">${renderPalace(p, h, a, sanFangRoles, chartMode)}</div>`
+        })
+      })
+
+      html += '</div></div>'
+      document.getElementById('chartPanel').innerHTML = html
+
+      document.querySelectorAll('.palace[data-scope-palace]').forEach(el => {
+        el.addEventListener('click', () => {
+          selectedPalaceName = el.dataset.scopePalace
+          renderChart(name, a, input)
+        })
+      })
+
+      document.querySelectorAll('.decadal-slot[data-age-start]').forEach(btn => {
+        btn.addEventListener('click', e => {
+          e.stopPropagation()
+          if (initialChartType !== 'natal') return
+          showLines = true
+          horoscopeDate = horoscopeDateForNominalAge(a.solarDate, Number(btn.dataset.ageStart))
+          selectedPalaceName = '命宮'
+          renderChart(name, a, input)
+        })
+      })
+
+      document.getElementById('backToNatal')?.addEventListener('click', () => {
+        showLines = false
+        horoscopeDate = todaySolarDate()
+        selectedPalaceName = '命宮'
+        renderChart(name, a, input)
+      })
+
+      document.getElementById('centerYearlyYear')?.addEventListener('change', e => {
+        const year = Number(e.target.value)
+        if (year >= 1900 && year <= 2100) {
+          yearlyYear = year
+          horoscopeDate = horoscopeDateForYear(yearlyYear)
+          selectedPalaceName = '命宮'
+          renderChart(name, a, input)
+        }
+      })
+
+      document.getElementById('horoscopeDate')?.addEventListener('change', e => {
+        horoscopeDate = e.target.value || todaySolarDate()
+        selectedPalaceName = '命宮'
+        renderChart(name, a, input)
+      })
+    }
+
+    function run() {
+      try {
+        const input = getInput()
+        const a = compute(input)
+        initialChartType = input.initialChartType
+        showLines = false
+        selectedPalaceName = '命宮'
+        if (initialChartType === 'yearly') {
+          yearlyYear = input.yearlyYear
+          horoscopeDate = horoscopeDateForYear(yearlyYear)
+        } else {
+          horoscopeDate = todaySolarDate()
+        }
+        renderChart(input.name, a, input)
+      } catch (err) {
+        document.getElementById('chartPanel').innerHTML =
+          `<div class="error-box">排盤失敗：${err.message || err}</div>`
+      }
+    }
+
+    document.getElementById('submitBtn').addEventListener('click', run)
+
+    document.querySelectorAll('input[name="calendar"]').forEach(el => {
+      el.addEventListener('change', () => {
+        const lunar = document.querySelector('input[name="calendar"]:checked').value === 'lunar'
+        if (lunar) {
+          document.getElementById('lunarYear').value = ''
+          document.getElementById('lunarMonth').value = ''
+          document.getElementById('lunarDay').value = ''
+        } else {
+          document.getElementById('solarDate').value = todaySolarDate()
+        }
+        updateCalendarUI()
+      })
+    })
+
+    document.getElementById('solarDate').value = todaySolarDate()
+    document.getElementById('yearlyYear').value = new Date().getFullYear()
+    horoscopeDate = todaySolarDate()
+    updateCalendarUI()
+    updateChartTypeUI()
+
+    document.querySelectorAll('input[name="chartType"]').forEach(el => {
+      el.addEventListener('change', updateChartTypeUI)
+    })
+    }
+  </script>
+  <script src="./vendor/auth-common.js"></script>
+  <script src="./vendor/auth-app.js"></script>
+  </body>
+</html>
