@@ -122,3 +122,7 @@ export function fetchAdminUserCharts(userId: number, search?: string) {
   const q = search?.trim() ? `?q=${encodeURIComponent(search.trim())}` : ''
   return request<AdminUserChartsResponse>(`/api/admin/users/${userId}/charts${q}`)
 }
+
+export function fetchAdminUserChart(userId: number, chartId: number) {
+  return request<SavedChartResponse>(`/api/admin/users/${userId}/charts/${chartId}`)
+}

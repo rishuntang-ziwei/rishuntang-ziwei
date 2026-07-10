@@ -11,6 +11,7 @@ import type {
   SavedChartSummary,
   UserRow,
 } from './types.js'
+import { formatBirthDateTime } from './chartFormat.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const dataDir = process.env.DB_PATH
@@ -54,11 +55,13 @@ function parseSavedChartPayload(raw: string): SavedChartPayload {
 }
 
 function toSavedChartSummary(row: SavedChartRow): SavedChartSummary {
+  const payload = parseSavedChartPayload(row.payload)
   return {
     id: row.id,
     subjectName: row.subject_name,
     gender: row.gender,
     bazi: row.bazi,
+    birthDateTime: formatBirthDateTime(payload),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   }
@@ -203,6 +206,11 @@ export function createSavedChart(userId: number, payload: SavedChartPayload): Sa
 export function deleteSavedChart(id: number, userId: number): boolean {
   const result = db.prepare('DELETE FROM saved_charts WHERE id = ? AND user_id = ?').run(id, userId)
   return result.changes > 0
+}
+
+export function getSavedChartDetailForUser(chartId: number, userId: number): SavedChartDetail | undefined {
+  const row = findSavedChartForUser(chartId, userId)
+  return row ? toSavedChartDetail(row) : undefined
 }
 
 export async function ensureAdminUser() {

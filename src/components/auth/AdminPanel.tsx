@@ -4,13 +4,21 @@ import { useAuth } from '../../context/AuthContext'
 import type { AuthUser } from '../../types/auth'
 import { AdminUserChartsPanel } from './AdminUserChartsPanel'
 
+import type { SavedChartPayload } from '../../types/charts'
+
 function statusLabel(status: AuthUser['status']) {
   if (status === 'pending') return '待審核'
   if (status === 'approved') return '已開通'
   return '已拒絕'
 }
 
-export function AdminPanel({ onBack }: { onBack: () => void }) {
+export function AdminPanel({
+  onBack,
+  onLoadChart,
+}: {
+  onBack: () => void
+  onLoadChart: (payload: SavedChartPayload) => void
+}) {
   const { user, logout } = useAuth()
   const [users, setUsers] = useState<AuthUser[]>([])
   const [error, setError] = useState('')
@@ -68,6 +76,7 @@ export function AdminPanel({ onBack }: { onBack: () => void }) {
         userId={viewingCharts.id}
         userName={viewingCharts.name}
         onBack={() => setViewingCharts(null)}
+        onLoadChart={onLoadChart}
       />
     )
   }

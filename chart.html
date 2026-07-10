@@ -110,11 +110,31 @@
     }
 
     .saved-charts-panel input[type="search"] {
-      width: 100%;
+      flex: 1;
       padding: 8px;
-      margin-bottom: 8px;
       font-family: inherit;
       font-size: 14px;
+      margin-bottom: 0;
+    }
+
+    .saved-chart-search-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .saved-chart-search-row button {
+      width: auto;
+      margin-top: 0;
+      padding: 8px 14px;
+      white-space: nowrap;
+    }
+
+    .saved-charts-status {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 8px;
+      min-height: 1.2em;
     }
 
     .saved-chart-list {
@@ -1099,7 +1119,11 @@
         </div>
 
         <div class="saved-charts-panel">
-          <input type="search" id="savedChartSearch" placeholder="搜尋已存姓名…" />
+          <div class="saved-chart-search-row">
+            <input type="search" id="savedChartSearch" placeholder="搜尋已存姓名…" />
+            <button type="button" id="savedChartSearchBtn" class="secondary">搜尋</button>
+          </div>
+          <div class="saved-charts-status" id="savedChartSearchStatus"></div>
           <div class="saved-chart-list" id="savedChartList">
             <div class="saved-charts-empty">載入中…</div>
           </div>
@@ -1549,13 +1573,28 @@
       }
     }
 
-    let savedChartSearchTimer = null
+    let savedChartSearchQuery = ''
 
-    function renderSavedChartList(charts) {
+    function updateSavedChartSearchStatus(count, query) {
+      const status = document.getElementById('savedChartSearchStatus')
+      if (!status) return
+      if (query && query.trim()) {
+        status.textContent = count
+          ? '搜尋「' + query.trim() + '」共 ' + count + ' 筆'
+          : '搜尋「' + query.trim() + '」找不到符合的命盤'
+      } else {
+        status.textContent = count ? '共 ' + count + ' 筆已存命盤' : '尚無已存命盤'
+      }
+    }
+
+    function renderSavedChartList(charts, query) {
       const list = document.getElementById('savedChartList')
       if (!list) return
+      updateSavedChartSearchStatus(charts.length, query)
       if (!charts.length) {
-        list.innerHTML = '<div class="saved-charts-empty">尚無已存命盤</div>'
+        list.innerHTML = '<div class="saved-charts-empty">' +
+          (query && query.trim() ? '找不到符合的命盤' : '尚無已存命盤') +
+          '</div>'
         return
       }
       list.innerHTML = charts.map(function (chart) {
@@ -1563,7 +1602,7 @@
           '<div class="saved-chart-item">' +
             '<div class="saved-chart-meta">' +
               '<strong>' + chart.subjectName + '</strong>' +
-              '<span>' + chart.gender + ' · ' + chart.bazi + '</span>' +
+              '<span>' + chart.gender + ' · ' + (chart.birthDateTime || chart.bazi) + '</span>' +
             '</div>' +
             '<div class="saved-chart-actions">' +
               '<button type="button" class="secondary" data-load-chart="' + chart.id + '">提取</button>' +
@@ -1590,7 +1629,7 @@
           if (!confirm('確定要刪除「' + btn.dataset.name + '」的命盤？')) return
           try {
             await window.ZiweiAuth.api('/api/charts/' + btn.dataset.deleteChart, { method: 'DELETE' })
-            await loadSavedCharts(document.getElementById('savedChartSearch')?.value || '')
+            await loadSavedCharts(savedChartSearchQuery)
           } catch (err) {
             alert(err.message || '刪除失敗')
           }
@@ -1601,11 +1640,15 @@
     async function loadSavedCharts(search) {
       const list = document.getElementById('savedChartList')
       if (!list) return
+      savedChartSearchQuery = search || ''
+      const status = document.getElementById('savedChartSearchStatus')
+      if (status) status.textContent = '搜尋中…'
       try {
-        const q = search && search.trim() ? '?q=' + encodeURIComponent(search.trim()) : ''
+        const q = savedChartSearchQuery.trim() ? '?q=' + encodeURIComponent(savedChartSearchQuery.trim()) : ''
         const data = await window.ZiweiAuth.api('/api/charts' + q)
-        renderSavedChartList(data.charts || [])
+        renderSavedChartList(data.charts || [], savedChartSearchQuery)
       } catch (err) {
+        if (status) status.textContent = ''
         list.innerHTML = '<div class="saved-charts-empty">' + (err.message || '載入失敗') + '</div>'
       }
     }
@@ -1619,7 +1662,12 @@
         body: JSON.stringify({ payload }),
       })
       alert('命盤已儲存')
-      await loadSavedCharts(document.getElementById('savedChartSearch')?.value || '')
+      await loadSavedCharts(savedChartSearchQuery)
+    }
+
+    window.loadSavedChartPayload = function (payload) {
+      applyInputToForm(payload)
+      run()
     }
 
     function normalizeDate(date) {
@@ -2050,12 +2098,15 @@
       }
     })
 
-    document.getElementById('savedChartSearch')?.addEventListener('input', function (e) {
-      clearTimeout(savedChartSearchTimer)
-      const value = e.target.value
-      savedChartSearchTimer = setTimeout(function () {
-        loadSavedCharts(value)
-      }, 250)
+    document.getElementById('savedChartSearchBtn')?.addEventListener('click', function () {
+      loadSavedCharts(document.getElementById('savedChartSearch')?.value || '')
+    })
+
+    document.getElementById('savedChartSearch')?.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        e.preventDefault()
+        loadSavedCharts(e.target.value || '')
+      }
     })
 
     loadSavedCharts('')

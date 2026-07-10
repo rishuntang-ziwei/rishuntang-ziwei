@@ -31,6 +31,15 @@ function birthInputToPayload(input: BirthInput, astrolabe: FunctionalAstrolabe):
   }
 }
 
+function searchStatusText(count: number, query: string) {
+  if (query.trim()) {
+    return count
+      ? `搜尋「${query.trim()}」共 ${count} 筆`
+      : `搜尋「${query.trim()}」找不到符合的命盤`
+  }
+  return count ? `共 ${count} 筆已存命盤` : '尚無已存命盤'
+}
+
 interface SavedChartsPanelProps {
   input: BirthInput
   hasChart: boolean
@@ -39,7 +48,8 @@ interface SavedChartsPanelProps {
 
 export function SavedChartsPanel({ input, hasChart, onLoad }: SavedChartsPanelProps) {
   const [charts, setCharts] = useState<SavedChartSummary[]>([])
-  const [search, setSearch] = useState('')
+  const [searchInput, setSearchInput] = useState('')
+  const [appliedQuery, setAppliedQuery] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -49,6 +59,7 @@ export function SavedChartsPanel({ input, hasChart, onLoad }: SavedChartsPanelPr
     try {
       const { charts: list } = await fetchSavedCharts(query)
       setCharts(list)
+      setAppliedQuery(query)
     } catch (err) {
       setError(err instanceof Error ? err.message : '載入失敗')
       setCharts([])
@@ -58,11 +69,12 @@ export function SavedChartsPanel({ input, hasChart, onLoad }: SavedChartsPanelPr
   }, [])
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      loadCharts(search)
-    }, 250)
-    return () => window.clearTimeout(timer)
-  }, [loadCharts, search])
+    loadCharts('')
+  }, [loadCharts])
+
+  async function handleSearch() {
+    await loadCharts(searchInput)
+  }
 
   async function handleSave() {
     setError('')
@@ -70,7 +82,7 @@ export function SavedChartsPanel({ input, hasChart, onLoad }: SavedChartsPanelPr
       const astrolabe = computeAstrolabe(input)
       await saveChart(birthInputToPayload(input, astrolabe))
       alert('命盤已儲存')
-      await loadCharts(search)
+      await loadCharts(appliedQuery)
     } catch (err) {
       alert(err instanceof Error ? err.message : '儲存失敗')
     }
@@ -89,7 +101,7 @@ export function SavedChartsPanel({ input, hasChart, onLoad }: SavedChartsPanelPr
     if (!confirm(`確定要刪除「${name}」的命盤？`)) return
     try {
       await deleteSavedChart(id)
-      await loadCharts(search)
+      await loadCharts(appliedQuery)
     } catch (err) {
       alert(err instanceof Error ? err.message : '刪除失敗')
     }
@@ -116,35 +128,51 @@ export function SavedChartsPanel({ input, hasChart, onLoad }: SavedChartsPanelPr
       </div>
 
       <div className="saved-charts-panel">
-        <input
-          type="search"
-          value={search}
-          placeholder="搜尋已存姓名…"
-          onChange={(e) => setSearch(e.target.value)}
-        />
+        <div className="saved-chart-search-row">
+          <input
+            type="search"
+            value={searchInput}
+            placeholder="搜尋已存姓名…"
+            onChange={(e) => setSearchInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                void handleSearch()
+              }
+            }}
+          />
+          <button type="button" className="secondary-btn" onClick={() => void handleSearch()}>
+            搜尋
+          </button>
+        </div>
+        <div className="saved-charts-status">
+          {loading ? '搜尋中…' : searchStatusText(charts.length, appliedQuery)}
+        </div>
         {error && <p className="form-error">{error}</p>}
         <div className="saved-chart-list">
           {loading ? (
             <div className="saved-charts-empty">載入中…</div>
           ) : charts.length === 0 ? (
-            <div className="saved-charts-empty">尚無已存命盤</div>
+            <div className="saved-charts-empty">
+              {appliedQuery.trim() ? '找不到符合的命盤' : '尚無已存命盤'}
+            </div>
           ) : (
             charts.map((chart) => (
               <div key={chart.id} className="saved-chart-item">
                 <div className="saved-chart-meta">
                   <strong>{chart.subjectName}</strong>
                   <span>
-                    {chart.gender} · {chart.bazi}
+                    {chart.gender} · {chart.birthDateTime || chart.bazi}
                   </span>
                 </div>
                 <div className="saved-chart-actions">
-                  <button type="button" className="secondary-btn" onClick={() => handleLoad(chart.id)}>
+                  <button type="button" className="secondary-btn" onClick={() => void handleLoad(chart.id)}>
                     提取
                   </button>
                   <button
                     type="button"
                     className="danger-btn"
-                    onClick={() => handleDelete(chart.id, chart.subjectName)}
+                    onClick={() => void handleDelete(chart.id, chart.subjectName)}
                   >
                     刪除
                   </button>

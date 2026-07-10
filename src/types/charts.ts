@@ -15,6 +15,7 @@ export interface SavedChartSummary {
   subjectName: string
   gender: '男' | '女'
   bazi: string
+  birthDateTime: string
   createdAt: string
   updatedAt: string
 }

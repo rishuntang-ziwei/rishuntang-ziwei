@@ -148,7 +148,17 @@
     })
   }
 
-  let adminChartSearchTimer = null
+  let adminChartSearchQuery = ''
+
+  async function loadAdminChartAndShow(userId, chartId) {
+    const data = await auth.api('/api/admin/users/' + userId + '/charts/' + chartId)
+    enterApp(currentUser)
+    if (typeof window.loadSavedChartPayload === 'function') {
+      window.loadSavedChartPayload(data.chart.payload)
+    } else {
+      alert('排盤功能尚未就緒，請重新整理頁面後再試')
+    }
+  }
 
   async function renderUserChartsPanel(userId, userName) {
     const panel = document.getElementById('adminPanel')
@@ -158,21 +168,30 @@
     panel.innerHTML = '<div class="auth-card"><p>載入中…</p></div>'
 
     async function loadCharts(search) {
-      const q = search && search.trim() ? '?q=' + encodeURIComponent(search.trim()) : ''
+      adminChartSearchQuery = search || ''
+      const q = adminChartSearchQuery.trim() ? '?q=' + encodeURIComponent(adminChartSearchQuery.trim()) : ''
       const data = await auth.api('/api/admin/users/' + userId + '/charts' + q)
       const charts = data.charts || []
+      const statusText = adminChartSearchQuery.trim()
+        ? (charts.length
+          ? '搜尋「' + adminChartSearchQuery.trim() + '」共 ' + charts.length + ' 筆'
+          : '搜尋「' + adminChartSearchQuery.trim() + '」找不到符合的命盤')
+        : (charts.length ? '共 ' + charts.length + ' 筆已存命盤' : '尚無已存命盤')
       const rows = charts.length
         ? charts.map(function (chart) {
             return (
               '<tr>' +
                 '<td>' + chart.subjectName + '</td>' +
                 '<td>' + chart.gender + '</td>' +
-                '<td>' + chart.bazi + '</td>' +
+                '<td>' + (chart.birthDateTime || chart.bazi) + '</td>' +
                 '<td>' + new Date(chart.createdAt).toLocaleString('zh-TW') + '</td>' +
+                '<td><button type="button" data-load-admin-chart="' + chart.id + '">提取命盤</button></td>' +
               '</tr>'
             )
           }).join('')
-        : '<tr><td colspan="4" style="text-align:center;color:#888;">尚無已存命盤</td></tr>'
+        : '<tr><td colspan="5" style="text-align:center;color:#888;">' +
+            (adminChartSearchQuery.trim() ? '找不到符合的命盤' : '尚無已存命盤') +
+          '</td></tr>'
 
       panel.innerHTML =
         '<div id="adminPanelInner">' +
@@ -180,9 +199,13 @@
             '<h2>「' + userName + '」的已存命盤</h2>' +
             '<button type="button" id="backToAdminBtn">返回會員管理</button>' +
           '</div>' +
-          '<input type="search" id="adminChartSearch" placeholder="搜尋姓名…" style="width:100%;padding:8px;margin-bottom:12px;font-family:inherit;" />' +
+          '<div style="display:flex;gap:8px;margin-bottom:8px;">' +
+            '<input type="search" id="adminChartSearch" placeholder="搜尋姓名…" style="flex:1;padding:8px;font-family:inherit;" />' +
+            '<button type="button" id="adminChartSearchBtn" style="padding:8px 14px;">搜尋</button>' +
+          '</div>' +
+          '<div id="adminChartSearchStatus" style="font-size:12px;color:#666;margin-bottom:12px;">' + statusText + '</div>' +
           '<table>' +
-            '<thead><tr><th>姓名</th><th>性別</th><th>八字</th><th>儲存時間</th></tr></thead>' +
+            '<thead><tr><th>姓名</th><th>性別</th><th>出生年月日時</th><th>儲存時間</th><th>操作</th></tr></thead>' +
             '<tbody>' + rows + '</tbody>' +
           '</table>' +
         '</div>'
@@ -191,17 +214,30 @@
         renderAdminPanel()
       })
 
+      document.getElementById('adminChartSearchBtn').addEventListener('click', function () {
+        loadCharts(document.getElementById('adminChartSearch').value || '')
+      })
+
       const searchInput = document.getElementById('adminChartSearch')
       if (searchInput) {
-        searchInput.value = search || ''
-        searchInput.addEventListener('input', function (e) {
-          clearTimeout(adminChartSearchTimer)
-          const value = e.target.value
-          adminChartSearchTimer = setTimeout(function () {
-            loadCharts(value)
-          }, 250)
+        searchInput.value = adminChartSearchQuery
+        searchInput.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter') {
+            e.preventDefault()
+            loadCharts(e.target.value || '')
+          }
         })
       }
+
+      panel.querySelectorAll('[data-load-admin-chart]').forEach(function (btn) {
+        btn.addEventListener('click', async function () {
+          try {
+            await loadAdminChartAndShow(userId, btn.dataset.loadAdminChart)
+          } catch (err) {
+            alert(err.message)
+          }
+        })
+      })
     }
 
     try {

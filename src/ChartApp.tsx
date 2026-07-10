@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type FunctionalAstrolabe from 'iztro/lib/astro/FunctionalAstrolabe'
 import { AstrolabeChart } from './components/AstrolabeChart'
 import { BirthForm } from './components/BirthForm'
@@ -11,6 +11,20 @@ import {
   todaySolarDate,
   type BirthInput,
 } from './lib/astrolabe'
+import type { SavedChartPayload } from './types/charts'
+
+function payloadToBirthInput(payload: SavedChartPayload): BirthInput {
+  return {
+    name: payload.name,
+    gender: payload.gender,
+    calendarType: payload.calendar,
+    date: payload.date,
+    timeIndex: payload.timeIndex,
+    isLeapMonth: payload.isLeap,
+    initialChartType: payload.initialChartType,
+    yearlyYear: payload.yearlyYear,
+  }
+}
 
 function createDefaultInput(): BirthInput {
   return {
@@ -25,7 +39,15 @@ function createDefaultInput(): BirthInput {
   }
 }
 
-export function ChartApp({ onOpenAdmin }: { onOpenAdmin?: () => void }) {
+export function ChartApp({
+  onOpenAdmin,
+  pendingChartPayload,
+  onPendingChartLoaded,
+}: {
+  onOpenAdmin?: () => void
+  pendingChartPayload?: SavedChartPayload | null
+  onPendingChartLoaded?: () => void
+}) {
   const { user, logout } = useAuth()
   const [input, setInput] = useState<BirthInput>(createDefaultInput)
   const [submitted, setSubmitted] = useState<BirthInput | null>(null)
@@ -56,6 +78,14 @@ export function ChartApp({ onOpenAdmin }: { onOpenAdmin?: () => void }) {
       setSubmitted(null)
     }
   }
+
+  useEffect(() => {
+    if (!pendingChartPayload) return
+    const loaded = payloadToBirthInput(pendingChartPayload)
+    setInput(loaded)
+    submitInput(loaded)
+    onPendingChartLoaded?.()
+  }, [pendingChartPayload, onPendingChartLoaded])
 
   const astrolabe = useMemo<FunctionalAstrolabe | null>(() => {
     if (!submitted) return null
