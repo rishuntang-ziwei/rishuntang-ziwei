@@ -9,7 +9,6 @@ import {
   type ChartMode,
   chartModeTag,
   chartModeTitle,
-  getLunarPartsFromHoroscopeDate,
 } from '../lib/horoscope'
 
 interface CenterPanelProps {
@@ -27,6 +26,9 @@ interface CenterPanelProps {
   showYearlyDaily: boolean
   onShowYearlyDailyChange: (value: boolean) => void
   yearlyMonthSelected?: boolean
+  selectedFlowMonth?: number | null
+  selectedFlowLunarYear?: number | null
+  selectedFlowIsLeap?: boolean
   onBackToNatal?: () => void
 }
 
@@ -45,16 +47,17 @@ export function CenterPanel({
   showYearlyDaily,
   onShowYearlyDailyChange,
   yearlyMonthSelected = false,
+  selectedFlowMonth = null,
+  selectedFlowLunarYear = null,
+  selectedFlowIsLeap = false,
   onBackToNatal,
 }: CenterPanelProps) {
   const birth = centerBirthText(astrolabe, calendar, birthDate)
   const age = horoscope.age.nominalAge
-  const activeLunar = getLunarPartsFromHoroscopeDate(horoscopeDate)
-  const daysInActiveLunarMonth = daysInLunarMonth(
-    activeLunar.year,
-    activeLunar.month,
-    activeLunar.isLeap,
-  )
+  const flowDaysInMonth =
+    selectedFlowMonth != null && selectedFlowLunarYear != null
+      ? daysInLunarMonth(selectedFlowLunarYear, selectedFlowMonth, selectedFlowIsLeap)
+      : 0
 
   const scopeItem = chartMode === 'decadal' ? horoscope.decadal : chartMode === 'yearly' ? horoscope.yearly : null
   const scopeGz = scopeItem ? `${scopeItem.heavenlyStem}${scopeItem.earthlyBranch}` : ''
@@ -86,6 +89,8 @@ export function CenterPanel({
             <button
               type="button"
               className={`center-toggle-btn ${showYearlyDaily ? 'active' : ''}`}
+              disabled={!yearlyMonthSelected}
+              title={yearlyMonthSelected ? undefined : '請先雙擊宮位選擇流月'}
               onClick={() => onShowYearlyDailyChange(!showYearlyDaily)}
             >
               {showYearlyDaily ? '隱藏流日' : '顯示流日'}
@@ -123,15 +128,15 @@ export function CenterPanel({
                 )}
               </div>
             )}
-            {chartMode === 'yearly' && yearlyMonthSelected && (
+            {chartMode === 'yearly' && yearlyMonthSelected && selectedFlowMonth != null && (
               <div className="center-scope center-flow-scope">
                 <div>
                   流月：{horoscope.monthly.heavenlyStem}
-                  {horoscope.monthly.earthlyBranch}（農曆 {activeLunar.month} 月）
+                  {horoscope.monthly.earthlyBranch}（農曆 {selectedFlowMonth} 月）
                 </div>
-                {showYearlyDaily && (
+                {showYearlyDaily && flowDaysInMonth > 0 && (
                   <div className="center-control-meta">
-                    流日：農曆 {activeLunar.month} 月 1–{daysInActiveLunarMonth} 日分布
+                    流日：農曆 {selectedFlowMonth} 月 1–{flowDaysInMonth} 日分布
                   </div>
                 )}
               </div>

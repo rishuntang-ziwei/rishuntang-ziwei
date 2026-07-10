@@ -61,6 +61,9 @@ export function AstrolabeChart({
   const [focusPalace, setFocusPalace] = useState<PalaceName>('命宮')
   const [showYearlyDaily, setShowYearlyDaily] = useState(false)
   const [yearlyMonthSelected, setYearlyMonthSelected] = useState(false)
+  const [selectedFlowLunarYear, setSelectedFlowLunarYear] = useState<number | null>(null)
+  const [selectedFlowMonth, setSelectedFlowMonth] = useState<number | null>(null)
+  const [selectedFlowIsLeap, setSelectedFlowIsLeap] = useState(false)
   const clickTimerRef = useRef<number | null>(null)
 
   const chartMode = resolveEffectiveChartMode(initialChartType, viewDecadalChart)
@@ -108,6 +111,9 @@ export function AstrolabeChart({
   useEffect(() => {
     setYearlyMonthSelected(false)
     setShowYearlyDaily(false)
+    setSelectedFlowLunarYear(null)
+    setSelectedFlowMonth(null)
+    setSelectedFlowIsLeap(false)
     setFocusPalace('命宮')
   }, [astrolabe, initialChartType, yearlyYear])
 
@@ -131,23 +137,61 @@ export function AstrolabeChart({
   }, [astrolabe, activeLunar.year, birthTimeIndex, chartMode])
 
   const yearlyDailyByPalace = useMemo(() => {
-    if (chartMode !== 'yearly' || !showYearlyDaily) return null
+    if (
+      chartMode !== 'yearly' ||
+      !showYearlyDaily ||
+      !yearlyMonthSelected ||
+      selectedFlowMonth == null ||
+      selectedFlowLunarYear == null
+    ) {
+      return null
+    }
     return computeYearlyDailyByPalace(
       astrolabe,
-      activeLunar.year,
-      activeLunar.month,
+      selectedFlowLunarYear,
+      selectedFlowMonth,
       birthTimeIndex,
-      activeLunar.isLeap,
+      selectedFlowIsLeap,
     )
   }, [
     astrolabe,
-    activeLunar.year,
-    activeLunar.month,
-    activeLunar.isLeap,
+    selectedFlowLunarYear,
+    selectedFlowMonth,
+    selectedFlowIsLeap,
     birthTimeIndex,
     chartMode,
     showYearlyDaily,
+    yearlyMonthSelected,
   ])
+
+  const handleYearlyMonthSelect = (month: number) => {
+    setYearlyMonthSelected(true)
+    setSelectedFlowLunarYear(activeLunar.year)
+    setSelectedFlowMonth(month)
+    setSelectedFlowIsLeap(false)
+    onHoroscopeDateChange(
+      horoscopeDateFromLunarYearMonthDay(
+        activeLunar.year,
+        month,
+        activeLunar.day,
+        false,
+      ),
+    )
+  }
+
+  const handleYearlyYearChange = (year: number) => {
+    setYearlyMonthSelected(false)
+    setShowYearlyDaily(false)
+    setSelectedFlowLunarYear(null)
+    setSelectedFlowMonth(null)
+    setSelectedFlowIsLeap(false)
+    onYearlyYearChange(year)
+  }
+
+  const handleToggleYearlyDaily = () => {
+    if (!yearlyMonthSelected) return
+    setShowYearlyDaily((value) => !value)
+  }
 
   const handlePalaceClick = (scopePalaceName: string) => {
     if (chartMode !== 'yearly') {
@@ -177,23 +221,6 @@ export function AstrolabeChart({
     const entry = yearlyMonthlyByPalace?.get(palace.index)
     if (!entry) return
     handleYearlyMonthSelect(entry.month)
-  }
-  const handleYearlyMonthSelect = (month: number) => {
-    setYearlyMonthSelected(true)
-    onHoroscopeDateChange(
-      horoscopeDateFromLunarYearMonthDay(
-        activeLunar.year,
-        month,
-        activeLunar.day,
-        false,
-      ),
-    )
-  }
-
-  const handleYearlyYearChange = (year: number) => {
-    setYearlyMonthSelected(false)
-    setShowYearlyDaily(false)
-    onYearlyYearChange(year)
   }
 
   const activeDecadalIndex = chartMode === 'decadal' ? horoscope.decadal.index : -1
@@ -273,8 +300,11 @@ export function AstrolabeChart({
                       yearlyYear={yearlyYear}
                       onYearlyYearChange={handleYearlyYearChange}
                       showYearlyDaily={showYearlyDaily}
-                      onShowYearlyDailyChange={setShowYearlyDaily}
+                      onShowYearlyDailyChange={handleToggleYearlyDaily}
                       yearlyMonthSelected={yearlyMonthSelected}
+                      selectedFlowMonth={selectedFlowMonth}
+                      selectedFlowLunarYear={selectedFlowLunarYear}
+                      selectedFlowIsLeap={selectedFlowIsLeap}
                       onBackToNatal={
                         initialChartType === 'natal' && chartMode === 'decadal'
                           ? () => onViewDecadalChart(false)
@@ -333,7 +363,7 @@ export function AstrolabeChart({
                       : undefined
                   }
                   yearlyDisplayOptions={yearlyDisplayOptions}
-                  activeYearlyMonth={yearlyMonthSelected ? activeLunar.month : undefined}
+                  activeYearlyMonth={yearlyMonthSelected ? selectedFlowMonth ?? undefined : undefined}
                   isActiveMonthlyPalace={
                     chartMode === 'yearly' && activeFlowPalaceIndex === palace.index
                   }

@@ -553,6 +553,11 @@
       color: #fff;
     }
 
+    .center-toggle-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
     .center-control-meta {
       color: #444;
       font-size: 13px;
@@ -1016,6 +1021,9 @@
     let horoscopeDate = ''
     let showYearlyDaily = false
     let yearlyMonthSelected = false
+    let selectedFlowLunarYear = null
+    let selectedFlowMonth = null
+    let selectedFlowIsLeap = false
     let palaceClickTimer = null
     let currentInput = null
     let currentAstrolabe = null
@@ -1465,7 +1473,7 @@
         ? (yearlyDailyByPalace.get(p.index) || [])
         : []
       const monthlyBadge = monthlyEntry
-        ? `<span class="monthly-badge ${yearlyMonthSelected && monthlyEntry.month === activeLunar.month ? 'active' : ''}" title="${monthlyEntry.month}月 ${monthlyEntry.gz}">${monthlyEntry.month}</span>`
+        ? `<span class="monthly-badge ${yearlyMonthSelected && monthlyEntry.month === selectedFlowMonth ? 'active' : ''}" title="${monthlyEntry.month}月 ${monthlyEntry.gz}">${monthlyEntry.month}</span>`
         : ''
       const dailyDaysHtml = dailyDays.length
         ? `<div class="daily-days">${dailyDays.join(', ')}</div>`
@@ -1502,16 +1510,15 @@
       const decadalPalace = chartMode === 'decadal' ? a.palace(h.decadal.index) : null
       const decadalRange = decadalPalace?.decadal?.range
       const activeLunar = parseLunarFromSolarDate(horoscopeDate)
-      const daysInActiveLunarMonth = daysInLunarMonth(activeLunar.year, activeLunar.month, activeLunar.isLeap)
 
       const scopeLine = scopeGz
         ? `<div class="center-scope">${MODE_TAG[chartMode]}：${scopeGz}${chartMode === 'decadal' && decadalRange ? `<span class="scope-range"> (${decadalRange[0]}–${decadalRange[1]} 歲)</span>` : ''}</div>`
         : ''
 
-      const flowScopeLine = chartMode === 'yearly' && yearlyMonthSelected
+      const flowScopeLine = chartMode === 'yearly' && yearlyMonthSelected && selectedFlowMonth
         ? `<div class="center-scope center-flow-scope">
-            <div>流月：${h.monthly.heavenlyStem}${h.monthly.earthlyBranch}（農曆 ${activeLunar.month} 月）</div>
-            ${showYearlyDaily ? `<div class="center-control-meta">流日：農曆 ${activeLunar.month} 月 1–${daysInActiveLunarMonth} 日分布</div>` : ''}
+            <div>流月：${h.monthly.heavenlyStem}${h.monthly.earthlyBranch}（農曆 ${selectedFlowMonth} 月）</div>
+            ${showYearlyDaily ? `<div class="center-control-meta">流日：農曆 ${selectedFlowMonth} 月 1–${daysInLunarMonth(selectedFlowLunarYear, selectedFlowMonth, selectedFlowIsLeap)} 日分布</div>` : ''}
           </div>`
         : ''
 
@@ -1523,7 +1530,7 @@
       if (initialChartType === 'yearly') {
         yearControl =
           `<label class="center-control-row"><span>流年年份</span><input type="number" id="centerYearlyYear" min="1900" max="2100" value="${yearlyYear}"/></label>` +
-          `<button type="button" class="center-toggle-btn ${showYearlyDaily ? 'active' : ''}" id="toggleYearlyDaily">${showYearlyDaily ? '隱藏流日' : '顯示流日'}</button>`
+          `<button type="button" class="center-toggle-btn ${showYearlyDaily ? 'active' : ''}" id="toggleYearlyDaily" ${yearlyMonthSelected ? '' : 'disabled'} title="${yearlyMonthSelected ? '' : '請先雙擊宮位選擇流月'}">${showYearlyDaily ? '隱藏流日' : '顯示流日'}</button>`
       } else {
         yearControl = `<label class="center-control-row"><span>論命日期</span><input type="date" id="horoscopeDate" value="${horoscopeDate}"/></label>`
       }
@@ -1615,8 +1622,8 @@
       const yearlyMonthlyByPalace = chartMode === 'yearly'
         ? computeYearlyMonthlyByPalace(a, activeLunar.year, input.timeIndex)
         : null
-      const yearlyDailyByPalace = chartMode === 'yearly' && showYearlyDaily
-        ? computeYearlyDailyByPalace(a, activeLunar.year, activeLunar.month, input.timeIndex, activeLunar.isLeap)
+      const yearlyDailyByPalace = chartMode === 'yearly' && showYearlyDaily && yearlyMonthSelected && selectedFlowMonth
+        ? computeYearlyDailyByPalace(a, selectedFlowLunarYear, selectedFlowMonth, input.timeIndex, selectedFlowIsLeap)
         : null
       const map = new Map(a.palaces.map(p => [p.earthlyBranch, p]))
       const displayOpts = yearlyDisplayOptions(chartMode)
@@ -1665,13 +1672,16 @@
             palaceClickTimer = null
           }
           if (resolveEffectiveChartMode() !== 'yearly') return
-          const month = el.dataset.flowMonth
+          const month = Number(el.dataset.flowMonth)
           if (!month) return
-          yearlyMonthSelected = true
           const activeLunar = parseLunarFromSolarDate(horoscopeDate)
+          yearlyMonthSelected = true
+          selectedFlowLunarYear = activeLunar.year
+          selectedFlowMonth = month
+          selectedFlowIsLeap = false
           horoscopeDate = horoscopeDateFromLunarYearMonthDay(
-            activeLunar.year,
-            Number(month),
+            selectedFlowLunarYear,
+            selectedFlowMonth,
             activeLunar.day,
             false,
           )
@@ -1704,6 +1714,9 @@
           yearlyYear = year
           yearlyMonthSelected = false
           showYearlyDaily = false
+          selectedFlowLunarYear = null
+          selectedFlowMonth = null
+          selectedFlowIsLeap = false
           const { month, day } = parseHoroscopeDateParts(horoscopeDate)
           horoscopeDate = horoscopeDateForYearMonthDay(year, month, day)
           selectedPalaceName = '命宮'
@@ -1712,6 +1725,7 @@
       })
 
       document.getElementById('toggleYearlyDaily')?.addEventListener('click', () => {
+        if (!yearlyMonthSelected) return
         showYearlyDaily = !showYearlyDaily
         renderChart(name, a, input)
       })
@@ -1734,6 +1748,9 @@
           yearlyYear = input.yearlyYear
           yearlyMonthSelected = false
           showYearlyDaily = false
+          selectedFlowLunarYear = null
+          selectedFlowMonth = null
+          selectedFlowIsLeap = false
           horoscopeDate = horoscopeDateForYear(yearlyYear)
         } else {
           horoscopeDate = todaySolarDate()
