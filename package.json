@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite app.html",
+    "dev:server": "npm run dev --prefix server",
     "start": "vite index.html --open",
     "serve": "vite index.html --host",
     "build": "tsc -b && vite build",

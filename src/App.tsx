@@ -1,115 +1,27 @@
-import { useMemo, useState } from 'react'
-import type FunctionalAstrolabe from 'iztro/lib/astro/FunctionalAstrolabe'
-import { AstrolabeChart } from './components/AstrolabeChart'
-import { BirthForm } from './components/BirthForm'
-import {
-  computeAstrolabe,
-  currentGregorianYear,
-  horoscopeDateForYear,
-  todaySolarDate,
-  type BirthInput,
-} from './lib/astrolabe'
+import { useState } from 'react'
+import { ChartApp } from './ChartApp'
+import { AdminPanel } from './components/auth/AdminPanel'
+import { AuthShell } from './components/auth/AuthShell'
+import { useAuth } from './context/AuthContext'
 import './App.css'
 
-function createDefaultInput(): BirthInput {
-  return {
-    name: '',
-    gender: '',
-    calendarType: 'solar',
-    date: todaySolarDate(),
-    timeIndex: '',
-    isLeapMonth: false,
-    initialChartType: 'natal',
-    yearlyYear: currentGregorianYear(),
-  }
-}
-
 function App() {
-  const [input, setInput] = useState<BirthInput>(createDefaultInput)
-  const [submitted, setSubmitted] = useState<BirthInput | null>(null)
-  const [formError, setFormError] = useState('')
-  const [viewDecadalChart, setViewDecadalChart] = useState(false)
-  const [horoscopeDate, setHoroscopeDate] = useState(todaySolarDate())
-  const [yearlyYear, setYearlyYear] = useState(currentGregorianYear())
+  const { user, loading } = useAuth()
+  const [showAdmin, setShowAdmin] = useState(false)
 
-  const astrolabe = useMemo<FunctionalAstrolabe | null>(() => {
-    if (!submitted) return null
-    try {
-      return computeAstrolabe(submitted)
-    } catch {
-      return null
-    }
-  }, [submitted])
+  if (loading) {
+    return <div className="auth-page"><div className="auth-card">載入中…</div></div>
+  }
 
-  return (
-    <div className="app">
-      <header className="app-header">
-        <h1>紫微斗數線上排盤</h1>
-        <p>排盤時可選本命命盤或流年命盤；本命盤點宮位大限歲數可切換大限</p>
-      </header>
+  if (!user || user.status !== 'approved') {
+    return <AuthShell />
+  }
 
-      <main className="app-main">
-        <aside className="sidebar">
-          <BirthForm
-            input={input}
-            onChange={setInput}
-            onSubmit={() => {
-              setFormError('')
-              try {
-                computeAstrolabe(input)
-                if (input.initialChartType === 'yearly') {
-                  if (!input.yearlyYear || input.yearlyYear < 1900 || input.yearlyYear > 2100) {
-                    throw new Error('請輸入有效的流年年份（西元）')
-                  }
-                }
-                setSubmitted({ ...input })
-                setViewDecadalChart(false)
-                if (input.initialChartType === 'yearly') {
-                  setYearlyYear(input.yearlyYear)
-                  setHoroscopeDate(horoscopeDateForYear(input.yearlyYear))
-                } else {
-                  setHoroscopeDate(todaySolarDate())
-                }
-              } catch (err) {
-                setFormError(err instanceof Error ? err.message : '請檢查輸入資料')
-                setSubmitted(null)
-              }
-            }}
-            error={formError}
-          />
-        </aside>
+  if (user.role === 'admin' && showAdmin) {
+    return <AdminPanel onBack={() => setShowAdmin(false)} />
+  }
 
-        <section className="chart-section">
-          {!submitted ? (
-            <div className="chart-placeholder">請輸入資料後按「開始排盤」</div>
-          ) : astrolabe && submitted.timeIndex !== '' ? (
-            <AstrolabeChart
-              name={submitted.name}
-              astrolabe={astrolabe}
-              calendar={submitted.calendarType}
-              birthDate={submitted.date}
-              birthTimeIndex={submitted.timeIndex}
-              initialChartType={submitted.initialChartType}
-              viewDecadalChart={viewDecadalChart}
-              onViewDecadalChart={(value) => {
-                setViewDecadalChart(value)
-                if (!value) setHoroscopeDate(todaySolarDate())
-              }}
-              horoscopeDate={horoscopeDate}
-              onHoroscopeDateChange={setHoroscopeDate}
-              yearlyYear={yearlyYear}
-              onYearlyYearChange={(year) => {
-                setYearlyYear(year)
-                setHoroscopeDate(horoscopeDateForYear(year))
-              }}
-            />
-          ) : (
-            <div className="chart-error">排盤失敗，請檢查輸入資料是否正確。</div>
-          )}
-        </section>
-      </main>
-    </div>
-  )
+  return <ChartApp onOpenAdmin={user.role === 'admin' ? () => setShowAdmin(true) : undefined} />
 }
 
 export default App

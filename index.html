@@ -700,10 +700,105 @@
       .layout { flex-direction: column; }
       .form-panel { width: 100%; }
     }
+
+    #authGate {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .auth-card {
+      width: min(100%, 420px);
+      background: #fff;
+      border: 1px solid #999;
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .auth-brand { text-align: center; margin-bottom: 16px; }
+    .auth-brand h1 { margin: 0; color: #8b4513; font-size: 24px; }
+    .auth-brand p { margin: 6px 0 0; color: #666; }
+    .auth-form h2 { margin: 0 0 6px; font-size: 20px; }
+    .auth-note { margin: 0 0 14px; color: #666; font-size: 14px; line-height: 1.5; }
+    .auth-form label { display: block; margin-bottom: 10px; font-size: 14px; }
+    .auth-form input {
+      display: block; width: 100%; margin-top: 4px; padding: 8px;
+      font-family: inherit; font-size: 15px; border: 1px solid #bbb; border-radius: 6px;
+    }
+    .auth-form button[type="submit"] {
+      width: 100%; margin-top: 8px; padding: 10px; border: none; border-radius: 6px;
+      background: #555; color: #fff; font-family: inherit; font-size: 16px; cursor: pointer;
+    }
+    .auth-link-btn {
+      width: 100%; margin-top: 12px; padding: 0; border: none; background: none;
+      color: #8b4513; cursor: pointer; font-family: inherit; text-decoration: underline;
+    }
+    .auth-error { margin: 8px 0; color: #c62828; font-size: 14px; }
+    .auth-success { margin: 8px 0; color: #2e7d32; font-size: 14px; line-height: 1.5; }
+
+    #userBar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      justify-content: flex-end;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    #userBar button {
+      border: 1px solid #bbb;
+      background: #fff;
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    #adminPanel {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    #adminPanel table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border: 1px solid #999;
+    }
+
+    #adminPanel th,
+    #adminPanel td {
+      padding: 8px 10px;
+      border-bottom: 1px solid #eee;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    #adminPanel .admin-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    #adminPanel .danger {
+      color: #c62828;
+    }
   </style>
+  <script>
+    window.API_BASE = window.API_BASE || (
+      location.hostname.endsWith('github.io')
+        ? 'https://rishuntang-ziwei-api.onrender.com'
+        : ''
+    )
+  </script>
   </head>
   <body>
-  <div class="layout">
+  <div id="authGate"></div>
+  <div id="adminPanel" hidden></div>
+  <div id="userBar" hidden></div>
+  <div class="layout" id="appRoot" hidden>
     <div class="form-panel" autocomplete="off">
       <h2>排盤資料</h2>
       <div class="row">
@@ -783,6 +878,7 @@
   <script src="./vendor/lunar.min.js"></script>
   <script src="./vendor/iztro.min.js"></script>
   <script>
+    function initChartApp() {
     const { astro } = iztro
     const { Lunar, LunarMonth, LunarYear, Solar } = LunarLib
 
@@ -1450,6 +1546,8 @@
     document.querySelectorAll('input[name="chartType"]').forEach(el => {
       el.addEventListener('change', updateChartTypeUI)
     })
+    }
   </script>
+  <script src="./vendor/auth-gate.js"></script>
   </body>
 </html>
