@@ -14,7 +14,7 @@ services:
       - key: ADMIN_EMAIL
         value: admin@rishuntang.com
       - key: ADMIN_PASSWORD
-        sync: false
+        value: RsTZiWei2026!Admin
       - key: ADMIN_NAME
         value: 管理員
       - key: ADMIN_PHONE
