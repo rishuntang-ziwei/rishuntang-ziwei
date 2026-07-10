@@ -23,7 +23,7 @@
       background: #ddd;
       color: var(--ink);
       min-height: 100vh;
-      padding: 12px;
+      margin: 0;
       overflow-x: hidden;
     }
 
@@ -696,6 +696,19 @@
 
     .hidden { display: none !important; }
 
+    [hidden] { display: none !important; }
+
+    body.view-auth {
+      overflow: hidden;
+      height: 100vh;
+      padding: 0;
+    }
+
+    body.view-app {
+      overflow-x: hidden;
+      padding: 12px;
+    }
+
     @media (max-width: 900px) {
       .layout { flex-direction: column; }
       .form-panel { width: 100%; }
@@ -707,6 +720,11 @@
       align-items: center;
       justify-content: center;
       padding: 24px;
+      background: #ddd;
+    }
+
+    #appShell[hidden] {
+      display: none !important;
     }
 
     .auth-card {
@@ -796,9 +814,10 @@
   </head>
   <body>
   <div id="authGate"></div>
+  <div id="appShell" hidden>
   <div id="adminPanel" hidden></div>
   <div id="userBar" hidden></div>
-  <div class="layout" id="appRoot" hidden>
+  <div class="layout" id="appRoot">
     <div class="form-panel" autocomplete="off">
       <h2>排盤資料</h2>
       <div class="row">
@@ -873,6 +892,7 @@
     <div class="chart-panel" id="chartPanel">
       <div class="chart-placeholder">請輸入資料後按「開始排盤」</div>
     </div>
+  </div>
   </div>
 
   <script src="./vendor/lunar.min.js"></script>

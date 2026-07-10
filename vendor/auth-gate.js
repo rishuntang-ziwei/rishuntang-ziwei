@@ -9,15 +9,45 @@
     return '已拒絕'
   }
 
-  async function renderAdminPanel() {
-    const panel = document.getElementById('adminPanel')
+  function setView(view) {
+    document.body.classList.remove('view-auth', 'view-app')
+    const gate = document.getElementById('authGate')
+    const shell = document.getElementById('appShell')
+    const adminPanel = document.getElementById('adminPanel')
     const appRoot = document.getElementById('appRoot')
     const bar = document.getElementById('userBar')
+
+    if (view === 'auth') {
+      document.body.classList.add('view-auth')
+      if (gate) gate.hidden = false
+      if (shell) shell.hidden = true
+      if (adminPanel) adminPanel.hidden = true
+      if (appRoot) appRoot.hidden = true
+      if (bar) bar.hidden = true
+      return
+    }
+
+    document.body.classList.add('view-app')
+    if (gate) gate.hidden = true
+    if (shell) shell.hidden = false
+
+    if (view === 'admin') {
+      if (adminPanel) adminPanel.hidden = false
+      if (appRoot) appRoot.hidden = true
+      if (bar) bar.hidden = true
+      return
+    }
+
+    if (adminPanel) adminPanel.hidden = true
+    if (appRoot) appRoot.hidden = false
+    if (bar) bar.hidden = false
+  }
+
+  async function renderAdminPanel() {
+    const panel = document.getElementById('adminPanel')
     if (!panel) return
 
-    panel.hidden = false
-    if (appRoot) appRoot.hidden = true
-    if (bar) bar.hidden = true
+    setView('admin')
     panel.innerHTML = '<div class="auth-card"><p>載入中…</p></div>'
 
     try {
@@ -54,7 +84,6 @@
         '</div>'
 
       document.getElementById('backToAppBtn').addEventListener('click', function () {
-        panel.hidden = true
         enterApp(currentUser)
       })
 
@@ -113,6 +142,7 @@
     const gate = document.getElementById('authGate')
     if (!gate) return
 
+    setView('auth')
     gate.innerHTML =
       '<div class="auth-card">' +
         '<div class="auth-brand"><h1>紫微斗數線上排盤</h1><p>國際日舜堂會員專區</p></div>' +
@@ -213,16 +243,10 @@
 
   function enterApp(user) {
     currentUser = user
-    const gate = document.getElementById('authGate')
-    const adminPanel = document.getElementById('adminPanel')
-    const appRoot = document.getElementById('appRoot')
-    if (gate) gate.hidden = true
-    if (adminPanel) adminPanel.hidden = true
-    if (appRoot) appRoot.hidden = false
+    setView('app')
 
     const bar = document.getElementById('userBar')
     if (bar) {
-      bar.hidden = false
       bar.innerHTML =
         '<span>' + user.name + '</span>' +
         (user.role === 'admin'
