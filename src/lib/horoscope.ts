@@ -4,7 +4,12 @@ import type { IFunctionalAstrolabe } from 'iztro/lib/astro/FunctionalAstrolabe'
 import type { Mutagen } from 'iztro/lib/i18n/types/mutagen'
 import type { PalaceName } from 'iztro/lib/i18n/types/Palace'
 import type { StarName } from 'iztro/lib/i18n/types/Star'
-import { getMutagenForStar } from './constants'
+import {
+  BRANCH_ROTATION_ORDER,
+  CHART_MONTH_BRANCH_RING,
+  getMutagenForStar,
+  palaceIndexByBranch,
+} from './constants'
 
 export type ChartMode = 'origin' | 'decadal' | 'yearly'
 export type HoroscopeScope = 'decadal' | 'yearly'
@@ -154,13 +159,13 @@ export function computeYearlyMonthlyByPalace(
 ): Map<number, YearlyMonthlyEntry[]> {
   const map = new Map<number, YearlyMonthlyEntry[]>()
   for (let month = 1; month <= 12; month++) {
+    const branch = CHART_MONTH_BRANCH_RING[month - 1]
+    const idx = palaceIndexByBranch(astrolabe, branch)
+    if (idx === undefined) continue
     const date = `${year}-${String(month).padStart(2, '0')}-15`
     const h = astrolabe.horoscope(date, timeIndex)
-    const idx = h.monthly.index
     const gz = `${h.monthly.heavenlyStem}${h.monthly.earthlyBranch}`
-    const list = map.get(idx) ?? []
-    list.push({ month, gz })
-    map.set(idx, list)
+    map.set(idx, [{ month, gz }])
   }
   return map
 }
@@ -173,14 +178,28 @@ export function computeMonthlyDailyByPalace(
   timeIndex: number,
 ): Map<number, number[]> {
   const map = new Map<number, number[]>()
+  const anchorDate = `${year}-${String(month).padStart(2, '0')}-15`
+  const h = astrolabe.horoscope(anchorDate, timeIndex)
+  const startBranch = astrolabe.palace(h.monthly.index)?.earthlyBranch
+  if (!startBranch) return map
+
+  const startIdx = BRANCH_ROTATION_ORDER.indexOf(
+    startBranch as (typeof BRANCH_ROTATION_ORDER)[number],
+  )
+  if (startIdx < 0) return map
+
   const daysInMonth = new Date(year, month, 0).getDate()
   for (let day = 1; day <= daysInMonth; day++) {
-    const date = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-    const h = astrolabe.horoscope(date, timeIndex)
-    const idx = h.daily.index
+    const branch = BRANCH_ROTATION_ORDER[(startIdx + day - 1) % 12]
+    const idx = palaceIndexByBranch(astrolabe, branch)
+    if (idx === undefined) continue
     const list = map.get(idx) ?? []
     list.push(day)
     map.set(idx, list)
   }
   return map
+}
+
+export function getYearlyMonthBranch(month: number): string {
+  return CHART_MONTH_BRANCH_RING[month - 1] ?? ''
 }

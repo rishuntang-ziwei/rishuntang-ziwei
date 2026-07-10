@@ -853,26 +853,43 @@
       return { year, month, day }
     }
 
+    const CHART_MONTH_BRANCH_RING = ['申','酉','戌','亥','子','丑','寅','卯','辰','巳','午','未']
+    const BRANCH_ROTATION_ORDER = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥']
+
+    function palaceIndexByBranch(a, branch) {
+      return a.palaces.find(p => p.earthlyBranch === branch)?.index
+    }
+
+    function getYearlyMonthBranch(month) {
+      return CHART_MONTH_BRANCH_RING[month - 1] || ''
+    }
+
     function computeYearlyMonthlyByPalace(a, year, timeIndex) {
       const map = new Map()
       for (let month = 1; month <= 12; month++) {
+        const branch = CHART_MONTH_BRANCH_RING[month - 1]
+        const idx = palaceIndexByBranch(a, branch)
+        if (idx === undefined) continue
         const date = `${year}-${String(month).padStart(2, '0')}-15`
         const h = a.horoscope(date, timeIndex)
-        const idx = h.monthly.index
         const gz = `${h.monthly.heavenlyStem}${h.monthly.earthlyBranch}`
-        if (!map.has(idx)) map.set(idx, [])
-        map.get(idx).push({ month, gz })
+        map.set(idx, [{ month, gz }])
       }
       return map
     }
 
     function computeMonthlyDailyByPalace(a, year, month, timeIndex) {
       const map = new Map()
+      const h = a.horoscope(`${year}-${String(month).padStart(2, '0')}-15`, timeIndex)
+      const startBranch = a.palace(h.monthly.index)?.earthlyBranch
+      if (!startBranch) return map
+      const startIdx = BRANCH_ROTATION_ORDER.indexOf(startBranch)
+      if (startIdx < 0) return map
       const daysInMonth = new Date(year, month, 0).getDate()
       for (let day = 1; day <= daysInMonth; day++) {
-        const date = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-        const h = a.horoscope(date, timeIndex)
-        const idx = h.daily.index
+        const branch = BRANCH_ROTATION_ORDER[(startIdx + day - 1) % 12]
+        const idx = palaceIndexByBranch(a, branch)
+        if (idx === undefined) continue
         if (!map.has(idx)) map.set(idx, [])
         map.get(idx).push(day)
       }
@@ -1192,7 +1209,7 @@
       const shen = p.isBodyPalace && chartMode === 'origin' ? '<div class="shen">身</div>' : ''
       const hl = sanFangRoles.all.has(p.earthlyBranch) ? 'highlight' : ''
       const focus = sanFangRoles.target === p.earthlyBranch ? 'focus-palace' : ''
-      const activeMonthly = chartMode === 'yearly' && h.monthly.index === p.index ? 'active-monthly-palace' : ''
+      const activeMonthly = chartMode === 'yearly' && p.earthlyBranch === getYearlyMonthBranch(activeMonth) ? 'active-monthly-palace' : ''
       const footerDim = sanFangRoles.related.has(p.earthlyBranch)
 
       return `<div class="palace ${hl} ${focus} ${activeMonthly}" data-scope-palace="${scopeName}" title="點選查看三方四正">

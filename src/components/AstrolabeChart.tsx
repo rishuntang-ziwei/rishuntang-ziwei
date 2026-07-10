@@ -11,6 +11,7 @@ import {
   computeYearlyMonthlyByPalace,
   getSanFangBranchRoles,
   getScopePalaceName,
+  getYearlyMonthBranch,
   resolveEffectiveChartMode,
 } from '../lib/horoscope'
 import { CenterPanel } from './CenterPanel'
@@ -224,7 +225,8 @@ export function AstrolabeChart({
                   }
                   activeYearlyDay={activeYearlyDay}
                   isActiveMonthlyPalace={
-                    chartMode === 'yearly' && horoscope.monthly.index === palace.index
+                    chartMode === 'yearly' &&
+                    palace.earthlyBranch === getYearlyMonthBranch(activeYearlyMonth)
                   }
                   onYearlyMonthSelect={
                     chartMode === 'yearly' ? handleYearlyMonthSelect : undefined

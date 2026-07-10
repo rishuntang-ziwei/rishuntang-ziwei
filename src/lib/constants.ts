@@ -14,6 +14,45 @@ export const BRANCH_GRID: Record<string, { row: number; col: number }> = {
   亥: { row: 3, col: 3 },
 }
 
+/** 流年流月指示：申起順時針 1–12 月（真元宗盤式） */
+export const CHART_MONTH_BRANCH_RING = [
+  '申',
+  '酉',
+  '戌',
+  '亥',
+  '子',
+  '丑',
+  '寅',
+  '卯',
+  '辰',
+  '巳',
+  '午',
+  '未',
+] as const
+
+/** 流日順排地支 */
+export const BRANCH_ROTATION_ORDER = [
+  '子',
+  '丑',
+  '寅',
+  '卯',
+  '辰',
+  '巳',
+  '午',
+  '未',
+  '申',
+  '酉',
+  '戌',
+  '亥',
+] as const
+
+export function palaceIndexByBranch(
+  astrolabe: { palaces: Array<{ index: number; earthlyBranch: string }> },
+  branch: string,
+): number | undefined {
+  return astrolabe.palaces.find((p) => p.earthlyBranch === branch)?.index
+}
+
 /** 命盤外框比例 6:4 */
 export const CHART_VIEW_W = 600
 export const CHART_VIEW_H = 400
