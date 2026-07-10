@@ -735,12 +735,12 @@ body {
   font-size: 0.62rem;
   line-height: 1;
   color: #333;
-  cursor: pointer;
   vertical-align: middle;
+  pointer-events: none;
 }
 
 .monthly-badge:hover {
-  background: #fff8e1;
+  background: #fff;
 }
 
 .monthly-badge.active {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { PalaceName } from 'iztro/lib/i18n/types/Palace'
 import type { IFunctionalPalace } from 'iztro/lib/astro/FunctionalPalace'
 import type FunctionalAstrolabe from 'iztro/lib/astro/FunctionalAstrolabe'
@@ -61,6 +61,7 @@ export function AstrolabeChart({
   const [focusPalace, setFocusPalace] = useState<PalaceName>('命宮')
   const [showYearlyDaily, setShowYearlyDaily] = useState(false)
   const [yearlyMonthSelected, setYearlyMonthSelected] = useState(false)
+  const clickTimerRef = useRef<number | null>(null)
 
   const chartMode = resolveEffectiveChartMode(initialChartType, viewDecadalChart)
 
@@ -80,8 +81,22 @@ export function AstrolabeChart({
   )
 
   useEffect(() => {
+    return () => {
+      if (clickTimerRef.current !== null) {
+        window.clearTimeout(clickTimerRef.current)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
     setFocusPalace('命宮')
-  }, [astrolabe, chartMode, horoscopeDate, yearlyMonthSelected])
+  }, [astrolabe, chartMode])
+
+  useEffect(() => {
+    if (yearlyMonthSelected) {
+      setFocusPalace('命宮')
+    }
+  }, [yearlyMonthSelected, horoscopeDate])
 
   useEffect(() => {
     if (chartMode !== 'yearly') {
@@ -93,6 +108,7 @@ export function AstrolabeChart({
   useEffect(() => {
     setYearlyMonthSelected(false)
     setShowYearlyDaily(false)
+    setFocusPalace('命宮')
   }, [astrolabe, initialChartType, yearlyYear])
 
   const palaceByBranch = useMemo(() => {
@@ -133,6 +149,35 @@ export function AstrolabeChart({
     showYearlyDaily,
   ])
 
+  const handlePalaceClick = (scopePalaceName: string) => {
+    if (chartMode !== 'yearly') {
+      setFocusPalace(scopePalaceName as PalaceName)
+      return
+    }
+    if (clickTimerRef.current !== null) {
+      window.clearTimeout(clickTimerRef.current)
+    }
+    clickTimerRef.current = window.setTimeout(() => {
+      setFocusPalace(scopePalaceName as PalaceName)
+      clickTimerRef.current = null
+    }, 250)
+  }
+
+  const handlePalaceDoubleClick = (palace: IFunctionalPalace) => {
+    if (clickTimerRef.current !== null) {
+      window.clearTimeout(clickTimerRef.current)
+      clickTimerRef.current = null
+    }
+    if (chartMode !== 'yearly') {
+      setFocusPalace(
+        getScopePalaceName(horoscope, palace.index, chartMode, palace.name, yearlyDisplayOptions) as PalaceName,
+      )
+      return
+    }
+    const entry = yearlyMonthlyByPalace?.get(palace.index)
+    if (!entry) return
+    handleYearlyMonthSelect(entry.month)
+  }
   const handleYearlyMonthSelect = (month: number) => {
     setYearlyMonthSelected(true)
     onHoroscopeDateChange(
@@ -262,7 +307,9 @@ export function AstrolabeChart({
                 key={cell}
                 className="grid-cell grid-cell-palace"
                 style={{ gridRow: rowIndex + 1, gridColumn: colIndex + 1 }}
-                onClick={() => setFocusPalace(scopePalaceName as PalaceName)}
+                title={chartMode === 'yearly' ? '單擊：三方四正；雙擊：流月命宮' : undefined}
+                onClick={() => handlePalaceClick(scopePalaceName)}
+                onDoubleClick={() => handlePalaceDoubleClick(palace)}
               >
                 <PalaceCell
                   palace={palace}
@@ -289,9 +336,6 @@ export function AstrolabeChart({
                   activeYearlyMonth={yearlyMonthSelected ? activeLunar.month : undefined}
                   isActiveMonthlyPalace={
                     chartMode === 'yearly' && activeFlowPalaceIndex === palace.index
-                  }
-                  onYearlyMonthSelect={
-                    chartMode === 'yearly' ? handleYearlyMonthSelect : undefined
                   }
                 />
               </div>

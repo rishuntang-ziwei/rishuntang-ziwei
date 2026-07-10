@@ -24,7 +24,6 @@ interface PalaceCellProps {
   activeYearlyMonth?: number
   yearlyDisplayOptions?: YearlyDisplayOptions
   isActiveMonthlyPalace?: boolean
-  onYearlyMonthSelect?: (month: number) => void
 }
 
 function mapStarForDisplay(
@@ -63,7 +62,6 @@ export function PalaceCell({
   activeYearlyMonth,
   yearlyDisplayOptions,
   isActiveMonthlyPalace = false,
-  onYearlyMonthSelect,
 }: PalaceCellProps) {
   const { leftPurple, leftGreen, rightGreen } = splitPalaceMinors([
     ...palace.minorStars.map((s) => ({ name: s.name, mutagen: s.mutagen })),
@@ -134,17 +132,12 @@ export function PalaceCell({
           <span className="palace-name">
             {chartMode === 'yearly' && yearlyMonthlyEntry && (
               <span className="monthly-badges">
-                <button
-                  type="button"
+                <span
                   className={`monthly-badge ${activeYearlyMonth !== undefined && yearlyMonthlyEntry.month === activeYearlyMonth ? 'active' : ''}`}
                   title={`${yearlyMonthlyEntry.month}月 ${yearlyMonthlyEntry.gz}`}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onYearlyMonthSelect?.(yearlyMonthlyEntry.month)
-                  }}
                 >
                   {yearlyMonthlyEntry.month}
-                </button>
+                </span>
               </span>
             )}
             ({formatPalaceName(displayPalaceName)})

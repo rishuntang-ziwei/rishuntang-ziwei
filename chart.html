@@ -518,11 +518,11 @@
       font-size: 10px;
       line-height: 1;
       color: #333;
-      cursor: pointer;
+      pointer-events: none;
     }
 
     .monthly-badge:hover {
-      background: #fff8e1;
+      background: #fff;
     }
 
     .monthly-badge.active {
@@ -1015,6 +1015,7 @@
     let horoscopeDate = ''
     let showYearlyDaily = false
     let yearlyMonthSelected = false
+    let palaceClickTimer = null
     let currentInput = null
     let currentAstrolabe = null
 
@@ -1462,13 +1463,13 @@
         ? (yearlyDailyByPalace.get(p.index) || [])
         : []
       const monthlyBadge = monthlyEntry
-        ? `<button type="button" class="monthly-badge ${yearlyMonthSelected && monthlyEntry.month === activeLunar.month ? 'active' : ''}" data-month="${monthlyEntry.month}" title="${monthlyEntry.month}月 ${monthlyEntry.gz}">${monthlyEntry.month}</button>`
+        ? `<span class="monthly-badge ${yearlyMonthSelected && monthlyEntry.month === activeLunar.month ? 'active' : ''}" title="${monthlyEntry.month}月 ${monthlyEntry.gz}">${monthlyEntry.month}</span>`
         : ''
       const dailyDaysHtml = dailyDays.length
         ? `<div class="daily-days">${dailyDays.join(',')}</div>`
         : ''
 
-      return `<div class="palace ${hl} ${focus} ${activeMonthly}" data-scope-palace="${scopeName}" title="點選查看三方四正">
+      return `<div class="palace ${hl} ${focus} ${activeMonthly}" data-scope-palace="${scopeName}" data-flow-month="${monthlyEntry ? monthlyEntry.month : ''}" title="單擊：三方四正；雙擊：流月命宮">
         ${shen}
         ${dailyDaysHtml}
         <div class="palace-stars">
@@ -1642,7 +1643,37 @@
 
       document.querySelectorAll('.palace[data-scope-palace]').forEach(el => {
         el.addEventListener('click', () => {
-          selectedPalaceName = el.dataset.scopePalace
+          const mode = resolveEffectiveChartMode()
+          if (mode !== 'yearly') {
+            selectedPalaceName = el.dataset.scopePalace
+            renderChart(name, a, input)
+            return
+          }
+          if (palaceClickTimer) clearTimeout(palaceClickTimer)
+          palaceClickTimer = setTimeout(() => {
+            selectedPalaceName = el.dataset.scopePalace
+            palaceClickTimer = null
+            renderChart(name, a, input)
+          }, 250)
+        })
+        el.addEventListener('dblclick', e => {
+          e.preventDefault()
+          if (palaceClickTimer) {
+            clearTimeout(palaceClickTimer)
+            palaceClickTimer = null
+          }
+          if (resolveEffectiveChartMode() !== 'yearly') return
+          const month = el.dataset.flowMonth
+          if (!month) return
+          yearlyMonthSelected = true
+          const activeLunar = parseLunarFromSolarDate(horoscopeDate)
+          horoscopeDate = horoscopeDateFromLunarYearMonthDay(
+            activeLunar.year,
+            Number(month),
+            activeLunar.day,
+            false,
+          )
+          selectedPalaceName = '命宮'
           renderChart(name, a, input)
         })
       })
@@ -1681,22 +1712,6 @@
       document.getElementById('toggleYearlyDaily')?.addEventListener('click', () => {
         showYearlyDaily = !showYearlyDaily
         renderChart(name, a, input)
-      })
-
-      document.querySelectorAll('.monthly-badge[data-month]').forEach(btn => {
-        btn.addEventListener('click', e => {
-          e.stopPropagation()
-          yearlyMonthSelected = true
-          const activeLunar = parseLunarFromSolarDate(horoscopeDate)
-          horoscopeDate = horoscopeDateFromLunarYearMonthDay(
-            activeLunar.year,
-            Number(btn.dataset.month),
-            activeLunar.day,
-            false,
-          )
-          selectedPalaceName = '命宮'
-          renderChart(name, a, input)
-        })
       })
 
       document.getElementById('horoscopeDate')?.addEventListener('change', e => {
