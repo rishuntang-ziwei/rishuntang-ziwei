@@ -10,7 +10,15 @@ let pool: pg.Pool
 function useSsl() {
   if (process.env.PGSSLMODE === 'require') return { rejectUnauthorized: false }
   const url = process.env.DATABASE_URL ?? ''
-  return url.includes('render.com') || url.includes('sslmode=require') ? { rejectUnauthorized: false } : undefined
+  if (
+    url.includes('render.com') ||
+    url.includes('neon.tech') ||
+    url.includes('supabase.co') ||
+    url.includes('sslmode=require')
+  ) {
+    return { rejectUnauthorized: false }
+  }
+  return undefined
 }
 
 export async function initDb() {

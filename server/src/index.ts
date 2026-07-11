@@ -6,6 +6,14 @@ import authRoutes from './routes/auth.js'
 import adminRoutes from './routes/admin.js'
 import chartRoutes from './routes/charts.js'
 
+if (process.env.RENDER && !process.env.DATABASE_URL) {
+  console.error(
+    '[db] Render 正式環境必須設定 DATABASE_URL（建議使用 Neon 免費 PostgreSQL）。\n' +
+      '請參考 server/NEON-SETUP.md 完成設定後重新部署。',
+  )
+  process.exit(1)
+}
+
 const app = express()
 const port = Number(process.env.PORT || 3001)
 
