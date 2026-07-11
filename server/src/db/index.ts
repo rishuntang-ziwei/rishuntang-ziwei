@@ -1,7 +1,11 @@
 import * as postgres from './postgres.js'
 import * as sqlite from './sqlite.js'
 
-const driver = process.env.DATABASE_URL ? postgres : sqlite
+export function getDbDriverName(): 'postgres' | 'sqlite' {
+  return process.env.DATABASE_URL?.trim() ? 'postgres' : 'sqlite'
+}
+
+const driver = getDbDriverName() === 'postgres' ? postgres : sqlite
 
 export const initDb = () => driver.initDb()
 export const getDbInfo = () => driver.getDbInfo()
