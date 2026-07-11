@@ -41,13 +41,13 @@ router.post('/register', async (req, res) => {
     res.status(400).json({ error: '兩次密碼不一致' })
     return
   }
-  if (findUserByEmail(email)) {
+  if (await findUserByEmail(email)) {
     res.status(409).json({ error: '此 Email 已註冊' })
     return
   }
 
   const passwordHash = await bcrypt.hash(password, 10)
-  createUser({ name, phone, email, passwordHash })
+  await createUser({ name, phone, email, passwordHash })
 
   res.status(201).json({
     message: '註冊成功，請等待管理員開通帳號後再登入',
@@ -63,7 +63,7 @@ router.post('/login', async (req, res) => {
     return
   }
 
-  const user = findUserByEmail(email)
+  const user = await findUserByEmail(email)
   if (!user || !(await bcrypt.compare(password, user.password_hash))) {
     res.status(401).json({ error: 'Email 或密碼錯誤' })
     return
@@ -116,14 +116,14 @@ router.post('/change-password', requireAuth, async (req, res) => {
     return
   }
 
-  const user = findUserByEmail(req.authUser!.email)
+  const user = await findUserByEmail(req.authUser!.email)
   if (!user || !(await bcrypt.compare(currentPassword, user.password_hash))) {
     res.status(401).json({ error: '目前密碼錯誤' })
     return
   }
 
   const passwordHash = await bcrypt.hash(newPassword, 10)
-  updateUserPassword(user.id, passwordHash)
+  await updateUserPassword(user.id, passwordHash)
   res.json({ message: '密碼已更新' })
 })
 

@@ -1,0 +1,83 @@
+import { formatBirthDateTime } from '../chartFormat.js'
+import type {
+  PublicUser,
+  SavedChartDetail,
+  SavedChartPayload,
+  SavedChartRow,
+  SavedChartSummary,
+  UserRow,
+} from '../types.js'
+
+export function parseSavedChartPayload(raw: string): SavedChartPayload {
+  return JSON.parse(raw) as SavedChartPayload
+}
+
+export function toSavedChartSummary(row: SavedChartRow): SavedChartSummary {
+  const payload = parseSavedChartPayload(row.payload)
+  return {
+    id: row.id,
+    subjectName: row.subject_name,
+    gender: row.gender,
+    bazi: row.bazi,
+    birthDateTime: formatBirthDateTime(payload),
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  }
+}
+
+export function toSavedChartDetail(row: SavedChartRow): SavedChartDetail {
+  return {
+    ...toSavedChartSummary(row),
+    payload: parseSavedChartPayload(row.payload),
+  }
+}
+
+export function toPublicUser(row: UserRow): PublicUser {
+  return {
+    id: row.id,
+    name: row.name,
+    phone: row.phone,
+    email: row.email,
+    status: row.status,
+    role: row.role,
+    createdAt: row.created_at,
+    approvedAt: row.approved_at,
+  }
+}
+
+export function toIsoString(value: unknown): string {
+  if (value instanceof Date) return value.toISOString()
+  return String(value)
+}
+
+export function toIsoStringOrNull(value: unknown): string | null {
+  if (value == null) return null
+  return toIsoString(value)
+}
+
+export function mapUserRow(row: Record<string, unknown>): UserRow {
+  return {
+    id: Number(row.id),
+    name: String(row.name),
+    phone: String(row.phone),
+    email: String(row.email),
+    password_hash: String(row.password_hash),
+    status: row.status as UserRow['status'],
+    role: row.role as UserRow['role'],
+    created_at: toIsoString(row.created_at),
+    approved_at: toIsoStringOrNull(row.approved_at),
+  }
+}
+
+export function mapSavedChartRow(row: Record<string, unknown>): SavedChartRow {
+  return {
+    id: Number(row.id),
+    user_id: Number(row.user_id),
+    subject_name: String(row.subject_name),
+    gender: row.gender as SavedChartRow['gender'],
+    bazi: String(row.bazi),
+    payload: String(row.payload),
+    created_at: toIsoString(row.created_at),
+    updated_at: toIsoString(row.updated_at),
+  }
+}

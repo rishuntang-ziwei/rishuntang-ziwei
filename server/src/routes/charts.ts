@@ -2,7 +2,7 @@ import { Router } from 'express'
 import {
   createSavedChart,
   deleteSavedChart,
-  findSavedChartForUser,
+  getSavedChartDetailForUser,
   listSavedChartsByUser,
 } from '../db.js'
 import { requireAuth } from '../middleware.js'
@@ -49,57 +49,47 @@ function validatePayload(body: unknown): SavedChartPayload | null {
   }
 }
 
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   const search = typeof req.query.q === 'string' ? req.query.q : undefined
-  const charts = listSavedChartsByUser(req.authUser!.id, search)
+  const charts = await listSavedChartsByUser(req.authUser!.id, search)
   res.json({ charts })
 })
 
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   const payload = validatePayload(req.body?.payload ?? req.body)
   if (!payload) {
     res.status(400).json({ error: '命盤資料不完整或格式錯誤' })
     return
   }
 
-  const chart = createSavedChart(req.authUser!.id, payload)
+  const chart = await createSavedChart(req.authUser!.id, payload)
   res.status(201).json({ chart })
 })
 
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
   const id = Number(req.params.id)
   if (!Number.isFinite(id)) {
     res.status(400).json({ error: '無效的命盤 ID' })
     return
   }
 
-  const row = findSavedChartForUser(id, req.authUser!.id)
-  if (!row) {
+  const chart = await getSavedChartDetailForUser(id, req.authUser!.id)
+  if (!chart) {
     res.status(404).json({ error: '找不到命盤' })
     return
   }
 
-  res.json({
-    chart: {
-      id: row.id,
-      subjectName: row.subject_name,
-      gender: row.gender,
-      bazi: row.bazi,
-      payload: JSON.parse(row.payload) as SavedChartPayload,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
-    },
-  })
+  res.json({ chart })
 })
 
-router.delete('/:id', (req, res) => {
+router.delete('/:id', async (req, res) => {
   const id = Number(req.params.id)
   if (!Number.isFinite(id)) {
     res.status(400).json({ error: '無效的命盤 ID' })
     return
   }
 
-  if (!deleteSavedChart(id, req.authUser!.id)) {
+  if (!(await deleteSavedChart(id, req.authUser!.id))) {
     res.status(404).json({ error: '找不到命盤' })
     return
   }

@@ -1,31 +1,41 @@
 import { Router } from 'express'
 import bcrypt from 'bcryptjs'
-import { countAdmins, deleteUser, findUserById, getSavedChartDetailForUser, listSavedChartsByUser, listUsers, updateUserPassword, updateUserRole, updateUserStatus } from '../db.js'
+import {
+  countAdmins,
+  deleteUser,
+  findUserById,
+  getSavedChartDetailForUser,
+  listSavedChartsByUser,
+  listUsers,
+  updateUserPassword,
+  updateUserRole,
+  updateUserStatus,
+} from '../db.js'
 import { requireAdmin, requireAuth } from '../middleware.js'
 
 const router = Router()
 
 router.use(requireAuth, requireAdmin)
 
-router.get('/users', (_req, res) => {
-  res.json({ users: listUsers() })
+router.get('/users', async (_req, res) => {
+  res.json({ users: await listUsers() })
 })
 
-router.get('/users/:id/charts', (req, res) => {
+router.get('/users/:id/charts', async (req, res) => {
   const id = Number(req.params.id)
   if (!Number.isFinite(id)) {
     res.status(400).json({ error: '無效的使用者 ID' })
     return
   }
 
-  const target = findUserById(id)
+  const target = await findUserById(id)
   if (!target) {
     res.status(404).json({ error: '找不到使用者' })
     return
   }
 
   const search = typeof req.query.q === 'string' ? req.query.q : undefined
-  const charts = listSavedChartsByUser(id, search)
+  const charts = await listSavedChartsByUser(id, search)
   res.json({
     user: {
       id: target.id,
@@ -36,7 +46,7 @@ router.get('/users/:id/charts', (req, res) => {
   })
 })
 
-router.get('/users/:id/charts/:chartId', (req, res) => {
+router.get('/users/:id/charts/:chartId', async (req, res) => {
   const userId = Number(req.params.id)
   const chartId = Number(req.params.chartId)
   if (!Number.isFinite(userId) || !Number.isFinite(chartId)) {
@@ -44,13 +54,13 @@ router.get('/users/:id/charts/:chartId', (req, res) => {
     return
   }
 
-  const target = findUserById(userId)
+  const target = await findUserById(userId)
   if (!target) {
     res.status(404).json({ error: '找不到使用者' })
     return
   }
 
-  const chart = getSavedChartDetailForUser(chartId, userId)
+  const chart = await getSavedChartDetailForUser(chartId, userId)
   if (!chart) {
     res.status(404).json({ error: '找不到命盤' })
     return
@@ -59,13 +69,13 @@ router.get('/users/:id/charts/:chartId', (req, res) => {
   res.json({ chart })
 })
 
-router.post('/users/:id/approve', (req, res) => {
+router.post('/users/:id/approve', async (req, res) => {
   const id = Number(req.params.id)
   if (!Number.isFinite(id)) {
     res.status(400).json({ error: '無效的使用者 ID' })
     return
   }
-  const user = updateUserStatus(id, 'approved')
+  const user = await updateUserStatus(id, 'approved')
   if (!user) {
     res.status(404).json({ error: '找不到使用者' })
     return
@@ -73,13 +83,13 @@ router.post('/users/:id/approve', (req, res) => {
   res.json({ user })
 })
 
-router.post('/users/:id/reject', (req, res) => {
+router.post('/users/:id/reject', async (req, res) => {
   const id = Number(req.params.id)
   if (!Number.isFinite(id)) {
     res.status(400).json({ error: '無效的使用者 ID' })
     return
   }
-  const user = updateUserStatus(id, 'rejected')
+  const user = await updateUserStatus(id, 'rejected')
   if (!user) {
     res.status(404).json({ error: '找不到使用者' })
     return
@@ -100,14 +110,14 @@ router.post('/users/:id/reset-password', async (req, res) => {
     return
   }
 
-  const target = findUserById(id)
+  const target = await findUserById(id)
   if (!target || target.role === 'admin') {
     res.status(404).json({ error: '找不到使用者' })
     return
   }
 
   const passwordHash = await bcrypt.hash(password, 10)
-  const user = updateUserPassword(id, passwordHash)
+  const user = await updateUserPassword(id, passwordHash)
   if (!user) {
     res.status(404).json({ error: '找不到使用者' })
     return
@@ -115,14 +125,14 @@ router.post('/users/:id/reset-password', async (req, res) => {
   res.json({ message: '密碼已重設', user })
 })
 
-router.post('/users/:id/make-admin', (req, res) => {
+router.post('/users/:id/make-admin', async (req, res) => {
   const id = Number(req.params.id)
   if (!Number.isFinite(id)) {
     res.status(400).json({ error: '無效的使用者 ID' })
     return
   }
 
-  const target = findUserById(id)
+  const target = await findUserById(id)
   if (!target) {
     res.status(404).json({ error: '找不到使用者' })
     return
@@ -136,7 +146,7 @@ router.post('/users/:id/make-admin', (req, res) => {
     return
   }
 
-  const user = updateUserRole(id, 'admin')
+  const user = await updateUserRole(id, 'admin')
   if (!user) {
     res.status(404).json({ error: '找不到使用者' })
     return
@@ -144,7 +154,7 @@ router.post('/users/:id/make-admin', (req, res) => {
   res.json({ message: '已設為管理員', user })
 })
 
-router.post('/users/:id/revoke-admin', (req, res) => {
+router.post('/users/:id/revoke-admin', async (req, res) => {
   const id = Number(req.params.id)
   if (!Number.isFinite(id)) {
     res.status(400).json({ error: '無效的使用者 ID' })
@@ -155,17 +165,17 @@ router.post('/users/:id/revoke-admin', (req, res) => {
     return
   }
 
-  const target = findUserById(id)
+  const target = await findUserById(id)
   if (!target || target.role !== 'admin') {
     res.status(404).json({ error: '找不到管理員帳號' })
     return
   }
-  if (countAdmins() <= 1) {
+  if ((await countAdmins()) <= 1) {
     res.status(400).json({ error: '至少需要保留一位管理員' })
     return
   }
 
-  const user = updateUserRole(id, 'user')
+  const user = await updateUserRole(id, 'user')
   if (!user) {
     res.status(404).json({ error: '找不到使用者' })
     return
@@ -173,7 +183,7 @@ router.post('/users/:id/revoke-admin', (req, res) => {
   res.json({ message: '已取消管理員權限', user })
 })
 
-router.delete('/users/:id', (req, res) => {
+router.delete('/users/:id', async (req, res) => {
   const id = Number(req.params.id)
   if (!Number.isFinite(id)) {
     res.status(400).json({ error: '無效的使用者 ID' })
@@ -184,7 +194,7 @@ router.delete('/users/:id', (req, res) => {
     return
   }
 
-  const target = findUserById(id)
+  const target = await findUserById(id)
   if (!target) {
     res.status(404).json({ error: '找不到使用者' })
     return
@@ -194,7 +204,7 @@ router.delete('/users/:id', (req, res) => {
     return
   }
 
-  if (!deleteUser(id)) {
+  if (!(await deleteUser(id))) {
     res.status(404).json({ error: '找不到使用者' })
     return
   }

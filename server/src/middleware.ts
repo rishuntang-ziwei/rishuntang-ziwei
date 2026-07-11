@@ -9,7 +9,7 @@ export function signToken(userId: number, role: JwtPayload['role']) {
   return jwt.sign({ sub: userId, role }, JWT_SECRET, { expiresIn: '7d' })
 }
 
-export function requireAuth(req: Request, res: Response, next: NextFunction) {
+export async function requireAuth(req: Request, res: Response, next: NextFunction) {
   const header = req.headers.authorization
   const token = header?.startsWith('Bearer ') ? header.slice(7) : null
   if (!token) {
@@ -19,7 +19,7 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
 
   try {
     const payload = jwt.verify(token, JWT_SECRET) as unknown as JwtPayload
-    const user = findUserById(payload.sub)
+    const user = await findUserById(payload.sub)
     if (!user) {
       res.status(401).json({ error: '帳號不存在' })
       return
