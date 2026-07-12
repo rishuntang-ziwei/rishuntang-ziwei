@@ -1,3 +1,5 @@
+import { DECK } from './cards.js';
+
 export const WUXING_ORDER = ['木', '火', '土', '金', '水'];
 
 export const WUXING_COLORS = {
@@ -57,11 +59,17 @@ function outerArc(cx, cy, radius, startDeg, endDeg) {
   return `M ${x1.toFixed(1)} ${y1.toFixed(1)} A ${radius} ${radius} 0 ${large} ${sweep} ${x2.toFixed(1)} ${y2.toFixed(1)}`;
 }
 
+const CARD_BY_ID = new Map(
+  Object.values(DECK).flatMap((tier) => tier.map((card) => [card.id, card])),
+);
+
 export function countElements(cards) {
   const counts = { 木: 0, 火: 0, 土: 0, 金: 0, 水: 0 };
   cards.forEach((card) => {
-    if (card.element && counts[card.element] !== undefined) {
-      counts[card.element] += 1;
+    const canonical = CARD_BY_ID.get(card.id) ?? card;
+    const element = canonical.element?.trim();
+    if (element && counts[element] !== undefined) {
+      counts[element] += 1;
     }
   });
   return counts;

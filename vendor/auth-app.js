@@ -383,11 +383,20 @@
     }
   }
 
+  function canUseStarDraw(user) {
+    return user.role === 'admin' || user.starDrawEnabled
+  }
+
   function updateMemberFeatures(user) {
-    const starDrawLink = document.getElementById('starDrawLink')
-    if (starDrawLink) {
-      starDrawLink.hidden = !(user.starDrawEnabled || user.role === 'admin')
-      starDrawLink.href = 'star-draw/index.html'
+    const starDrawBtn = document.getElementById('starDrawBtn')
+    if (starDrawBtn) {
+      starDrawBtn.onclick = function () {
+        if (canUseStarDraw(user)) {
+          location.href = 'star-draw/index.html'
+        } else {
+          alert('請與管理員聯絡開通此功能')
+        }
+      }
     }
   }
 

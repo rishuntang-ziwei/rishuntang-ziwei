@@ -117,6 +117,14 @@ export function SavedChartsPanel({ input, hasChart, onLoad }: SavedChartsPanelPr
     window.print()
   }
 
+  function handleStarDraw() {
+    if (user?.role === 'admin' || user?.starDrawEnabled) {
+      window.location.href = getStarDrawUrl()
+      return
+    }
+    alert('請與管理員聯絡開通此功能')
+  }
+
   return (
     <div className="member-section">
       <h3>會員功能</h3>
@@ -127,11 +135,9 @@ export function SavedChartsPanel({ input, hasChart, onLoad }: SavedChartsPanelPr
         <button type="button" className="secondary-btn" onClick={handleSave}>
           儲存命盤
         </button>
-        {(user?.starDrawEnabled || user?.role === 'admin') && (
-          <a className="secondary-btn member-link-btn" href={getStarDrawUrl()}>
-            先知斗數神牌
-          </a>
-        )}
+        <button type="button" className="secondary-btn" onClick={handleStarDraw}>
+          先知斗數神牌
+        </button>
       </div>
 
       <div className="saved-charts-panel">
