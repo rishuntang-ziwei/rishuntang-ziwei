@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>全知之眼 · 先知斗數神牌</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/styles.css" />
+    <style>
+      .access-gate,
+      .access-denied {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        font-family: "Noto Serif TC", "PingFang TC", "Microsoft JhengHei", serif;
+      }
+
+      .access-card {
+        max-width: 420px;
+        width: 100%;
+        background: rgba(255, 255, 255, 0.94);
+        border: 2px solid #5c4033;
+        border-radius: 12px;
+        padding: 28px 24px;
+        text-align: center;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+      }
+
+      .access-card h1 {
+        margin: 0 0 12px;
+        font-size: 1.25rem;
+        letter-spacing: 0.08em;
+      }
+
+      .access-card p {
+        margin: 0 0 20px;
+        line-height: 1.7;
+        color: #444;
+      }
+
+      .access-card button {
+        border: 1px solid #5c4033;
+        background: #f6eedb;
+        color: #222;
+        border-radius: 999px;
+        padding: 10px 22px;
+        font-family: inherit;
+        font-size: 1rem;
+        cursor: pointer;
+      }
+    </style>
+    <script>
+      window.API_BASE = window.API_BASE || (
+        location.hostname.endsWith('github.io')
+          ? 'https://rishuntang-ziwei-api.onrender.com'
+          : ''
+      )
+    </script>
+  </head>
+  <body>
+    <div id="accessGate" class="access-gate">
+      <div class="access-card">
+        <h1>先知斗數神牌</h1>
+        <p>正在驗證會員權限…</p>
+      </div>
+    </div>
+
+    <div id="accessDenied" class="access-denied" hidden>
+      <div class="access-card">
+        <h1>無法使用神牌</h1>
+        <p data-denied-message>您尚未開通神牌功能，請聯絡管理員。</p>
+        <button type="button" id="backToChartBtn">返回排盤</button>
+      </div>
+    </div>
+
+    <div class="scene" id="starDrawApp" hidden>
+      <header class="topbar">
+        <button type="button" class="pill-btn icon-btn" id="infoBtn" title="抽牌說明">i</button>
+        <div class="topbar-spacer"></div>
+        <button type="button" class="pill-btn" id="backChartBtn">返回排盤</button>
+      </header>
+
+      <main class="viewport">
+        <p class="hint" id="hint">點擊卡牌開始</p>
+
+        <div class="table" id="table"></div>
+
+        <div class="picked-row" id="pickedRow"></div>
+
+        <div class="controls" id="controls"></div>
+      </main>
+
+      <dialog class="info-dialog" id="infoDialog">
+        <h2>抽牌流程</h2>
+        <ol>
+          <li>第一輪：14 張主星重疊展開，抽出 2 張</li>
+          <li>第二輪：14 張乙級輔星重疊展開，抽出 2 張</li>
+          <li>第三輪：12 張丙級輔星重疊展開，抽出 2 張</li>
+          <li>第四輪：四化 + 空牌重疊展開，抽出 1 張</li>
+          <li>最後三行排列後依序翻開：第一行兩張主星與四化／空牌，第二行乙級，第三行丙級</li>
+        </ol>
+        <button type="button" class="pill-btn" id="closeInfoBtn">知道了</button>
+      </dialog>
+    </div>
+
+    <script src="../vendor/auth-common.js"></script>
+    <script src="../vendor/auth-star-draw.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        const backChartBtn = document.getElementById('backChartBtn')
+        if (backChartBtn) {
+          backChartBtn.addEventListener('click', function () {
+            location.href = '../chart.html'
+          })
+        }
+      })
+    </script>
+  </body>
+</html>

@@ -387,7 +387,7 @@
     const starDrawLink = document.getElementById('starDrawLink')
     if (starDrawLink) {
       starDrawLink.hidden = !user.starDrawEnabled
-      starDrawLink.href = window.STAR_DRAW_URL || 'https://rishuntang-ziwei.github.io/star-draw'
+      starDrawLink.href = 'star-draw/index.html'
     }
   }
 

@@ -128,12 +128,7 @@ export function SavedChartsPanel({ input, hasChart, onLoad }: SavedChartsPanelPr
           儲存命盤
         </button>
         {user?.starDrawEnabled && (
-          <a
-            className="secondary-btn member-link-btn"
-            href={getStarDrawUrl()}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+          <a className="secondary-btn member-link-btn" href={getStarDrawUrl()}>
             先知斗數神牌
           </a>
         )}

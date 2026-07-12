@@ -5,6 +5,7 @@ import { ensureAdminUser, getDbInfo, getDbDriverName, initDb } from './db.js'
 import authRoutes from './routes/auth.js'
 import adminRoutes from './routes/admin.js'
 import chartRoutes from './routes/charts.js'
+import starDrawRoutes from './routes/starDraw.js'
 
 if (process.env.RENDER && !process.env.DATABASE_URL?.trim()) {
   console.error(
@@ -51,6 +52,7 @@ app.get('/api/health', async (_req, res) => {
 app.use('/api/auth', authRoutes)
 app.use('/api/admin', adminRoutes)
 app.use('/api/charts', chartRoutes)
+app.use('/api/star-draw', starDrawRoutes)
 
 await initDb()
 const dbInfo = await getDbInfo()

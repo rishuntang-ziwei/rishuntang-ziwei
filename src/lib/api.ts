@@ -18,7 +18,7 @@ export function getApiBase() {
 }
 
 export function getStarDrawUrl() {
-  return import.meta.env.VITE_STAR_DRAW_URL?.replace(/\/$/, '') ?? 'https://rishuntang-ziwei.github.io/star-draw'
+  return 'star-draw/index.html'
 }
 
 export function getStoredToken() {
