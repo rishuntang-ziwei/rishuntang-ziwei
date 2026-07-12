@@ -127,7 +127,7 @@ export function SavedChartsPanel({ input, hasChart, onLoad }: SavedChartsPanelPr
         <button type="button" className="secondary-btn" onClick={handleSave}>
           儲存命盤
         </button>
-        {user?.starDrawEnabled && (
+        {(user?.starDrawEnabled || user?.role === 'admin') && (
           <a className="secondary-btn member-link-btn" href={getStarDrawUrl()}>
             先知斗數神牌
           </a>

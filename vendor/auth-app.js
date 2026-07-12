@@ -386,7 +386,7 @@
   function updateMemberFeatures(user) {
     const starDrawLink = document.getElementById('starDrawLink')
     if (starDrawLink) {
-      starDrawLink.hidden = !user.starDrawEnabled
+      starDrawLink.hidden = !(user.starDrawEnabled || user.role === 'admin')
       starDrawLink.href = 'star-draw/index.html'
     }
   }
