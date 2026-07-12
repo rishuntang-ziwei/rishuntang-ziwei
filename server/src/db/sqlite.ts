@@ -4,7 +4,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { PublicUser, SavedChartDetail, SavedChartPayload, SavedChartRow, SavedChartSummary, UserRow } from '../types.js'
-import { mapSavedChartRow, mapUserRow, toPublicUser, toSavedChartDetail, toSavedChartSummary } from './shared.js'
+import { mapSavedChartRow, mapUserRow, parseSavedChartPayload, toPublicUser, toSavedChartDetail, toSavedChartSummary } from './shared.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const dataDir = process.env.DB_PATH
@@ -208,18 +208,25 @@ export async function deleteSavedChart(id: number, userId: number): Promise<bool
   return result.changes > 0
 }
 
-export async function updateSavedChartPhone(
+export async function updateSavedChart(
   id: number,
   userId: number,
-  phone: string,
+  updates: { phone?: string; payload?: SavedChartPayload },
 ): Promise<SavedChartDetail | undefined> {
+  const existing = await findSavedChartForUser(id, userId)
+  if (!existing) return undefined
+
+  const phone = updates.phone !== undefined ? updates.phone.trim() : existing.phone ?? ''
+  const payload = updates.payload ?? parseSavedChartPayload(existing.payload)
+  const payloadJson = JSON.stringify(payload)
+
   const result = db
     .prepare(
       `UPDATE saved_charts
-       SET phone = ?, updated_at = datetime('now')
+       SET subject_name = ?, gender = ?, bazi = ?, payload = ?, phone = ?, updated_at = datetime('now')
        WHERE id = ? AND user_id = ?`,
     )
-    .run(phone, id, userId)
+    .run(payload.name.trim(), payload.gender, payload.bazi.trim(), payloadJson, phone, id, userId)
   if (result.changes === 0) return undefined
   const row = await findSavedChartForUser(id, userId)
   return row ? toSavedChartDetail(row) : undefined

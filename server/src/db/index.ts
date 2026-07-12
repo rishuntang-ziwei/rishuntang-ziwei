@@ -29,8 +29,11 @@ export const findSavedChartForUser = (id: number, userId: number) =>
 export const createSavedChart = (userId: number, payload: Parameters<typeof sqlite.createSavedChart>[1]) =>
   driver.createSavedChart(userId, payload)
 export const deleteSavedChart = (id: number, userId: number) => driver.deleteSavedChart(id, userId)
-export const updateSavedChartPhone = (id: number, userId: number, phone: string) =>
-  driver.updateSavedChartPhone(id, userId, phone)
+export const updateSavedChart = (
+  id: number,
+  userId: number,
+  updates: { phone?: string; payload?: import('../types.js').SavedChartPayload },
+) => driver.updateSavedChart(id, userId, updates)
 export const getSavedChartDetailForUser = (chartId: number, userId: number) =>
   driver.getSavedChartDetailForUser(chartId, userId)
 export const ensureAdminUser = () => driver.ensureAdminUser()

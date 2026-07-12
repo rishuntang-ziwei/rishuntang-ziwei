@@ -136,10 +136,13 @@ export function deleteSavedChart(id: number) {
   return request<{ message: string }>(`/api/charts/${id}`, { method: 'DELETE' })
 }
 
-export function updateSavedChartPhone(id: number, phone: string) {
+export function updateSavedChart(
+  id: number,
+  data: { phone?: string; payload?: SavedChartPayload },
+) {
   return request<SavedChartResponse>(`/api/charts/${id}`, {
     method: 'PATCH',
-    body: JSON.stringify({ phone }),
+    body: JSON.stringify(data),
   })
 }
 

@@ -295,6 +295,63 @@
       background: #fffde7;
     }
 
+    .chart-db-table tr .db-field-edit {
+      display: none;
+    }
+
+    .chart-db-table tr.editing-row .db-field-view {
+      display: none;
+    }
+
+    .chart-db-table tr.editing-row .db-field-edit {
+      display: block;
+    }
+
+    .chart-db-table .db-name-input,
+    .chart-db-table .db-gender-select {
+      width: 100%;
+      min-width: 72px;
+      padding: 6px 8px;
+      font-family: inherit;
+      font-size: 14px;
+      border: 1px solid #888;
+      background: #fff;
+    }
+
+    .chart-db-table tr.editing-row .db-birth-edit {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .chart-db-table .db-birth-edit {
+      display: none;
+    }
+
+    .chart-db-table .db-birth-edit select,
+    .chart-db-table .db-birth-edit input[type="date"],
+    .chart-db-table .db-birth-edit input[type="number"] {
+      padding: 5px 6px;
+      font-family: inherit;
+      font-size: 13px;
+      border: 1px solid #888;
+      background: #fff;
+    }
+
+    .chart-db-table .db-birth-edit .db-lunar-year { width: 72px; }
+    .chart-db-table .db-birth-edit .db-lunar-month,
+    .chart-db-table .db-birth-edit .db-lunar-day { width: 52px; }
+
+    .chart-db-table .db-birth-edit .db-leap-label {
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .chart-db-table .db-birth-edit .hidden {
+      display: none !important;
+    }
+
     .chart-db-empty {
       padding: 24px;
       text-align: center;
@@ -1963,6 +2020,13 @@
     let savedChartSearchQuery = ''
     let chartDatabaseVisible = false
     let editingChartId = null
+    const savedChartPayloads = new Map()
+    const savedRowSnapshots = new Map()
+
+    const DB_TIME_LABELS = {
+      0: '早子時', 1: '丑時', 2: '寅時', 3: '卯時', 4: '辰時', 5: '巳時',
+      6: '午時', 7: '未時', 8: '申時', 9: '酉時', 10: '戌時', 11: '亥時', 12: '晚子時',
+    }
 
     function escapeHtml(value) {
       return String(value || '')
@@ -1997,16 +2061,159 @@
       }
     }
 
+    function formatBirthDateTimeFromPayload(payload) {
+      if (!payload || !payload.date) return ''
+      const parts = payload.date.split('-').map(function (part) { return Number(part) })
+      const y = parts[0]
+      const m = parts[1]
+      const d = parts[2]
+      const timeLabel = DB_TIME_LABELS[payload.timeIndex] ?? (payload.timeIndex + '時')
+      const leap = payload.isLeap ? '（閏月）' : ''
+      if (payload.calendar === 'lunar') {
+        return '農曆 ' + y + '年' + m + '月' + d + '日' + leap + ' ' + timeLabel
+      }
+      return '國曆 ' + y + '年' + m + '月' + d + '日 ' + timeLabel
+    }
+
+    function toDateInputValue(dateStr) {
+      if (!dateStr) return ''
+      const parts = dateStr.split('-').map(function (part) { return Number(part) })
+      return parts[0] + '-' + String(parts[1]).padStart(2, '0') + '-' + String(parts[2]).padStart(2, '0')
+    }
+
+    function getTimeSelectOptions(selectedIndex) {
+      const tpl = document.getElementById('time')
+      if (!tpl) return ''
+      return Array.from(tpl.options)
+        .filter(function (option) { return option.value !== '' })
+        .map(function (option) {
+          return '<option value="' + option.value + '"' +
+            (String(selectedIndex) === option.value ? ' selected' : '') +
+            '>' + escapeHtml(option.textContent || '') + '</option>'
+        }).join('')
+    }
+
+    function buildBirthEditHtml(payload) {
+      const p = payload || {}
+      const parts = (p.date || '2000-1-1').split('-').map(function (part) { return Number(part) })
+      const calendar = p.calendar || 'solar'
+      const timeOptions = getTimeSelectOptions(p.timeIndex != null ? p.timeIndex : 11)
+      return (
+        '<div class="db-field-edit db-birth-edit">' +
+          '<select class="db-calendar-select" disabled>' +
+            '<option value="solar"' + (calendar === 'solar' ? ' selected' : '') + '>國曆</option>' +
+            '<option value="lunar"' + (calendar === 'lunar' ? ' selected' : '') + '>農曆</option>' +
+          '</select>' +
+          '<input type="date" class="db-solar-date" disabled value="' +
+            escapeHtml(calendar === 'solar' ? toDateInputValue(p.date || '') : '') + '" />' +
+          '<span class="db-lunar-fields' + (calendar === 'lunar' ? '' : ' hidden') + '">' +
+            '<input type="number" class="db-lunar-year" disabled placeholder="年" value="' +
+              (calendar === 'lunar' ? parts[0] : '') + '" min="1" max="2100" />' +
+            '<input type="number" class="db-lunar-month" disabled placeholder="月" value="' +
+              (calendar === 'lunar' ? parts[1] : '') + '" min="1" max="12" />' +
+            '<input type="number" class="db-lunar-day" disabled placeholder="日" value="' +
+              (calendar === 'lunar' ? parts[2] : '') + '" min="1" max="30" />' +
+            '<label class="db-leap-label"><input type="checkbox" class="db-is-leap" disabled ' +
+              (p.isLeap ? 'checked' : '') + ' />閏</label>' +
+          '</span>' +
+          '<select class="db-time-select" disabled>' + timeOptions + '</select>' +
+        '</div>'
+      )
+    }
+
+    function updateRowCalendarUI(row) {
+      const calendar = row.querySelector('.db-calendar-select')?.value || 'solar'
+      const solar = row.querySelector('.db-solar-date')
+      const lunarFields = row.querySelector('.db-lunar-fields')
+      if (!solar || !lunarFields) return
+      if (calendar === 'lunar') {
+        solar.classList.add('hidden')
+        lunarFields.classList.remove('hidden')
+      } else {
+        solar.classList.remove('hidden')
+        lunarFields.classList.add('hidden')
+      }
+    }
+
+    function captureRowState(row) {
+      return {
+        name: row.querySelector('.db-name-input')?.value || '',
+        gender: row.querySelector('.db-gender-select')?.value || '男',
+        phone: row.querySelector('.db-phone-input')?.value || '',
+        calendar: row.querySelector('.db-calendar-select')?.value || 'solar',
+        solarDate: row.querySelector('.db-solar-date')?.value || '',
+        lunarYear: row.querySelector('.db-lunar-year')?.value || '',
+        lunarMonth: row.querySelector('.db-lunar-month')?.value || '',
+        lunarDay: row.querySelector('.db-lunar-day')?.value || '',
+        isLeap: Boolean(row.querySelector('.db-is-leap')?.checked),
+        timeIndex: row.querySelector('.db-time-select')?.value || '11',
+      }
+    }
+
+    function applyRowState(row, state) {
+      if (!state) return
+      const nameInput = row.querySelector('.db-name-input')
+      const genderSelect = row.querySelector('.db-gender-select')
+      const phoneInput = row.querySelector('.db-phone-input')
+      if (nameInput) nameInput.value = state.name
+      if (genderSelect) genderSelect.value = state.gender
+      if (phoneInput) phoneInput.value = state.phone
+      const calendarSelect = row.querySelector('.db-calendar-select')
+      if (calendarSelect) calendarSelect.value = state.calendar
+      const solarDate = row.querySelector('.db-solar-date')
+      if (solarDate) solarDate.value = state.solarDate
+      const lunarYear = row.querySelector('.db-lunar-year')
+      const lunarMonth = row.querySelector('.db-lunar-month')
+      const lunarDay = row.querySelector('.db-lunar-day')
+      const isLeap = row.querySelector('.db-is-leap')
+      if (lunarYear) lunarYear.value = state.lunarYear
+      if (lunarMonth) lunarMonth.value = state.lunarMonth
+      if (lunarDay) lunarDay.value = state.lunarDay
+      if (isLeap) isLeap.checked = state.isLeap
+      const timeSelect = row.querySelector('.db-time-select')
+      if (timeSelect) timeSelect.value = state.timeIndex
+      updateRowCalendarUI(row)
+    }
+
+    function setRowEditingEnabled(row, enabled) {
+      row.querySelectorAll('.db-name-input, .db-phone-input').forEach(function (input) {
+        input.readOnly = !enabled
+        input.classList.toggle('editing', enabled)
+      })
+      row.querySelectorAll('.db-gender-select, .db-calendar-select, .db-solar-date, .db-lunar-year, .db-lunar-month, .db-lunar-day, .db-time-select, .db-is-leap').forEach(function (el) {
+        el.disabled = !enabled
+      })
+    }
+
+    function readRowBirthInput(row) {
+      const calendar = row.querySelector('.db-calendar-select')?.value || 'solar'
+      let date
+      if (calendar === 'lunar') {
+        const y = row.querySelector('.db-lunar-year')?.value
+        const m = row.querySelector('.db-lunar-month')?.value
+        const d = row.querySelector('.db-lunar-day')?.value
+        if (!y || !m || !d) throw new Error('請輸入完整農曆出生日期')
+        date = y + '-' + m + '-' + d
+      } else {
+        date = row.querySelector('.db-solar-date')?.value || ''
+        if (!date) throw new Error('請輸入國曆出生日期')
+      }
+      const timeVal = row.querySelector('.db-time-select')?.value
+      if (timeVal === '' || timeVal == null) throw new Error('請選擇出生時辰')
+      return {
+        calendar: calendar,
+        date: date,
+        timeIndex: Number(timeVal),
+        isLeap: Boolean(row.querySelector('.db-is-leap')?.checked),
+      }
+    }
+
     function cancelChartRowEdit() {
       if (editingChartId == null) return
       const row = document.querySelector('tr[data-chart-id="' + editingChartId + '"]')
       if (row) {
-        const input = row.querySelector('.db-phone-input')
-        if (input) {
-          input.value = input.dataset.originalPhone || ''
-          input.readOnly = true
-          input.classList.remove('editing')
-        }
+        applyRowState(row, savedRowSnapshots.get(editingChartId))
+        setRowEditingEnabled(row, false)
         row.classList.remove('editing-row')
         const editBtn = row.querySelector('[data-edit-chart]')
         const saveBtn = row.querySelector('[data-save-chart]')
@@ -2016,6 +2223,7 @@
           saveBtn.classList.remove('save-active')
         }
       }
+      savedRowSnapshots.delete(editingChartId)
       editingChartId = null
     }
 
@@ -2025,36 +2233,52 @@
       }
       const row = document.querySelector('tr[data-chart-id="' + chartId + '"]')
       if (!row) return
-      const input = row.querySelector('.db-phone-input')
       const editBtn = row.querySelector('[data-edit-chart]')
       const saveBtn = row.querySelector('[data-save-chart]')
-      if (!input || !editBtn || !saveBtn) return
+      if (!editBtn || !saveBtn) return
+      savedRowSnapshots.set(chartId, captureRowState(row))
       editingChartId = chartId
-      input.readOnly = false
-      input.classList.add('editing')
       row.classList.add('editing-row')
+      setRowEditingEnabled(row, true)
       editBtn.disabled = true
       saveBtn.disabled = false
       saveBtn.classList.add('save-active')
-      input.focus()
+      updateRowCalendarUI(row)
+      row.querySelector('.db-name-input')?.focus()
     }
 
-    async function saveChartRowPhone(chartId) {
+    async function saveChartRow(chartId) {
       const row = document.querySelector('tr[data-chart-id="' + chartId + '"]')
       if (!row) return
-      const input = row.querySelector('.db-phone-input')
       const saveBtn = row.querySelector('[data-save-chart]')
-      if (!input || !saveBtn) return
-      const phone = input.value.trim()
+      if (!saveBtn) return
       saveBtn.disabled = true
       try {
+        const basePayload = savedChartPayloads.get(chartId) || {}
+        const name = row.querySelector('.db-name-input')?.value.trim() || ''
+        const gender = row.querySelector('.db-gender-select')?.value || '男'
+        const phone = row.querySelector('.db-phone-input')?.value.trim() || ''
+        if (!name) throw new Error('請輸入姓名')
+        const birth = readRowBirthInput(row)
+        const input = {
+          name: name,
+          gender: gender,
+          calendar: birth.calendar,
+          date: birth.date,
+          timeIndex: birth.timeIndex,
+          isLeap: birth.isLeap,
+          initialChartType: basePayload.initialChartType || 'natal',
+          yearlyYear: basePayload.yearlyYear || new Date().getFullYear(),
+        }
+        const a = compute(input)
+        const payload = buildSavePayload(input, a)
         await window.ZiweiAuth.api('/api/charts/' + chartId, {
           method: 'PATCH',
-          body: JSON.stringify({ phone }),
+          body: JSON.stringify({ phone: phone, payload: payload }),
         })
-        input.dataset.originalPhone = phone
-        input.value = phone
-        cancelChartRowEdit()
+        savedRowSnapshots.delete(chartId)
+        editingChartId = null
+        await loadSavedCharts(savedChartSearchQuery)
       } catch (err) {
         alert(err.message || '儲存失敗')
         saveBtn.disabled = false
@@ -2063,6 +2287,7 @@
 
     function renderSavedChartList(charts, query) {
       cancelChartRowEdit()
+      savedChartPayloads.clear()
       const list = document.getElementById('savedChartList')
       if (!list) return
       updateSavedChartSearchStatus(charts.length, query)
@@ -2077,12 +2302,28 @@
         '</tr></thead><tbody>'
       html += charts.map(function (chart) {
         const phone = chart.phone || ''
+        const payload = chart.payload || {}
+        savedChartPayloads.set(chart.id, payload)
+        const birthText = chart.birthDateTime || formatBirthDateTimeFromPayload(payload)
+        const name = payload.name || chart.subjectName
         return (
           '<tr data-chart-id="' + chart.id + '">' +
-            '<td>' + escapeHtml(chart.subjectName) + '</td>' +
-            '<td>' + escapeHtml(chart.gender) + '</td>' +
-            '<td>' + escapeHtml(chart.birthDateTime || '') + '</td>' +
-            '<td><input type="tel" class="db-phone-input" data-original-phone="' + escapeHtml(phone) + '" value="' + escapeHtml(phone) + '" placeholder="請輸入電話" readonly /></td>' +
+            '<td class="db-name-cell">' +
+              '<span class="db-field-view">' + escapeHtml(chart.subjectName) + '</span>' +
+              '<input type="text" class="db-field-edit db-name-input" value="' + escapeHtml(name) + '" readonly />' +
+            '</td>' +
+            '<td class="db-gender-cell">' +
+              '<span class="db-field-view">' + escapeHtml(chart.gender) + '</span>' +
+              '<select class="db-field-edit db-gender-select" disabled>' +
+                '<option value="男"' + (chart.gender === '男' ? ' selected' : '') + '>男</option>' +
+                '<option value="女"' + (chart.gender === '女' ? ' selected' : '') + '>女</option>' +
+              '</select>' +
+            '</td>' +
+            '<td class="db-birth-cell">' +
+              '<span class="db-field-view">' + escapeHtml(birthText) + '</span>' +
+              buildBirthEditHtml(payload) +
+            '</td>' +
+            '<td><input type="tel" class="db-phone-input" value="' + escapeHtml(phone) + '" placeholder="請輸入電話" readonly /></td>' +
             '<td><div class="db-actions">' +
               '<button type="button" data-edit-chart="' + chart.id + '">修改</button>' +
               '<button type="button" data-save-chart="' + chart.id + '" disabled>儲存</button>' +
@@ -2103,17 +2344,24 @@
 
       list.querySelectorAll('[data-save-chart]').forEach(function (btn) {
         btn.addEventListener('click', function () {
-          saveChartRowPhone(Number(btn.dataset.saveChart))
+          saveChartRow(Number(btn.dataset.saveChart))
         })
       })
 
-      list.querySelectorAll('.db-phone-input').forEach(function (input) {
+      list.querySelectorAll('.db-calendar-select').forEach(function (sel) {
+        sel.addEventListener('change', function () {
+          const row = sel.closest('tr[data-chart-id]')
+          if (row) updateRowCalendarUI(row)
+        })
+      })
+
+      list.querySelectorAll('.db-name-input, .db-phone-input').forEach(function (input) {
         input.addEventListener('keydown', function (e) {
           if (e.key === 'Enter') {
             e.preventDefault()
             const row = input.closest('tr[data-chart-id]')
             if (!row || input.readOnly) return
-            saveChartRowPhone(Number(row.dataset.chartId))
+            saveChartRow(Number(row.dataset.chartId))
           }
           if (e.key === 'Escape') {
             e.preventDefault()

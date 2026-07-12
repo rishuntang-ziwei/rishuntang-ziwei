@@ -16,6 +16,7 @@ export interface SavedChartSummary {
   gender: '男' | '女'
   phone: string
   birthDateTime: string
+  payload: SavedChartPayload
   createdAt: string
   updatedAt: string
 }

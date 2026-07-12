@@ -4,7 +4,7 @@ import {
   deleteSavedChart,
   getSavedChartDetailForUser,
   listSavedChartsByUser,
-  updateSavedChartPhone,
+  updateSavedChart,
 } from '../db.js'
 import { requireAuth } from '../middleware.js'
 import type { SavedChartPayload } from '../types.js'
@@ -90,18 +90,33 @@ router.patch('/:id', async (req, res) => {
     return
   }
 
-  if (typeof req.body?.phone !== 'string') {
-    res.status(400).json({ error: '請提供電話' })
+  const phoneProvided = typeof req.body?.phone === 'string'
+  const payloadProvided = req.body?.payload != null
+  if (!phoneProvided && !payloadProvided) {
+    res.status(400).json({ error: '請提供要更新的資料' })
     return
   }
 
-  const phone = req.body.phone.trim()
-  if (phone.length > 32) {
-    res.status(400).json({ error: '電話長度不可超過 32 字' })
-    return
+  let phone: string | undefined
+  if (phoneProvided) {
+    const trimmedPhone = String(req.body.phone).trim()
+    if (trimmedPhone.length > 32) {
+      res.status(400).json({ error: '電話長度不可超過 32 字' })
+      return
+    }
+    phone = trimmedPhone
   }
 
-  const chart = await updateSavedChartPhone(id, req.authUser!.id, phone)
+  let payload: SavedChartPayload | undefined
+  if (payloadProvided) {
+    payload = validatePayload(req.body.payload) ?? undefined
+    if (!payload) {
+      res.status(400).json({ error: '命盤資料不完整或格式錯誤' })
+      return
+    }
+  }
+
+  const chart = await updateSavedChart(id, req.authUser!.id, { phone, payload })
   if (!chart) {
     res.status(404).json({ error: '找不到命盤' })
     return

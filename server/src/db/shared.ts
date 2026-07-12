@@ -20,6 +20,7 @@ export function toSavedChartSummary(row: SavedChartRow): SavedChartSummary {
     gender: row.gender,
     phone: row.phone,
     birthDateTime: formatBirthDateTime(payload),
+    payload,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   }
