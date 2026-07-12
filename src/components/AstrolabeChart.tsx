@@ -129,7 +129,7 @@ export function AstrolabeChart({
     return getSanFangBranchRoles(horoscope, focusPalace, chartMode, yearlyDisplayOptions)
   }, [horoscope, focusPalace, chartMode, yearlyDisplayOptions])
 
-  const dimRelatedFooter = chartMode === 'origin' || chartMode === 'yearly'
+  const dimRelatedFooter = chartMode === 'origin' || chartMode === 'decadal' || chartMode === 'yearly'
 
   const yearlyMonthlyByPalace = useMemo(() => {
     if (chartMode !== 'yearly') return null

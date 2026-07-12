@@ -18,7 +18,7 @@
 
 body {
   margin: 0;
-  font-family: 'DFKai-SB', '標楷體', 'BiauKai', 'KaiTi', serif;
+  font-family: 'Iansui', '芫荽', 'DFKai-SB', '標楷體', 'BiauKai', 'KaiTi', serif;
   background: var(--bg);
   color: var(--ink);
   min-height: 100vh;

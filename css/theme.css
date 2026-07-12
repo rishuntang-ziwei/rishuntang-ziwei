@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Iansui&display=swap');
+
 :root {
   /* 淡宣紙 · 深褐朱紅 */
   --paper-bg: #faf6ef;
@@ -34,6 +36,9 @@
   --red: #c62828;
   --purple: #6a1b9a;
   --line-red: #d32f2f;
+
+  --font-body: 'Iansui', '芫荽', 'DFKai-SB', '標楷體', 'BiauKai', 'KaiTi', serif;
+  --font-brand: 'Iansui', '芫荽', 'DFKai-SB', '標楷體', serif;
 }
 
 * {
@@ -41,7 +46,7 @@
 }
 
 body {
-  font-family: 'DFKai-SB', '標楷體', 'BiauKai', 'KaiTi', 'Noto Serif TC', serif;
+  font-family: var(--font-body);
   background-color: var(--paper-bg);
   background-image:
     radial-gradient(ellipse at 15% 0%, rgba(196, 165, 116, 0.12) 0%, transparent 55%),
@@ -58,25 +63,29 @@ body {
 /* ── 品牌標題 ── */
 .site-brand {
   text-align: center;
-  margin-bottom: 12px;
-  padding-bottom: 10px;
+  margin-bottom: 14px;
+  padding: 14px 8px 16px;
   border-bottom: 1px solid var(--brand-gold-light);
 }
 
 .site-brand-name {
   display: block;
-  font-size: 18px;
+  font-family: var(--font-brand);
+  font-size: 28px;
   font-weight: 700;
   color: var(--brand-red);
-  letter-spacing: 0.2em;
+  letter-spacing: 0.22em;
+  line-height: 1.35;
 }
 
 .site-brand-sub {
   display: block;
-  margin-top: 4px;
-  font-size: 13px;
-  color: var(--ink-light);
-  letter-spacing: 0.08em;
+  margin-top: 6px;
+  font-family: var(--font-brand);
+  font-size: 16px;
+  color: var(--ink-muted);
+  letter-spacing: 0.1em;
+  line-height: 1.4;
 }
 
 /* ── 登入 / 註冊 ── */
@@ -106,16 +115,19 @@ body {
 
 .auth-brand h1 {
   margin: 0;
+  font-family: var(--font-brand);
   color: var(--brand-red);
-  font-size: 22px;
-  letter-spacing: 0.12em;
+  font-size: 28px;
+  letter-spacing: 0.18em;
+  line-height: 1.35;
 }
 
 .auth-brand p {
   margin: 8px 0 0;
-  color: var(--ink-light);
-  font-size: 14px;
-  letter-spacing: 0.06em;
+  font-family: var(--font-brand);
+  color: var(--ink-muted);
+  font-size: 16px;
+  letter-spacing: 0.08em;
 }
 
 .auth-form h2 {
