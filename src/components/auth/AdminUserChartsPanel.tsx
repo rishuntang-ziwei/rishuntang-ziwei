@@ -79,7 +79,7 @@ export function AdminUserChartsPanel({
         <input
           type="search"
           value={searchInput}
-          placeholder="搜尋姓名…"
+          placeholder="搜尋姓名或電話…"
           className="admin-chart-search"
           onChange={(e) => setSearchInput(e.target.value)}
           onKeyDown={(e) => {

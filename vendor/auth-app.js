@@ -203,7 +203,7 @@
             '<button type="button" id="backToAdminBtn">返回會員管理</button>' +
           '</div>' +
           '<div style="display:flex;gap:8px;margin-bottom:8px;">' +
-            '<input type="search" id="adminChartSearch" placeholder="搜尋姓名…" style="flex:1;padding:8px;font-family:inherit;" />' +
+            '<input type="search" id="adminChartSearch" placeholder="搜尋姓名或電話…" style="flex:1;padding:8px;font-family:inherit;" />' +
             '<button type="button" id="adminChartSearchBtn" style="padding:8px 14px;">搜尋</button>' +
           '</div>' +
           '<div id="adminChartSearchStatus" style="font-size:12px;color:#666;margin-bottom:12px;">' + statusText + '</div>' +

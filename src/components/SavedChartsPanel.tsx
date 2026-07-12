@@ -145,7 +145,7 @@ export function SavedChartsPanel({ input, hasChart, onLoad }: SavedChartsPanelPr
           <input
             type="search"
             value={searchInput}
-            placeholder="搜尋已存姓名…"
+            placeholder="搜尋姓名或電話…"
             onChange={(e) => setSearchInput(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {

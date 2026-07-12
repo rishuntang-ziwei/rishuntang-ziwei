@@ -164,10 +164,10 @@ export async function listSavedChartsByUser(userId: number, search?: string): Pr
     ? (db
         .prepare(
           `SELECT * FROM saved_charts
-           WHERE user_id = ? AND subject_name LIKE ?
+           WHERE user_id = ? AND (subject_name LIKE ? OR phone LIKE ?)
            ORDER BY updated_at DESC, id DESC`,
         )
-        .all(userId, `%${q}%`) as unknown as Record<string, unknown>[])
+        .all(userId, `%${q}%`, `%${q}%`) as unknown as Record<string, unknown>[])
     : (db
         .prepare(
           `SELECT * FROM saved_charts

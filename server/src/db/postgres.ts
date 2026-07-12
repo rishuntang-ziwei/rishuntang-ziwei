@@ -171,7 +171,7 @@ export async function listSavedChartsByUser(userId: number, search?: string): Pr
   const result = q
     ? await pool.query(
         `SELECT * FROM saved_charts
-         WHERE user_id = $1 AND subject_name ILIKE $2
+         WHERE user_id = $1 AND (subject_name ILIKE $2 OR phone ILIKE $2)
          ORDER BY updated_at DESC, id DESC`,
         [userId, `%${q}%`],
       )
