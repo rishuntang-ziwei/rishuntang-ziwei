@@ -53,6 +53,7 @@ export interface SavedChartRow {
   subject_name: string
   gender: ChartGender
   bazi: string
+  phone: string
   payload: string
   created_at: string
   updated_at: string
@@ -62,7 +63,7 @@ export interface SavedChartSummary {
   id: number
   subjectName: string
   gender: ChartGender
-  bazi: string
+  phone: string
   birthDateTime: string
   createdAt: string
   updatedAt: string

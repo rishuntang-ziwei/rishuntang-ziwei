@@ -49,6 +49,11 @@ export async function initDb() {
     db.exec(`ALTER TABLE users ADD COLUMN star_draw_enabled INTEGER NOT NULL DEFAULT 0`)
   }
 
+  const chartColumns = db.prepare('PRAGMA table_info(saved_charts)').all() as { name: string }[]
+  if (!chartColumns.some((col) => col.name === 'phone')) {
+    db.exec(`ALTER TABLE saved_charts ADD COLUMN phone TEXT NOT NULL DEFAULT ''`)
+  }
+
   if (process.env.RENDER && !process.env.DB_PATH) {
     console.warn(
       '[db] 警告：Render 免費方案的本機 SQLite 會在重啟後清空。請設定 DATABASE_URL 使用 PostgreSQL，或升級方案並設定 DB_PATH 指向持久磁碟。',
@@ -201,6 +206,23 @@ export async function createSavedChart(userId: number, payload: SavedChartPayloa
 export async function deleteSavedChart(id: number, userId: number): Promise<boolean> {
   const result = db.prepare('DELETE FROM saved_charts WHERE id = ? AND user_id = ?').run(id, userId)
   return result.changes > 0
+}
+
+export async function updateSavedChartPhone(
+  id: number,
+  userId: number,
+  phone: string,
+): Promise<SavedChartDetail | undefined> {
+  const result = db
+    .prepare(
+      `UPDATE saved_charts
+       SET phone = ?, updated_at = datetime('now')
+       WHERE id = ? AND user_id = ?`,
+    )
+    .run(phone, id, userId)
+  if (result.changes === 0) return undefined
+  const row = await findSavedChartForUser(id, userId)
+  return row ? toSavedChartDetail(row) : undefined
 }
 
 export async function getSavedChartDetailForUser(

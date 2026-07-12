@@ -175,7 +175,7 @@ export function SavedChartsPanel({ input, hasChart, onLoad }: SavedChartsPanelPr
                 <div className="saved-chart-meta">
                   <strong>{chart.subjectName}</strong>
                   <span>
-                    {chart.gender} · {chart.birthDateTime || chart.bazi}
+                    {chart.gender} · {chart.birthDateTime}
                   </span>
                 </div>
                 <div className="saved-chart-actions">

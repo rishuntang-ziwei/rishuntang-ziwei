@@ -136,6 +136,13 @@ export function deleteSavedChart(id: number) {
   return request<{ message: string }>(`/api/charts/${id}`, { method: 'DELETE' })
 }
 
+export function updateSavedChartPhone(id: number, phone: string) {
+  return request<SavedChartResponse>(`/api/charts/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ phone }),
+  })
+}
+
 export function fetchAdminUserCharts(userId: number, search?: string) {
   const q = search?.trim() ? `?q=${encodeURIComponent(search.trim())}` : ''
   return request<AdminUserChartsResponse>(`/api/admin/users/${userId}/charts${q}`)

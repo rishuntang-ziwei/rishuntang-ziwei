@@ -121,7 +121,7 @@ export function AdminUserChartsPanel({
                   <tr key={chart.id}>
                     <td>{chart.subjectName}</td>
                     <td>{chart.gender}</td>
-                    <td>{chart.birthDateTime || chart.bazi}</td>
+                    <td>{chart.birthDateTime}</td>
                     <td>{new Date(chart.createdAt).toLocaleString('zh-TW')}</td>
                     <td>
                       <button type="button" onClick={() => void handleLoadChart(chart.id)}>

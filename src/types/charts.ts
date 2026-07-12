@@ -14,7 +14,7 @@ export interface SavedChartSummary {
   id: number
   subjectName: string
   gender: '男' | '女'
-  bazi: string
+  phone: string
   birthDateTime: string
   createdAt: string
   updatedAt: string

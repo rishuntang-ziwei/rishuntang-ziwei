@@ -64,6 +64,11 @@ export async function initDb() {
     ADD COLUMN IF NOT EXISTS star_draw_enabled BOOLEAN NOT NULL DEFAULT FALSE
   `)
 
+  await pool.query(`
+    ALTER TABLE saved_charts
+    ADD COLUMN IF NOT EXISTS phone TEXT NOT NULL DEFAULT ''
+  `)
+
   console.log('[db] PostgreSQL 就緒')
 }
 
@@ -209,6 +214,22 @@ export async function createSavedChart(userId: number, payload: SavedChartPayloa
 export async function deleteSavedChart(id: number, userId: number): Promise<boolean> {
   const result = await pool.query('DELETE FROM saved_charts WHERE id = $1 AND user_id = $2', [id, userId])
   return (result.rowCount ?? 0) > 0
+}
+
+export async function updateSavedChartPhone(
+  id: number,
+  userId: number,
+  phone: string,
+): Promise<SavedChartDetail | undefined> {
+  const result = await pool.query(
+    `UPDATE saved_charts
+     SET phone = $1, updated_at = NOW()
+     WHERE id = $2 AND user_id = $3`,
+    [phone, id, userId],
+  )
+  if ((result.rowCount ?? 0) === 0) return undefined
+  const row = await findSavedChartForUser(id, userId)
+  return row ? toSavedChartDetail(row) : undefined
 }
 
 export async function getSavedChartDetailForUser(

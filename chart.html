@@ -264,6 +264,37 @@
       border-color: #e0a0a0;
     }
 
+    .chart-db-table .db-actions button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .chart-db-table .db-actions button.save-active {
+      background: #555;
+      color: #fff;
+      border-color: #555;
+    }
+
+    .chart-db-table .db-phone-input {
+      width: 100%;
+      min-width: 120px;
+      padding: 6px 8px;
+      font-family: inherit;
+      font-size: 14px;
+      border: 1px solid #ddd;
+      background: #f5f5f5;
+      color: #333;
+    }
+
+    .chart-db-table .db-phone-input.editing {
+      background: #fff;
+      border-color: #888;
+    }
+
+    .chart-db-table tr.editing-row {
+      background: #fffde7;
+    }
+
     .chart-db-empty {
       padding: 24px;
       text-align: center;
@@ -1931,6 +1962,7 @@
 
     let savedChartSearchQuery = ''
     let chartDatabaseVisible = false
+    let editingChartId = null
 
     function escapeHtml(value) {
       return String(value || '')
@@ -1965,7 +1997,72 @@
       }
     }
 
+    function cancelChartRowEdit() {
+      if (editingChartId == null) return
+      const row = document.querySelector('tr[data-chart-id="' + editingChartId + '"]')
+      if (row) {
+        const input = row.querySelector('.db-phone-input')
+        if (input) {
+          input.value = input.dataset.originalPhone || ''
+          input.readOnly = true
+          input.classList.remove('editing')
+        }
+        row.classList.remove('editing-row')
+        const editBtn = row.querySelector('[data-edit-chart]')
+        const saveBtn = row.querySelector('[data-save-chart]')
+        if (editBtn) editBtn.disabled = false
+        if (saveBtn) {
+          saveBtn.disabled = true
+          saveBtn.classList.remove('save-active')
+        }
+      }
+      editingChartId = null
+    }
+
+    function startChartRowEdit(chartId) {
+      if (editingChartId != null && editingChartId !== chartId) {
+        cancelChartRowEdit()
+      }
+      const row = document.querySelector('tr[data-chart-id="' + chartId + '"]')
+      if (!row) return
+      const input = row.querySelector('.db-phone-input')
+      const editBtn = row.querySelector('[data-edit-chart]')
+      const saveBtn = row.querySelector('[data-save-chart]')
+      if (!input || !editBtn || !saveBtn) return
+      editingChartId = chartId
+      input.readOnly = false
+      input.classList.add('editing')
+      row.classList.add('editing-row')
+      editBtn.disabled = true
+      saveBtn.disabled = false
+      saveBtn.classList.add('save-active')
+      input.focus()
+    }
+
+    async function saveChartRowPhone(chartId) {
+      const row = document.querySelector('tr[data-chart-id="' + chartId + '"]')
+      if (!row) return
+      const input = row.querySelector('.db-phone-input')
+      const saveBtn = row.querySelector('[data-save-chart]')
+      if (!input || !saveBtn) return
+      const phone = input.value.trim()
+      saveBtn.disabled = true
+      try {
+        await window.ZiweiAuth.api('/api/charts/' + chartId, {
+          method: 'PATCH',
+          body: JSON.stringify({ phone }),
+        })
+        input.dataset.originalPhone = phone
+        input.value = phone
+        cancelChartRowEdit()
+      } catch (err) {
+        alert(err.message || '儲存失敗')
+        saveBtn.disabled = false
+      }
+    }
+
     function renderSavedChartList(charts, query) {
+      cancelChartRowEdit()
       const list = document.getElementById('savedChartList')
       if (!list) return
       updateSavedChartSearchStatus(charts.length, query)
@@ -1976,16 +2073,19 @@
         return
       }
       let html = '<table class="chart-db-table"><thead><tr>' +
-        '<th>姓名</th><th>性別</th><th>出生資訊</th><th>八字</th><th>操作</th>' +
+        '<th>姓名</th><th>性別</th><th>出生資訊</th><th>電話</th><th>操作</th>' +
         '</tr></thead><tbody>'
       html += charts.map(function (chart) {
+        const phone = chart.phone || ''
         return (
-          '<tr>' +
+          '<tr data-chart-id="' + chart.id + '">' +
             '<td>' + escapeHtml(chart.subjectName) + '</td>' +
             '<td>' + escapeHtml(chart.gender) + '</td>' +
             '<td>' + escapeHtml(chart.birthDateTime || '') + '</td>' +
-            '<td>' + escapeHtml(chart.bazi || '') + '</td>' +
+            '<td><input type="tel" class="db-phone-input" data-original-phone="' + escapeHtml(phone) + '" value="' + escapeHtml(phone) + '" placeholder="請輸入電話" readonly /></td>' +
             '<td><div class="db-actions">' +
+              '<button type="button" data-edit-chart="' + chart.id + '">修改</button>' +
+              '<button type="button" data-save-chart="' + chart.id + '" disabled>儲存</button>' +
               '<button type="button" data-load-chart="' + chart.id + '">提取</button>' +
               '<button type="button" class="danger" data-delete-chart="' + chart.id + '" data-name="' + escapeHtml(chart.subjectName) + '">刪除</button>' +
             '</div></td>' +
@@ -1994,6 +2094,33 @@
       }).join('')
       html += '</tbody></table>'
       list.innerHTML = html
+
+      list.querySelectorAll('[data-edit-chart]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          startChartRowEdit(Number(btn.dataset.editChart))
+        })
+      })
+
+      list.querySelectorAll('[data-save-chart]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          saveChartRowPhone(Number(btn.dataset.saveChart))
+        })
+      })
+
+      list.querySelectorAll('.db-phone-input').forEach(function (input) {
+        input.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter') {
+            e.preventDefault()
+            const row = input.closest('tr[data-chart-id]')
+            if (!row || input.readOnly) return
+            saveChartRowPhone(Number(row.dataset.chartId))
+          }
+          if (e.key === 'Escape') {
+            e.preventDefault()
+            cancelChartRowEdit()
+          }
+        })
+      })
 
       list.querySelectorAll('[data-load-chart]').forEach(function (btn) {
         btn.addEventListener('click', async function () {

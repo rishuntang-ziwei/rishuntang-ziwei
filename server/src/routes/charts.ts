@@ -4,6 +4,7 @@ import {
   deleteSavedChart,
   getSavedChartDetailForUser,
   listSavedChartsByUser,
+  updateSavedChartPhone,
 } from '../db.js'
 import { requireAuth } from '../middleware.js'
 import type { SavedChartPayload } from '../types.js'
@@ -74,6 +75,33 @@ router.get('/:id', async (req, res) => {
   }
 
   const chart = await getSavedChartDetailForUser(id, req.authUser!.id)
+  if (!chart) {
+    res.status(404).json({ error: '找不到命盤' })
+    return
+  }
+
+  res.json({ chart })
+})
+
+router.patch('/:id', async (req, res) => {
+  const id = Number(req.params.id)
+  if (!Number.isFinite(id)) {
+    res.status(400).json({ error: '無效的命盤 ID' })
+    return
+  }
+
+  if (typeof req.body?.phone !== 'string') {
+    res.status(400).json({ error: '請提供電話' })
+    return
+  }
+
+  const phone = req.body.phone.trim()
+  if (phone.length > 32) {
+    res.status(400).json({ error: '電話長度不可超過 32 字' })
+    return
+  }
+
+  const chart = await updateSavedChartPhone(id, req.authUser!.id, phone)
   if (!chart) {
     res.status(404).json({ error: '找不到命盤' })
     return
