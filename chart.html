@@ -42,39 +42,39 @@
       flex-shrink: 0;
       background: #fff;
       border: 1px solid #999;
-      padding: 16px;
-      font-size: 15px;
+      padding: 14px;
+      font-size: 17px;
     }
 
     .form-panel h2 {
-      font-size: 17px;
-      margin-bottom: 12px;
+      font-size: 19px;
+      margin-bottom: 10px;
       letter-spacing: 0.1em;
     }
 
-    .form-panel label { display: block; margin-bottom: 4px; color: #444; font-size: 15px; }
+    .form-panel label { display: block; margin-bottom: 3px; color: #444; font-size: 17px; }
     .form-panel input[type="text"],
     .form-panel input[type="date"],
     .form-panel select {
       width: 100%;
-      margin-bottom: 10px;
-      padding: 8px;
+      margin-bottom: 8px;
+      padding: 7px 8px;
       font-family: inherit;
-      font-size: 15px;
+      font-size: 17px;
     }
 
-    .form-panel .row { margin-bottom: 6px; }
-    .form-panel .inline { display: flex; gap: 10px; align-items: center; }
+    .form-panel .row { margin-bottom: 5px; }
+    .form-panel .inline { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
     .form-panel button {
       width: 100%;
-      margin-top: 8px;
-      padding: 10px;
+      margin-top: 6px;
+      padding: 9px;
       background: #555;
       color: #fff;
       border: none;
       cursor: pointer;
       font-family: inherit;
-      font-size: 16px;
+      font-size: 17px;
     }
 
     .form-panel button.secondary {
@@ -90,8 +90,8 @@
     }
 
     .member-section h3 {
-      font-size: 15px;
-      margin-bottom: 10px;
+      font-size: 17px;
+      margin-bottom: 8px;
       letter-spacing: 0.08em;
     }
 
@@ -121,95 +121,154 @@
       cursor: pointer;
     }
 
-    .saved-charts-panel {
-      margin-top: 12px;
+    .chart-db-open-btn {
+      margin-top: 10px;
     }
 
-    .saved-charts-panel input[type="search"] {
+    .chart-panel {
       flex: 1;
-      padding: 8px;
-      font-family: inherit;
-      font-size: 14px;
-      margin-bottom: 0;
-    }
-
-    .saved-chart-search-row {
+      min-width: 0;
       display: flex;
-      gap: 8px;
-      margin-bottom: 8px;
+      flex-direction: column;
     }
 
-    .saved-chart-search-row button {
-      width: auto;
-      margin-top: 0;
-      padding: 8px 14px;
-      white-space: nowrap;
-    }
-
-    .saved-charts-status {
-      font-size: 12px;
-      color: #666;
-      margin-bottom: 8px;
-      min-height: 1.2em;
-    }
-
-    .saved-chart-list {
-      max-height: 220px;
-      overflow-y: auto;
-      border: 1px solid #ddd;
-      background: #fafafa;
-    }
-
-    .saved-chart-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      padding: 8px 10px;
-      border-bottom: 1px solid #eee;
-      font-size: 13px;
-    }
-
-    .saved-chart-item:last-child { border-bottom: none; }
-
-    .saved-chart-meta {
+    #chartView {
       flex: 1;
       min-width: 0;
     }
 
-    .saved-chart-meta strong {
-      display: block;
-      font-size: 14px;
-      margin-bottom: 2px;
-    }
-
-    .saved-chart-meta span {
-      color: #666;
-      font-size: 12px;
-    }
-
-    .saved-chart-actions {
+    .chart-database {
+      flex: 1;
+      min-width: 0;
+      background: #fff;
+      border: 1px solid #999;
+      padding: 16px;
       display: flex;
-      gap: 4px;
-      flex-shrink: 0;
+      flex-direction: column;
+      min-height: 520px;
     }
 
-    .saved-chart-actions button {
+    .chart-db-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .chart-db-header h2 {
+      font-size: 20px;
+      letter-spacing: 0.08em;
+    }
+
+    .chart-db-header button {
       width: auto;
       margin-top: 0;
-      padding: 4px 8px;
-      font-size: 12px;
+      padding: 8px 16px;
+      background: #fff;
+      color: #333;
+      border: 1px solid #bbb;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 15px;
     }
 
-    .saved-chart-actions button.danger {
-      background: #c62828;
+    .chart-db-search {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
     }
 
-    .saved-charts-empty {
-      padding: 12px;
+    .chart-db-search input[type="search"] {
+      flex: 1;
+      padding: 10px 12px;
+      font-family: inherit;
+      font-size: 16px;
+      border: 1px solid #bbb;
+    }
+
+    .chart-db-search button {
+      width: auto;
+      margin-top: 0;
+      padding: 10px 18px;
+      white-space: nowrap;
+      background: #555;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 16px;
+    }
+
+    .chart-db-status {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 10px;
+      min-height: 1.2em;
+    }
+
+    .chart-db-table-wrap {
+      flex: 1;
+      overflow: auto;
+      border: 1px solid #ddd;
+      background: #fafafa;
+    }
+
+    .chart-db-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 15px;
+      background: #fff;
+    }
+
+    .chart-db-table th,
+    .chart-db-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #eee;
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    .chart-db-table th {
+      position: sticky;
+      top: 0;
+      background: #f0f0f0;
+      font-weight: 700;
+      white-space: nowrap;
+      z-index: 1;
+    }
+
+    .chart-db-table tbody tr:hover {
+      background: #f9f9f9;
+    }
+
+    .chart-db-table .db-actions {
+      display: flex;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .chart-db-table .db-actions button {
+      width: auto;
+      margin-top: 0;
+      padding: 5px 10px;
+      font-size: 14px;
+      cursor: pointer;
+      font-family: inherit;
+      border: 1px solid #bbb;
+      background: #fff;
+    }
+
+    .chart-db-table .db-actions button.danger {
+      color: #c62828;
+      border-color: #e0a0a0;
+    }
+
+    .chart-db-empty {
+      padding: 24px;
       text-align: center;
       color: #888;
-      font-size: 13px;
+      font-size: 15px;
     }
 
     @page {
@@ -250,14 +309,21 @@
         padding: 0 !important;
       }
 
+      .chart-database {
+        display: none !important;
+      }
+
       .chart-panel {
+        display: block !important;
         width: 100% !important;
         height: auto !important;
         margin: 0 auto !important;
         padding: 0 !important;
-        display: flex !important;
-        justify-content: center;
-        align-items: center;
+      }
+
+      #chartView {
+        display: block !important;
+        width: 100% !important;
       }
 
       .chart-outer {
@@ -307,10 +373,10 @@
 
     .form-panel input[type="number"] {
       width: 100%;
-      margin-bottom: 10px;
-      padding: 8px;
+      margin-bottom: 8px;
+      padding: 7px 8px;
       font-family: inherit;
-      font-size: 15px;
+      font-size: 17px;
     }
 
     .date-row {
@@ -319,16 +385,14 @@
       gap: 6px;
     }
 
-    .date-row label { font-size: 11px; margin-bottom: 2px; }
+    .date-row label { font-size: 13px; margin-bottom: 2px; }
 
     .calendar-note {
-      font-size: 11px;
+      font-size: 13px;
       color: #2e7d32;
       margin: -2px 0 8px;
       font-weight: 600;
     }
-
-    .chart-panel { flex: 1; min-width: 0; }
 
     .chart-outer {
       border: 3px double var(--border);
@@ -1403,21 +1467,28 @@
           <button type="button" id="starDrawBtn" class="secondary">先知斗數神牌</button>
         </div>
 
-        <div class="saved-charts-panel">
-          <div class="saved-chart-search-row">
-            <input type="search" id="savedChartSearch" placeholder="搜尋已存姓名…" />
-            <button type="button" id="savedChartSearchBtn" class="secondary">搜尋</button>
-          </div>
-          <div class="saved-charts-status" id="savedChartSearchStatus"></div>
-          <div class="saved-chart-list" id="savedChartList">
-            <div class="saved-charts-empty">載入中…</div>
-          </div>
-        </div>
+        <button type="button" id="chartDbBtn" class="secondary chart-db-open-btn">命盤資料庫</button>
       </div>
     </div>
 
     <div class="chart-panel" id="chartPanel">
-      <div class="chart-placeholder">請輸入資料後按「開始排盤」</div>
+      <div id="chartView">
+        <div class="chart-placeholder">請輸入資料後按「開始排盤」</div>
+      </div>
+      <div id="chartDatabaseView" class="chart-database hidden">
+        <div class="chart-db-header">
+          <h2>命盤資料庫</h2>
+          <button type="button" id="chartDbBackBtn">返回命盤</button>
+        </div>
+        <div class="chart-db-search">
+          <input type="search" id="savedChartSearch" placeholder="搜尋已存姓名…" />
+          <button type="button" id="savedChartSearchBtn">搜尋</button>
+        </div>
+        <div class="chart-db-status" id="savedChartSearchStatus"></div>
+        <div class="chart-db-table-wrap" id="savedChartList">
+          <div class="chart-db-empty">請按左側「命盤資料庫」載入</div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1859,6 +1930,28 @@
     }
 
     let savedChartSearchQuery = ''
+    let chartDatabaseVisible = false
+
+    function escapeHtml(value) {
+      return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+    }
+
+    function showChartView() {
+      chartDatabaseVisible = false
+      document.getElementById('chartView')?.classList.remove('hidden')
+      document.getElementById('chartDatabaseView')?.classList.add('hidden')
+    }
+
+    function showChartDatabase() {
+      chartDatabaseVisible = true
+      document.getElementById('chartView')?.classList.add('hidden')
+      document.getElementById('chartDatabaseView')?.classList.remove('hidden')
+      loadSavedCharts(savedChartSearchQuery)
+    }
 
     function updateSavedChartSearchStatus(count, query) {
       const status = document.getElementById('savedChartSearchStatus')
@@ -1877,31 +1970,37 @@
       if (!list) return
       updateSavedChartSearchStatus(charts.length, query)
       if (!charts.length) {
-        list.innerHTML = '<div class="saved-charts-empty">' +
+        list.innerHTML = '<div class="chart-db-empty">' +
           (query && query.trim() ? '找不到符合的命盤' : '尚無已存命盤') +
           '</div>'
         return
       }
-      list.innerHTML = charts.map(function (chart) {
+      let html = '<table class="chart-db-table"><thead><tr>' +
+        '<th>姓名</th><th>性別</th><th>出生資訊</th><th>八字</th><th>操作</th>' +
+        '</tr></thead><tbody>'
+      html += charts.map(function (chart) {
         return (
-          '<div class="saved-chart-item">' +
-            '<div class="saved-chart-meta">' +
-              '<strong>' + chart.subjectName + '</strong>' +
-              '<span>' + chart.gender + ' · ' + (chart.birthDateTime || chart.bazi) + '</span>' +
-            '</div>' +
-            '<div class="saved-chart-actions">' +
-              '<button type="button" class="secondary" data-load-chart="' + chart.id + '">提取</button>' +
-              '<button type="button" class="danger" data-delete-chart="' + chart.id + '" data-name="' + chart.subjectName + '">刪除</button>' +
-            '</div>' +
-          '</div>'
+          '<tr>' +
+            '<td>' + escapeHtml(chart.subjectName) + '</td>' +
+            '<td>' + escapeHtml(chart.gender) + '</td>' +
+            '<td>' + escapeHtml(chart.birthDateTime || '') + '</td>' +
+            '<td>' + escapeHtml(chart.bazi || '') + '</td>' +
+            '<td><div class="db-actions">' +
+              '<button type="button" data-load-chart="' + chart.id + '">提取</button>' +
+              '<button type="button" class="danger" data-delete-chart="' + chart.id + '" data-name="' + escapeHtml(chart.subjectName) + '">刪除</button>' +
+            '</div></td>' +
+          '</tr>'
         )
       }).join('')
+      html += '</tbody></table>'
+      list.innerHTML = html
 
       list.querySelectorAll('[data-load-chart]').forEach(function (btn) {
         btn.addEventListener('click', async function () {
           try {
             const data = await window.ZiweiAuth.api('/api/charts/' + btn.dataset.loadChart)
             applyInputToForm(data.chart.payload)
+            showChartView()
             run()
           } catch (err) {
             alert(err.message || '載入失敗')
@@ -1928,13 +2027,14 @@
       savedChartSearchQuery = search || ''
       const status = document.getElementById('savedChartSearchStatus')
       if (status) status.textContent = '搜尋中…'
+      list.innerHTML = '<div class="chart-db-empty">搜尋中…</div>'
       try {
         const q = savedChartSearchQuery.trim() ? '?q=' + encodeURIComponent(savedChartSearchQuery.trim()) : ''
         const data = await window.ZiweiAuth.api('/api/charts' + q)
         renderSavedChartList(data.charts || [], savedChartSearchQuery)
       } catch (err) {
         if (status) status.textContent = ''
-        list.innerHTML = '<div class="saved-charts-empty">' + (err.message || '載入失敗') + '</div>'
+        list.innerHTML = '<div class="chart-db-empty">' + escapeHtml(err.message || '載入失敗') + '</div>'
       }
     }
 
@@ -1947,7 +2047,9 @@
         body: JSON.stringify({ payload }),
       })
       alert('命盤已儲存')
-      await loadSavedCharts(savedChartSearchQuery)
+      if (chartDatabaseVisible) {
+        await loadSavedCharts(savedChartSearchQuery)
+      }
     }
 
     window.loadSavedChartPayload = function (payload) {
@@ -2250,7 +2352,7 @@
       })
 
       html += '</div></div>'
-      document.getElementById('chartPanel').innerHTML = html
+      document.getElementById('chartView').innerHTML = html
 
       document.querySelectorAll('.palace[data-scope-palace]').forEach(el => {
         el.addEventListener('click', () => {
@@ -2340,6 +2442,7 @@
     }
 
     function run() {
+      showChartView()
       try {
         const input = getInput()
         const a = compute(input)
@@ -2359,7 +2462,7 @@
         }
         renderChart(input.name, a, input)
       } catch (err) {
-        document.getElementById('chartPanel').innerHTML =
+        document.getElementById('chartView').innerHTML =
           `<div class="error-box">排盤失敗：${err.message || err}</div>`
       }
     }
@@ -2367,8 +2470,8 @@
     document.getElementById('submitBtn').addEventListener('click', run)
 
     document.getElementById('printChartBtn')?.addEventListener('click', function () {
-      const panel = document.getElementById('chartPanel')
-      if (!panel || panel.querySelector('.chart-placeholder') || panel.querySelector('.error-box')) {
+      const view = document.getElementById('chartView')
+      if (!view || view.querySelector('.chart-placeholder') || view.querySelector('.error-box')) {
         alert('請先完成排盤後再列印')
         return
       }
@@ -2383,6 +2486,9 @@
       }
     })
 
+    document.getElementById('chartDbBtn')?.addEventListener('click', showChartDatabase)
+    document.getElementById('chartDbBackBtn')?.addEventListener('click', showChartView)
+
     document.getElementById('savedChartSearchBtn')?.addEventListener('click', function () {
       loadSavedCharts(document.getElementById('savedChartSearch')?.value || '')
     })
@@ -2393,8 +2499,6 @@
         loadSavedCharts(e.target.value || '')
       }
     })
-
-    loadSavedCharts('')
 
     document.querySelectorAll('input[name="calendar"]').forEach(el => {
       el.addEventListener('change', () => {
