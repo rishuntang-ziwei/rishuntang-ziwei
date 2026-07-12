@@ -55,6 +55,12 @@
         font-size: 1rem;
         cursor: pointer;
       }
+
+      .access-gate[hidden],
+      .access-denied[hidden],
+      #starDrawApp[hidden] {
+        display: none !important;
+      }
     </style>
     <script>
       window.API_BASE = window.API_BASE || (
@@ -68,7 +74,7 @@
     <div id="accessGate" class="access-gate">
       <div class="access-card">
         <h1>先知斗數神牌</h1>
-        <p>正在驗證會員權限…</p>
+        <p data-gate-message>正在驗證會員權限…</p>
       </div>
     </div>
 
@@ -76,7 +82,10 @@
       <div class="access-card">
         <h1>無法使用神牌</h1>
         <p data-denied-message>您尚未開通神牌功能，請聯絡管理員。</p>
-        <button type="button" id="backToChartBtn">返回排盤</button>
+        <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+          <button type="button" id="backToChartBtn">返回排盤</button>
+          <button type="button" id="retryAccessBtn">重試</button>
+        </div>
       </div>
     </div>
 
