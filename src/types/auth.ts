@@ -8,6 +8,7 @@ export interface AuthUser {
   email: string
   status: UserStatus
   role: UserRole
+  starDrawEnabled: boolean
   createdAt: string
   approvedAt: string | null
 }

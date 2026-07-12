@@ -42,6 +42,9 @@
     } else if (user.status === 'approved') {
       actions.push(
         '<button type="button" data-view-charts="' + user.id + '" data-name="' + user.name + '">查看命盤</button>',
+        user.starDrawEnabled
+          ? '<button type="button" class="danger" data-disable-star-draw="' + user.id + '" data-name="' + user.name + '">取消神牌</button>'
+          : '<button type="button" data-enable-star-draw="' + user.id + '" data-name="' + user.name + '">開通神牌</button>',
         '<button type="button" data-reset="' + user.id + '" data-name="' + user.name + '">重設密碼</button>',
         '<button type="button" data-make-admin="' + user.id + '" data-name="' + user.name + '">設為管理員</button>',
       )
@@ -351,14 +354,47 @@
           }
         })
       })
+
+      panel.querySelectorAll('[data-enable-star-draw]').forEach(function (btn) {
+        btn.addEventListener('click', async function () {
+          if (!confirm('確定要為「' + btn.dataset.name + '」開通神牌功能？')) return
+          try {
+            await auth.api('/api/admin/users/' + btn.dataset.enableStarDraw + '/enable-star-draw', { method: 'POST' })
+            await renderAdminPanel()
+          } catch (err) {
+            alert(err.message)
+          }
+        })
+      })
+
+      panel.querySelectorAll('[data-disable-star-draw]').forEach(function (btn) {
+        btn.addEventListener('click', async function () {
+          if (!confirm('確定要取消「' + btn.dataset.name + '」的神牌功能？')) return
+          try {
+            await auth.api('/api/admin/users/' + btn.dataset.disableStarDraw + '/disable-star-draw', { method: 'POST' })
+            await renderAdminPanel()
+          } catch (err) {
+            alert(err.message)
+          }
+        })
+      })
     } catch (err) {
       panel.innerHTML = '<div class="auth-card auth-error">' + err.message + '</div>'
+    }
+  }
+
+  function updateMemberFeatures(user) {
+    const starDrawLink = document.getElementById('starDrawLink')
+    if (starDrawLink) {
+      starDrawLink.hidden = !user.starDrawEnabled
+      starDrawLink.href = window.STAR_DRAW_URL || 'https://rishuntang-ziwei.github.io/star-draw'
     }
   }
 
   function enterApp(user) {
     currentUser = user
     setView('app')
+    updateMemberFeatures(user)
 
     const bar = document.getElementById('userBar')
     if (bar) {

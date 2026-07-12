@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { approveUser, deleteUserAccount, fetchAdminUsers, makeUserAdmin, rejectUser, revokeUserAdmin } from '../../lib/api'
+import { approveUser, deleteUserAccount, disableUserStarDraw, enableUserStarDraw, fetchAdminUsers, makeUserAdmin, rejectUser, revokeUserAdmin } from '../../lib/api'
 import { useAuth } from '../../context/AuthContext'
 import type { AuthUser } from '../../types/auth'
 import { AdminUserChartsPanel } from './AdminUserChartsPanel'
@@ -68,6 +68,31 @@ export function AdminPanel({
     if (!confirm(`確定要永久刪除「${name}」的帳號？\n此操作無法復原。`)) return
     await deleteUserAccount(id)
     await loadUsers()
+  }
+
+  async function handleEnableStarDraw(id: number, name: string) {
+    if (!confirm(`確定要為「${name}」開通神牌功能？`)) return
+    await enableUserStarDraw(id)
+    await loadUsers()
+  }
+
+  async function handleDisableStarDraw(id: number, name: string) {
+    if (!confirm(`確定要取消「${name}」的神牌功能？`)) return
+    await disableUserStarDraw(id)
+    await loadUsers()
+  }
+
+  function starDrawButton(item: AuthUser) {
+    if (item.role !== 'user' || item.status !== 'approved') return null
+    return item.starDrawEnabled ? (
+      <button type="button" className="danger" onClick={() => handleDisableStarDraw(item.id, item.name)}>
+        取消神牌
+      </button>
+    ) : (
+      <button type="button" onClick={() => handleEnableStarDraw(item.id, item.name)}>
+        開通神牌
+      </button>
+    )
   }
 
   if (viewingCharts) {
@@ -164,6 +189,7 @@ export function AdminPanel({
                         >
                           查看命盤
                         </button>
+                        {starDrawButton(item)}
                         <button type="button" onClick={() => handleMakeAdmin(item.id, item.name)}>
                           設為管理員
                         </button>
@@ -179,6 +205,7 @@ export function AdminPanel({
                         >
                           查看命盤
                         </button>
+                        {starDrawButton(item)}
                         <button type="button" className="danger" onClick={() => handleDelete(item.id, item.name)}>
                           刪除
                         </button>

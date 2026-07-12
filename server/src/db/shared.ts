@@ -40,6 +40,7 @@ export function toPublicUser(row: UserRow): PublicUser {
     email: row.email,
     status: row.status,
     role: row.role,
+    starDrawEnabled: row.star_draw_enabled,
     createdAt: row.created_at,
     approvedAt: row.approved_at,
   }
@@ -64,6 +65,7 @@ export function mapUserRow(row: Record<string, unknown>): UserRow {
     password_hash: String(row.password_hash),
     status: row.status as UserRow['status'],
     role: row.role as UserRow['role'],
+    star_draw_enabled: Boolean(row.star_draw_enabled),
     created_at: toIsoString(row.created_at),
     approved_at: toIsoStringOrNull(row.approved_at),
   }

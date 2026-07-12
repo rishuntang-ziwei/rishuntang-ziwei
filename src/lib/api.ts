@@ -17,6 +17,10 @@ export function getApiBase() {
   return import.meta.env.VITE_API_URL?.replace(/\/$/, '') ?? ''
 }
 
+export function getStarDrawUrl() {
+  return import.meta.env.VITE_STAR_DRAW_URL?.replace(/\/$/, '') ?? 'https://rishuntang-ziwei.github.io/star-draw'
+}
+
 export function getStoredToken() {
   return localStorage.getItem(TOKEN_KEY)
 }
@@ -90,6 +94,20 @@ export function makeUserAdmin(id: number) {
 export function revokeUserAdmin(id: number) {
   return request<{ message: string; user: UsersResponse['users'][number] }>(
     `/api/admin/users/${id}/revoke-admin`,
+    { method: 'POST' },
+  )
+}
+
+export function enableUserStarDraw(id: number) {
+  return request<{ message: string; user: UsersResponse['users'][number] }>(
+    `/api/admin/users/${id}/enable-star-draw`,
+    { method: 'POST' },
+  )
+}
+
+export function disableUserStarDraw(id: number) {
+  return request<{ message: string; user: UsersResponse['users'][number] }>(
+    `/api/admin/users/${id}/disable-star-draw`,
     { method: 'POST' },
   )
 }

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import type FunctionalAstrolabe from 'iztro/lib/astro/FunctionalAstrolabe'
-import { deleteSavedChart, fetchSavedChart, fetchSavedCharts, saveChart } from '../lib/api'
+import { deleteSavedChart, fetchSavedChart, fetchSavedCharts, getStarDrawUrl, saveChart } from '../lib/api'
+import { useAuth } from '../context/AuthContext'
 import { computeAstrolabe, formatBazi, type BirthInput } from '../lib/astrolabe'
 import type { SavedChartPayload, SavedChartSummary } from '../types/charts'
 
@@ -47,6 +48,7 @@ interface SavedChartsPanelProps {
 }
 
 export function SavedChartsPanel({ input, hasChart, onLoad }: SavedChartsPanelProps) {
+  const { user } = useAuth()
   const [charts, setCharts] = useState<SavedChartSummary[]>([])
   const [searchInput, setSearchInput] = useState('')
   const [appliedQuery, setAppliedQuery] = useState('')
@@ -125,6 +127,16 @@ export function SavedChartsPanel({ input, hasChart, onLoad }: SavedChartsPanelPr
         <button type="button" className="secondary-btn" onClick={handleSave}>
           儲存命盤
         </button>
+        {user?.starDrawEnabled && (
+          <a
+            className="secondary-btn member-link-btn"
+            href={getStarDrawUrl()}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            先知斗數神牌
+          </a>
+        )}
       </div>
 
       <div className="saved-charts-panel">

@@ -9,6 +9,7 @@ import {
   listUsers,
   updateUserPassword,
   updateUserRole,
+  updateUserStarDraw,
   updateUserStatus,
 } from '../db.js'
 import { requireAdmin, requireAuth } from '../middleware.js'
@@ -181,6 +182,52 @@ router.post('/users/:id/revoke-admin', async (req, res) => {
     return
   }
   res.json({ message: '已取消管理員權限', user })
+})
+
+router.post('/users/:id/enable-star-draw', async (req, res) => {
+  const id = Number(req.params.id)
+  if (!Number.isFinite(id)) {
+    res.status(400).json({ error: '無效的使用者 ID' })
+    return
+  }
+
+  const target = await findUserById(id)
+  if (!target || target.role !== 'user') {
+    res.status(404).json({ error: '找不到會員帳號' })
+    return
+  }
+  if (target.status !== 'approved') {
+    res.status(400).json({ error: '請先開通會員帳號，再啟用神牌功能' })
+    return
+  }
+
+  const user = await updateUserStarDraw(id, true)
+  if (!user) {
+    res.status(404).json({ error: '找不到會員帳號' })
+    return
+  }
+  res.json({ message: '已開通神牌功能', user })
+})
+
+router.post('/users/:id/disable-star-draw', async (req, res) => {
+  const id = Number(req.params.id)
+  if (!Number.isFinite(id)) {
+    res.status(400).json({ error: '無效的使用者 ID' })
+    return
+  }
+
+  const target = await findUserById(id)
+  if (!target || target.role !== 'user') {
+    res.status(404).json({ error: '找不到會員帳號' })
+    return
+  }
+
+  const user = await updateUserStarDraw(id, false)
+  if (!user) {
+    res.status(404).json({ error: '找不到會員帳號' })
+    return
+  }
+  res.json({ message: '已取消神牌功能', user })
 })
 
 router.delete('/users/:id', async (req, res) => {

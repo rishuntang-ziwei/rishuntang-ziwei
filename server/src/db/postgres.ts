@@ -59,6 +59,11 @@ export async function initDb() {
     CREATE INDEX IF NOT EXISTS idx_users_email_lower ON users (LOWER(email));
   `)
 
+  await pool.query(`
+    ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS star_draw_enabled BOOLEAN NOT NULL DEFAULT FALSE
+  `)
+
   console.log('[db] PostgreSQL 就緒')
 }
 
@@ -141,6 +146,12 @@ export async function updateUserRole(id: number, role: 'user' | 'admin'): Promis
   } else {
     await pool.query(`UPDATE users SET role = 'user' WHERE id = $1`, [id])
   }
+  const row = await findUserById(id)
+  return row ? toPublicUser(row) : undefined
+}
+
+export async function updateUserStarDraw(id: number, enabled: boolean): Promise<PublicUser | undefined> {
+  await pool.query(`UPDATE users SET star_draw_enabled = $1 WHERE id = $2 AND role = 'user'`, [enabled, id])
   const row = await findUserById(id)
   return row ? toPublicUser(row) : undefined
 }

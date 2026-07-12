@@ -44,6 +44,11 @@ export async function initDb() {
     CREATE INDEX IF NOT EXISTS idx_saved_charts_user_name ON saved_charts(user_id, subject_name);
   `)
 
+  const userColumns = db.prepare('PRAGMA table_info(users)').all() as { name: string }[]
+  if (!userColumns.some((col) => col.name === 'star_draw_enabled')) {
+    db.exec(`ALTER TABLE users ADD COLUMN star_draw_enabled INTEGER NOT NULL DEFAULT 0`)
+  }
+
   if (process.env.RENDER && !process.env.DB_PATH) {
     console.warn(
       '[db] 警告：Render 免費方案的本機 SQLite 會在重啟後清空。請設定 DATABASE_URL 使用 PostgreSQL，或升級方案並設定 DB_PATH 指向持久磁碟。',
@@ -130,6 +135,15 @@ export async function updateUserRole(id: number, role: 'user' | 'admin'): Promis
   } else {
     db.prepare(`UPDATE users SET role = 'user' WHERE id = ?`).run(id)
   }
+  const row = await findUserById(id)
+  return row ? toPublicUser(row) : undefined
+}
+
+export async function updateUserStarDraw(id: number, enabled: boolean): Promise<PublicUser | undefined> {
+  db.prepare(`UPDATE users SET star_draw_enabled = ? WHERE id = ? AND role = 'user'`).run(
+    enabled ? 1 : 0,
+    id,
+  )
   const row = await findUserById(id)
   return row ? toPublicUser(row) : undefined
 }

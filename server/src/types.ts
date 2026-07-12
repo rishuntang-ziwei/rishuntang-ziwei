@@ -9,6 +9,7 @@ export interface UserRow {
   password_hash: string
   status: UserStatus
   role: UserRole
+  star_draw_enabled: boolean
   created_at: string
   approved_at: string | null
 }
@@ -20,6 +21,7 @@ export interface PublicUser {
   email: string
   status: UserStatus
   role: UserRole
+  starDrawEnabled: boolean
   createdAt: string
   approvedAt: string | null
 }
