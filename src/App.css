@@ -1,13 +1,13 @@
 :root {
-  --bg: #f5f0e8;
-  --paper: #fffef9;
-  --ink: #1a1a1a;
-  --border: #333;
+  --bg: #faf6ef;
+  --paper: #fffdf9;
+  --ink: #2c1810;
+  --border: #4a3228;
   --major-star: #1565c0;
   --benefic: #2e7d32;
   --malefic: #c62828;
-  --accent: #8b4513;
-  --highlight-bg: #fff8e1;
+  --accent: #8b2500;
+  --highlight-bg: #fff8e8;
   --line-soul: #c62828;
   --line-other: #e57373;
 }
@@ -93,15 +93,17 @@ body {
 .auth-card {
   width: min(100%, 420px);
   background: var(--paper);
-  border: 1px solid #ccc;
+  border: 1px solid #c4a574;
   border-radius: 12px;
   padding: 1.5rem;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 16px rgba(92, 64, 51, 0.1);
 }
 
 .auth-brand {
   text-align: center;
   margin-bottom: 1rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid #e8dcc8;
 }
 
 .auth-brand h1 {
@@ -150,7 +152,7 @@ body {
   padding: 0.65rem;
   border: none;
   border-radius: 6px;
-  background: #555;
+  background: #5c4033;
   color: #fff;
   font-family: inherit;
   font-size: 1rem;

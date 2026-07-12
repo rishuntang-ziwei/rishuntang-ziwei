@@ -3,58 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>會員登入｜紫微斗數線上排盤</title>
-    <style>
-      * { box-sizing: border-box; margin: 0; padding: 0; }
-
-      body {
-        font-family: 'DFKai-SB', '標楷體', 'BiauKai', 'KaiTi', serif;
-        background: #ddd;
-        color: #111;
-        min-height: 100vh;
-        overflow: hidden;
-      }
-
-      #authGate {
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 24px;
-      }
-
-      .auth-card {
-        width: min(100%, 420px);
-        background: #fff;
-        border: 1px solid #999;
-        border-radius: 12px;
-        padding: 20px;
-      }
-
-      .auth-brand { text-align: center; margin-bottom: 16px; }
-      .auth-brand h1 { margin: 0; color: #8b4513; font-size: 24px; }
-      .auth-brand p { margin: 6px 0 0; color: #666; }
-      .auth-form h2 { margin: 0 0 6px; font-size: 20px; }
-      .auth-note { margin: 0 0 14px; color: #666; font-size: 14px; line-height: 1.5; }
-    .auth-note-muted { margin-top: -8px; font-size: 13px; color: #888; }
-      .auth-form label { display: block; margin-bottom: 10px; font-size: 14px; }
-      .auth-form input {
-        display: block; width: 100%; margin-top: 4px; padding: 8px;
-        font-family: inherit; font-size: 15px; border: 1px solid #bbb; border-radius: 6px;
-      }
-      .auth-form button[type="submit"] {
-        width: 100%; margin-top: 8px; padding: 10px; border: none; border-radius: 6px;
-        background: #555; color: #fff; font-family: inherit; font-size: 16px; cursor: pointer;
-      }
-      .auth-link-btn {
-        width: 100%; margin-top: 12px; padding: 0; border: none; background: none;
-        color: #8b4513; cursor: pointer; font-family: inherit; text-decoration: underline;
-      }
-      .auth-error { margin: 8px 0; color: #c62828; font-size: 14px; }
-      .auth-success { margin: 8px 0; color: #2e7d32; font-size: 14px; line-height: 1.5; }
-
-      [hidden] { display: none !important; }
-    </style>
+  <title>會員登入｜紫微斗數線上排盤</title>
+  <link rel="stylesheet" href="./css/theme.css" />
+  <style>
+    body { overflow: hidden; }
+  </style>
     <script>
       window.API_BASE = window.API_BASE || (
         location.hostname.endsWith('github.io')

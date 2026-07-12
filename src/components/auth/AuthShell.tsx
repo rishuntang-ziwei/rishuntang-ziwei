@@ -9,8 +9,8 @@ export function AuthShell() {
     <div className="auth-page">
       <div className="auth-card">
         <div className="auth-brand">
-          <h1>紫微斗數線上排盤</h1>
-          <p>國際日舜堂會員專區</p>
+          <h1>國際日舜堂</h1>
+          <p>紫微斗數線上排盤 · 會員專區</p>
         </div>
         {mode === 'login' ? (
           <LoginForm onSwitchRegister={() => setMode('register')} />

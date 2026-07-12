@@ -1,0 +1,373 @@
+:root {
+  /* 淡宣紙 · 深褐朱紅 */
+  --paper-bg: #faf6ef;
+  --paper-surface: #fffdf9;
+  --paper-muted: #f5efe4;
+  --ink: #2c1810;
+  --ink-muted: #5c4a3a;
+  --ink-light: #8a7560;
+
+  --brand-brown: #5c4033;
+  --brand-brown-dark: #4a3228;
+  --brand-red: #8b2500;
+  --brand-red-hover: #6d1d00;
+  --brand-gold: #c4a574;
+  --brand-gold-light: #e8dcc8;
+
+  --ui-primary: var(--brand-brown);
+  --ui-primary-hover: var(--brand-brown-dark);
+  --ui-accent: var(--brand-red);
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --shadow-card: 0 2px 16px rgba(92, 64, 51, 0.1);
+  --shadow-soft: 0 1px 4px rgba(92, 64, 51, 0.06);
+  --border: #d4c4a8;
+  --border-strong: #c4a574;
+
+  /* 命盤專用（chart.html 沿用） */
+  --paper: #fffdf9;
+  --chart-border: #4a3228;
+  --major: #1a237e;
+  --green: #2e7d32;
+  --red: #c62828;
+  --purple: #6a1b9a;
+  --line-red: #d32f2f;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'DFKai-SB', '標楷體', 'BiauKai', 'KaiTi', 'Noto Serif TC', serif;
+  background-color: var(--paper-bg);
+  background-image:
+    radial-gradient(ellipse at 15% 0%, rgba(196, 165, 116, 0.12) 0%, transparent 55%),
+    radial-gradient(ellipse at 85% 100%, rgba(139, 37, 0, 0.05) 0%, transparent 50%);
+  color: var(--ink);
+  min-height: 100vh;
+  margin: 0;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* ── 品牌標題 ── */
+.site-brand {
+  text-align: center;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--brand-gold-light);
+}
+
+.site-brand-name {
+  display: block;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--brand-red);
+  letter-spacing: 0.2em;
+}
+
+.site-brand-sub {
+  display: block;
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--ink-light);
+  letter-spacing: 0.08em;
+}
+
+/* ── 登入 / 註冊 ── */
+#authGate {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.auth-card {
+  width: min(100%, 420px);
+  background: var(--paper-surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-card);
+}
+
+.auth-brand {
+  text-align: center;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--brand-gold-light);
+}
+
+.auth-brand h1 {
+  margin: 0;
+  color: var(--brand-red);
+  font-size: 22px;
+  letter-spacing: 0.12em;
+}
+
+.auth-brand p {
+  margin: 8px 0 0;
+  color: var(--ink-light);
+  font-size: 14px;
+  letter-spacing: 0.06em;
+}
+
+.auth-form h2 {
+  margin: 0 0 6px;
+  font-size: 20px;
+  color: var(--brand-brown);
+}
+
+.auth-note {
+  margin: 0 0 14px;
+  color: var(--ink-muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.auth-note-muted {
+  margin-top: -8px;
+  font-size: 13px;
+  color: var(--ink-light);
+}
+
+.auth-form label {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: var(--ink-muted);
+}
+
+.auth-form input {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 9px 10px;
+  font-family: inherit;
+  font-size: 15px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--paper-surface);
+  color: var(--ink);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.auth-form input:focus {
+  outline: none;
+  border-color: var(--brand-gold);
+  box-shadow: 0 0 0 2px rgba(196, 165, 116, 0.25);
+}
+
+.auth-form button[type="submit"] {
+  width: 100%;
+  margin-top: 8px;
+  padding: 11px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--ui-primary);
+  color: #fff;
+  font-family: inherit;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.auth-form button[type="submit"]:hover {
+  background: var(--ui-primary-hover);
+}
+
+.auth-link-btn {
+  width: 100%;
+  margin-top: 12px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--brand-red);
+  cursor: pointer;
+  font-family: inherit;
+  text-decoration: underline;
+  font-size: 14px;
+}
+
+.auth-error {
+  margin: 8px 0;
+  color: var(--red);
+  font-size: 14px;
+}
+
+.auth-success {
+  margin: 8px 0;
+  color: var(--green);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ── 頂部使用者列 ── */
+#userBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+  padding: 8px 12px;
+  font-size: 14px;
+  background: var(--paper-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-soft);
+  color: var(--ink-muted);
+}
+
+#userBar button {
+  border: 1px solid var(--border);
+  background: var(--paper-surface);
+  padding: 5px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--ink-muted);
+  transition: background 0.2s, border-color 0.2s;
+}
+
+#userBar button:hover {
+  background: var(--paper-muted);
+  border-color: var(--border-strong);
+}
+
+/* ── 左側表單面板 ── */
+.form-panel {
+  background: var(--paper-surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+}
+
+.form-panel h2 {
+  color: var(--brand-brown);
+  letter-spacing: 0.1em;
+}
+
+.form-panel label {
+  color: var(--ink-muted);
+}
+
+.form-panel input[type="text"],
+.form-panel input[type="date"],
+.form-panel input[type="number"],
+.form-panel select {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--paper-surface);
+  transition: border-color 0.2s;
+}
+
+.form-panel input:focus,
+.form-panel select:focus {
+  outline: none;
+  border-color: var(--brand-gold);
+}
+
+.form-panel button {
+  border-radius: var(--radius-sm);
+  background: var(--ui-primary);
+  transition: background 0.2s;
+}
+
+.form-panel button:hover {
+  background: var(--ui-primary-hover);
+}
+
+.form-panel button.secondary {
+  background: var(--paper-surface);
+  color: var(--ink-muted);
+  border: 1px solid var(--border);
+}
+
+.form-panel button.secondary:hover {
+  background: var(--paper-muted);
+  border-color: var(--border-strong);
+}
+
+.member-section {
+  border-top-color: var(--brand-gold-light);
+}
+
+.member-section h3 {
+  color: var(--brand-brown);
+}
+
+.calendar-note {
+  color: var(--green);
+}
+
+/* ── 命盤資料庫 ── */
+.chart-database {
+  background: var(--paper-surface);
+  border-color: var(--border-strong);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+}
+
+.chart-db-header h2 {
+  color: var(--brand-brown);
+}
+
+.chart-db-search input[type="search"] {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.chart-db-search button {
+  background: var(--ui-primary);
+  border-radius: var(--radius-sm);
+}
+
+.chart-db-search button:hover {
+  background: var(--ui-primary-hover);
+}
+
+.chart-db-table th {
+  background: var(--paper-muted);
+  color: var(--brand-brown);
+}
+
+.chart-db-table .db-actions button.save-active {
+  background: var(--ui-primary);
+  border-color: var(--ui-primary);
+}
+
+/* ── 管理員面板 ── */
+#adminPanel {
+  background: var(--paper-surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+}
+
+#adminPanel table {
+  border-color: var(--border);
+}
+
+#adminPanel th {
+  background: var(--paper-muted);
+  color: var(--brand-brown);
+}
+
+.password-modal-card {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-card);
+}
+
+.password-modal-card h3 {
+  color: var(--brand-brown);
+}
+
+.password-modal-actions button[type="submit"] {
+  background: var(--ui-primary);
+}

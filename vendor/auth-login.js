@@ -50,7 +50,7 @@
 
     gate.innerHTML =
       '<div class="auth-card">' +
-        '<div class="auth-brand"><h1>紫微斗數線上排盤</h1><p>國際日舜堂會員專區</p></div>' +
+        '<div class="auth-brand"><h1>國際日舜堂</h1><p>紫微斗數線上排盤 · 會員專區</p></div>' +
         (mode === 'login' ? renderLogin() : renderRegister()) +
       '</div>'
 

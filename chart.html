@@ -3,12 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>紫微斗數線上排盤</title>
+  <title>紫微斗數線上排盤｜國際日舜堂</title>
+  <link rel="stylesheet" href="./css/theme.css" />
   <style>
     :root {
-      --paper: #fff;
-      --ink: #111;
-      --border: #222;
+      --paper: #fffdf9;
+      --ink: #2c1810;
+      --border: #4a3228;
       --major: #1a237e;
       --green: #2e7d32;
       --red: #c62828;
@@ -19,11 +20,6 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: 'DFKai-SB', '標楷體', 'BiauKai', 'KaiTi', serif;
-      background: #ddd;
-      color: var(--ink);
-      min-height: 100vh;
-      margin: 0;
       padding: 12px;
       overflow-x: hidden;
     }
@@ -40,8 +36,6 @@
     .form-panel {
       width: 320px;
       flex-shrink: 0;
-      background: #fff;
-      border: 1px solid #999;
       padding: 14px;
       font-size: 17px;
     }
@@ -69,7 +63,6 @@
       width: 100%;
       margin-top: 6px;
       padding: 9px;
-      background: #555;
       color: #fff;
       border: none;
       cursor: pointer;
@@ -78,15 +71,12 @@
     }
 
     .form-panel button.secondary {
-      background: #fff;
-      color: #333;
-      border: 1px solid #bbb;
+      color: var(--ink-muted);
     }
 
     .member-section {
       margin-top: 16px;
       padding-top: 14px;
-      border-top: 1px solid #ddd;
     }
 
     .member-section h3 {
@@ -112,9 +102,9 @@
       text-align: center;
       text-decoration: none;
       padding: 8px 10px;
-      border: 1px solid #bbb;
-      border-radius: 4px;
-      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--paper-surface);
       color: inherit;
       font-family: inherit;
       font-size: inherit;
@@ -140,8 +130,6 @@
     .chart-database {
       flex: 1;
       min-width: 0;
-      background: #fff;
-      border: 1px solid #999;
       padding: 16px;
       display: flex;
       flex-direction: column;
@@ -165,9 +153,10 @@
       width: auto;
       margin-top: 0;
       padding: 8px 16px;
-      background: #fff;
-      color: #333;
-      border: 1px solid #bbb;
+      background: var(--paper-surface);
+      color: var(--ink-muted);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
       cursor: pointer;
       font-family: inherit;
       font-size: 15px;
@@ -192,7 +181,6 @@
       margin-top: 0;
       padding: 10px 18px;
       white-space: nowrap;
-      background: #555;
       color: #fff;
       border: none;
       cursor: pointer;
@@ -210,15 +198,16 @@
     .chart-db-table-wrap {
       flex: 1;
       overflow: auto;
-      border: 1px solid #ddd;
-      background: #fafafa;
+      border: 1px solid var(--border);
+      background: var(--paper-muted);
+      border-radius: var(--radius-sm);
     }
 
     .chart-db-table {
       width: 100%;
       border-collapse: collapse;
       font-size: 15px;
-      background: #fff;
+      background: var(--paper-surface);
     }
 
     .chart-db-table th,
@@ -232,14 +221,13 @@
     .chart-db-table th {
       position: sticky;
       top: 0;
-      background: #f0f0f0;
       font-weight: 700;
       white-space: nowrap;
       z-index: 1;
     }
 
     .chart-db-table tbody tr:hover {
-      background: #f9f9f9;
+      background: var(--paper-muted);
     }
 
     .chart-db-table .db-actions {
@@ -255,8 +243,9 @@
       font-size: 14px;
       cursor: pointer;
       font-family: inherit;
-      border: 1px solid #bbb;
-      background: #fff;
+      border: 1px solid var(--border);
+      background: var(--paper-surface);
+      border-radius: var(--radius-sm);
     }
 
     .chart-db-table .db-actions button.danger {
@@ -270,9 +259,7 @@
     }
 
     .chart-db-table .db-actions button.save-active {
-      background: #555;
       color: #fff;
-      border-color: #555;
     }
 
     .chart-db-table .db-phone-input {
@@ -292,7 +279,7 @@
     }
 
     .chart-db-table tr.editing-row {
-      background: #fffde7;
+      background: #fff8e8;
     }
 
     .chart-db-table tr .db-field-edit {
@@ -806,17 +793,18 @@
     .mode-tab {
       flex: 1;
       padding: 3px 0;
-      border: 1px solid #999;
-      background: #f5f5f5;
+      border: 1px solid var(--border);
+      background: var(--paper-muted);
       font-family: inherit;
       font-size: 12px;
       cursor: pointer;
+      border-radius: var(--radius-sm);
     }
 
     .mode-tab.active {
-      background: #555;
+      background: var(--ui-primary);
       color: #fff;
-      border-color: #555;
+      border-color: var(--ui-primary);
     }
 
     .horoscope-date {
@@ -1033,7 +1021,7 @@
     }
 
     .center-info label { display: flex; align-items: center; gap: 3px; cursor: pointer; }
-    .center-brand { font-size: 17px; color: #333; line-height: 1.45; }
+    .center-brand { font-size: 17px; color: var(--brand-red); font-weight: 700; letter-spacing: 0.12em; line-height: 1.45; }
     .center {
       display: flex;
       flex-direction: column;
@@ -1340,51 +1328,23 @@
       }
     }
 
-    .auth-card {
-      width: min(100%, 420px);
-      background: #fff;
-      border: 1px solid #999;
-      border-radius: 12px;
-      padding: 20px;
-    }
-
-    .auth-error { margin: 8px 0; color: #c62828; font-size: 14px; }
-
-    #userBar {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      justify-content: flex-end;
-      margin-bottom: 8px;
-      font-size: 14px;
-    }
-
-    #userBar button {
-      border: 1px solid #bbb;
-      background: #fff;
-      padding: 4px 10px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-family: inherit;
-    }
+    .auth-error { margin: 8px 0; color: var(--red); font-size: 14px; }
 
     #adminPanel {
       max-width: 1100px;
-      margin: 0 auto;
+      margin: 0 auto 12px;
       padding: 16px;
     }
 
     #adminPanel table {
       width: 100%;
       border-collapse: collapse;
-      background: #fff;
-      border: 1px solid #999;
     }
 
     #adminPanel th,
     #adminPanel td {
       padding: 8px 10px;
-      border-bottom: 1px solid #eee;
+      border-bottom: 1px solid var(--brand-gold-light);
       text-align: left;
       font-size: 14px;
     }
@@ -1456,13 +1416,13 @@
 
     .password-modal-actions .primary {
       border: none;
-      background: #555;
+      background: var(--ui-primary);
       color: #fff;
     }
 
     .password-modal-actions .secondary {
-      border: 1px solid #bbb;
-      background: #fff;
+      border: 1px solid var(--border);
+      background: var(--paper-surface);
     }
   </style>
   <script>
@@ -1478,6 +1438,10 @@
   <div id="userBar" hidden></div>
   <div class="layout" id="appRoot">
     <div class="form-panel" autocomplete="off">
+      <div class="site-brand">
+        <span class="site-brand-name">國際日舜堂</span>
+        <span class="site-brand-sub">紫微斗數線上排盤</span>
+      </div>
       <h2>排盤資料</h2>
       <div class="row">
         <label>姓名</label>
