@@ -178,7 +178,11 @@ function addControl(label, handler) {
 }
 
 function assignSpreadNumbers(cards) {
-  return cards.map((card, index) => ({ ...card, cardNo: index + 1 }));
+  const total = cards.length;
+  return cards.map((card, index) => ({
+    ...card,
+    cardNo: total - index,
+  }));
 }
 
 function ensureDeck(tierId) {
