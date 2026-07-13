@@ -348,7 +348,7 @@
 
     @page {
       size: A4 landscape;
-      margin: 10mm;
+      margin: 8mm;
     }
 
     @media print {
@@ -404,9 +404,9 @@
       .chart-outer {
         box-sizing: border-box;
         width: 100% !important;
-        max-width: calc(297mm - 20mm) !important;
+        max-width: calc(297mm - 16mm) !important;
         height: auto !important;
-        max-height: calc(210mm - 20mm) !important;
+        max-height: calc(210mm - 16mm) !important;
         aspect-ratio: 6 / 4;
         margin: 0 auto !important;
         border: 2px double #222;
@@ -428,21 +428,141 @@
         display: none !important;
       }
 
-      /* 列印 A4：主星略縮，避免壓到宮名 */
+      /* 列印 A4：整體字級放大 */
       .star-vcol.major .vname {
-        font-size: 32px;
+        font-size: 38px;
         letter-spacing: 2px;
       }
 
-      .star-vcol.major .vbright {
-        font-size: 18px;
+      .star-vcol.g-lg .vname {
+        font-size: 32px;
       }
 
-      .star-vcol.major .mutagen {
+      .star-vcol.p-sm .vname,
+      .star-vcol.g-sm .vname {
+        font-size: 22px;
+      }
+
+      .star-vcol .vbright {
+        font-size: 20px;
+      }
+
+      .star-vcol.major .vbright {
+        font-size: 22px;
+      }
+
+      .star-vcol.flow .vname {
+        font-size: 17px;
+      }
+
+      .star-vcol.major .mutagen,
+      .mutagen {
+        width: 28px;
+        height: 28px;
+        line-height: 26px;
+        font-size: 28px;
+      }
+
+      .mutagen.horoscope {
         width: 24px;
         height: 24px;
         line-height: 22px;
+        font-size: 24px;
+      }
+
+      .mutagen-circle {
+        width: 26px;
+        height: 26px;
+        line-height: 24px;
         font-size: 26px;
+      }
+
+      .star-vcol.g-lg .mutagen-circle,
+      .star-vcol.g-sm .mutagen-circle,
+      .star-vcol.p-sm .mutagen-circle {
+        width: 22px;
+        height: 22px;
+        line-height: 20px;
+        font-size: 22px;
+      }
+
+      .palace {
+        font-size: 22px;
+      }
+
+      .palace-label {
+        font-size: 28px;
+      }
+
+      .gz-gan,
+      .gz-zhi {
+        font-size: 18px;
+      }
+
+      .daxian,
+      .decadal-slot {
+        font-size: 18px;
+      }
+
+      .monthly-badge {
+        width: 26px;
+        height: 26px;
+        font-size: 18px;
+      }
+
+      .shen {
+        font-size: 20px;
+        line-height: 26px;
+      }
+
+      .center-info {
+        font-size: 24px;
+      }
+
+      .center-birth,
+      .center-age {
+        font-size: 26px;
+      }
+
+      .center-bazi-text {
+        font-size: 18px;
+      }
+
+      .center-wuxing-panel.wuxing-panel {
+        width: 128px;
+        height: 142px;
+      }
+
+      .center-wuxing-panel .wuxing-node-name {
+        font-size: 14px;
+      }
+
+      .center-wuxing-panel .wuxing-node-count {
+        font-size: 11px;
+      }
+
+      .center-birth .lunar-note {
+        font-size: 20px;
+      }
+
+      .center-brand {
+        font-size: 20px;
+      }
+
+      .vtext.tag {
+        font-size: 24px;
+      }
+
+      .vtext.name {
+        font-size: 38px;
+      }
+
+      .vtext.title {
+        font-size: 42px;
+      }
+
+      .palace-bottom {
+        height: 64px;
       }
     }
 
@@ -1105,6 +1225,67 @@
 
     .center-birth { margin-top: 6px; font-size: 22px; line-height: 1.5; }
     .center-birth .lunar-note { font-size: 17px; color: #666; margin-top: 2px; }
+    .center-bazi {
+      margin-top: 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .center-bazi-text {
+      font-size: 17px;
+      line-height: 1.4;
+      color: #333;
+    }
+
+    .center-wuxing-panel.wuxing-panel {
+      box-sizing: border-box;
+      width: 118px;
+      height: 132px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 4px 3px;
+      background: #f6eedb;
+      border: 1px solid #5c4033;
+      border-radius: 8px;
+      box-shadow: none;
+      text-align: center;
+    }
+
+    .center-wuxing-panel .wuxing-title {
+      margin: 0;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: #333;
+      flex-shrink: 0;
+    }
+
+    .center-wuxing-panel .wuxing-svg {
+      flex: 1 1 auto;
+      width: 100%;
+      min-height: 0;
+      display: block;
+    }
+
+    .center-wuxing-panel .wuxing-arc,
+    .center-wuxing-panel .wuxing-edge {
+      stroke: #333;
+      stroke-width: 1.4;
+      fill: none;
+    }
+
+    .center-wuxing-panel .wuxing-node-name {
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .center-wuxing-panel .wuxing-node-count {
+      font-size: 10px;
+      font-weight: 700;
+    }
+
     .center-age { margin-top: 4px; font-size: 22px; line-height: 1.35; }
 
     .vtext.tag { font-size: 21px; letter-spacing: 3px; }
@@ -1262,6 +1443,15 @@
       .center-birth {
         margin-top: 4px;
         font-size: 12px;
+      }
+
+      .center-bazi-text {
+        font-size: 10px;
+      }
+
+      .center-wuxing-panel.wuxing-panel {
+        width: 92px;
+        height: 108px;
       }
 
       .center-birth .lunar-note {
@@ -1546,6 +1736,10 @@
 
   <script src="./vendor/lunar.min.js"></script>
   <script src="./vendor/iztro.min.js"></script>
+  <script type="module">
+    import * as WuxingPanel from './vendor/wuxing-panel.mjs'
+    window.WuxingPanel = WuxingPanel
+  </script>
   <script>
     function initChartApp() {
     const { astro } = iztro
@@ -2543,6 +2737,23 @@
       </div>`
     }
 
+    function renderCenterBaziBlock(a) {
+      const baziText = `八字 ${formatBazi(a)}`
+      const wp = window.WuxingPanel
+      if (!wp) {
+        return `<div class="center-bazi-text">${baziText}</div>`
+      }
+      const counts = wp.countBaziElements(a.rawDates.chineseDate)
+      const wuxingHtml = wp.buildWuxingPanel(counts, {
+        title: '八字五行',
+        compact: true,
+        showSummary: false,
+        markerId: 'center-wuxing-arrow',
+      })
+      return `<div class="center-bazi-text">${baziText}</div>
+              <div class="center-wuxing-panel wuxing-panel is-compact">${wuxingHtml}</div>`
+    }
+
     function renderCenter(name, a, h, input) {
       const chartMode = resolveEffectiveChartMode()
       const b = centerBirthText(a, input)
@@ -2592,6 +2803,9 @@
                 <div>${b.line1}</div>
                 <div>${b.line2}</div>
                 ${lunarNote}
+              </div>
+              <div class="center-bazi">
+                ${renderCenterBaziBlock(a)}
               </div>
               <div class="center-age">${new Date(horoscopeDate).getFullYear()}<br>${age} 歲</div>
             </div>

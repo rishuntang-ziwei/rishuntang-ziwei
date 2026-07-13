@@ -582,7 +582,7 @@ body {
 
 @page {
   size: A4 landscape;
-  margin: 10mm;
+  margin: 8mm;
 }
 
 @media print {
@@ -626,9 +626,9 @@ body {
   .chart-wrapper {
     box-sizing: border-box;
     width: 100% !important;
-    max-width: calc(297mm - 20mm) !important;
+    max-width: calc(297mm - 16mm) !important;
     height: auto !important;
-    max-height: calc(210mm - 20mm) !important;
+    max-height: calc(210mm - 16mm) !important;
     aspect-ratio: 6 / 4;
     margin: 0 auto !important;
     page-break-inside: avoid;
@@ -647,6 +647,113 @@ body {
   .back-to-natal,
   .center-toggle-btn {
     display: none !important;
+  }
+
+  /* 列印 A4：整體字級放大 */
+  .star-vcol.major .vname {
+    font-size: 2.38rem;
+    letter-spacing: 0.08rem;
+  }
+
+  .star-vcol.g .vname,
+  .star-vcol.g-lg .vname {
+    font-size: 2rem;
+  }
+
+  .star-vcol.p-sm .vname,
+  .star-vcol.g-sm .vname {
+    font-size: 1.38rem;
+  }
+
+  .star-vcol .vbright {
+    font-size: 1.25rem;
+  }
+
+  .star-vcol.major .vbright {
+    font-size: 1.38rem;
+  }
+
+  .star-vcol.flow .vname {
+    font-size: 1.06rem;
+  }
+
+  .star-vcol.major .mutagen-box,
+  .mutagen-box {
+    width: 1.75rem;
+    height: 1.75rem;
+    line-height: 1.63rem;
+    font-size: 1.75rem;
+  }
+
+  .mutagen-box.horoscope-mutagen {
+    width: 1.5rem;
+    height: 1.5rem;
+    line-height: 1.38rem;
+    font-size: 1.5rem;
+  }
+
+  .mutagen-circle {
+    width: 1.63rem;
+    height: 1.63rem;
+    line-height: 1.5rem;
+    font-size: 1.63rem;
+  }
+
+  .palace-label {
+    font-size: 1.75rem;
+  }
+
+  .gz-gan,
+  .gz-zhi {
+    font-size: 1.13rem;
+  }
+
+  .daxian,
+  .decadal-slot {
+    font-size: 1.13rem;
+  }
+
+  .monthly-badge {
+    width: 1.63rem;
+    height: 1.63rem;
+    font-size: 1.13rem;
+  }
+
+  .shen-badge {
+    font-size: 1.25rem;
+  }
+
+  .center-info {
+    font-size: 1.5rem;
+  }
+
+  .center-birth,
+  .center-age {
+    font-size: 1.63rem;
+  }
+
+  .center-bazi {
+    font-size: 1.38rem;
+  }
+
+  .center-birth .lunar-note {
+    font-size: 1.25rem;
+  }
+
+  .center-brand {
+    font-size: 1.25rem;
+  }
+
+  .vtext.tag {
+    font-size: 1.5rem;
+  }
+
+  .vtext.name {
+    font-size: 2.38rem;
+  }
+
+  .vtext.title {
+    font-size: 2.63rem;
   }
 }
 
@@ -1257,6 +1364,68 @@ body {
   font-size: 1.06rem;
   color: #666;
   margin-top: 2px;
+}
+
+.center-bazi {
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.center-bazi-text {
+  font-size: 1.06rem;
+  line-height: 1.4;
+  color: #333;
+}
+
+.center-wuxing-panel.wuxing-panel {
+  box-sizing: border-box;
+  width: 118px;
+  height: 132px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 4px 3px;
+  background: #f6eedb;
+  border: 1px solid #5c4033;
+  border-radius: 8px;
+  box-shadow: none;
+  text-align: center;
+}
+
+.center-wuxing-panel .wuxing-title {
+  margin: 0;
+  font-size: 0.69rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #333;
+  flex-shrink: 0;
+}
+
+.center-wuxing-panel .wuxing-svg {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
+  display: block;
+}
+
+.center-wuxing-panel .wuxing-arc,
+.center-wuxing-panel .wuxing-edge {
+  stroke: #333;
+  stroke-width: 1.4;
+  fill: none;
+}
+
+.center-wuxing-panel .wuxing-node-name {
+  font-size: 0.81rem;
+  font-weight: 700;
+}
+
+.center-wuxing-panel .wuxing-node-count {
+  font-size: 0.63rem;
+  font-weight: 700;
 }
 
 .center-age {

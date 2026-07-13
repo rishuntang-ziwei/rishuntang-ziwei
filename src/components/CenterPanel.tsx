@@ -3,8 +3,10 @@ import type { IFunctionalHoroscope } from 'iztro/lib/astro/FunctionalHoroscope'
 import type { CalendarType, InitialChartType } from '../lib/astrolabe'
 import {
   daysInLunarMonth,
+  formatBazi,
   getYearStemBranch,
 } from '../lib/astrolabe'
+import { buildWuxingPanel, countBaziElements } from '../../vendor/wuxing-panel.mjs'
 import {
   type ChartMode,
   chartModeTag,
@@ -145,6 +147,20 @@ export function CenterPanel({
               <div>{birth.line1}</div>
               <div>{birth.line2}</div>
               {birth.lunarNote && <div className="lunar-note">{birth.lunarNote}</div>}
+            </div>
+            <div className="center-bazi">
+              <div className="center-bazi-text">八字 {formatBazi(astrolabe)}</div>
+              <div
+                className="center-wuxing-panel wuxing-panel is-compact"
+                dangerouslySetInnerHTML={{
+                  __html: buildWuxingPanel(countBaziElements(astrolabe.rawDates.chineseDate), {
+                    title: '八字五行',
+                    compact: true,
+                    showSummary: false,
+                    markerId: 'center-wuxing-arrow',
+                  }),
+                }}
+              />
             </div>
             <div className="center-age">
               {new Date(horoscopeDate + 'T12:00:00').getFullYear()}
