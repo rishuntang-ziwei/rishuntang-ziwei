@@ -2,21 +2,33 @@ import { useState } from 'react'
 import { LoginForm } from './LoginForm'
 import { RegisterForm } from './RegisterForm'
 
+const ANCESTOR_IMG = '/assets/zushi-jiangziya.png'
+const ANCESTOR_CAPTION = '日舜堂傳承中華文化'
+
 export function AuthShell() {
   const [mode, setMode] = useState<'login' | 'register'>('login')
 
+  const form =
+    mode === 'login' ? (
+      <LoginForm onSwitchRegister={() => setMode('register')} />
+    ) : (
+      <RegisterForm onSwitchLogin={() => setMode('login')} />
+    )
+
   return (
     <div className="auth-page">
-      <div className="auth-card">
-        <div className="auth-brand">
-          <h1>國際日舜堂</h1>
-          <p>紫微斗數線上排盤 · 會員專區</p>
+      <div className="auth-split-wrap">
+        <div className="auth-ancestor-panel">
+          <img src={ANCESTOR_IMG} alt={ANCESTOR_CAPTION} loading="lazy" />
+          <p className="auth-ancestor-caption">{ANCESTOR_CAPTION}</p>
         </div>
-        {mode === 'login' ? (
-          <LoginForm onSwitchRegister={() => setMode('register')} />
-        ) : (
-          <RegisterForm onSwitchLogin={() => setMode('login')} />
-        )}
+        <div className="auth-card auth-card-in-split">
+          <div className="auth-brand">
+            <h1>國際日舜堂</h1>
+            <p>紫微斗數線上排盤 · 會員專區</p>
+          </div>
+          {form}
+        </div>
       </div>
     </div>
   )

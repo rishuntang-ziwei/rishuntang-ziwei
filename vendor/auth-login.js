@@ -1,5 +1,7 @@
 (function () {
   const auth = window.ZiweiAuth
+  const ANCESTOR_IMG = './assets/zushi-jiangziya.png'
+  const ANCESTOR_CAPTION = '日舜堂傳承中華文化'
 
   function showError(el, message) {
     el.textContent = message
@@ -48,10 +50,21 @@
     const gate = document.getElementById('authGate')
     if (!gate) return
 
+    const formHtml = mode === 'login' ? renderLogin() : renderRegister()
+
     gate.innerHTML =
-      '<div class="auth-card">' +
-        '<div class="auth-brand"><h1>國際日舜堂</h1><p>紫微斗數線上排盤 · 會員專區</p></div>' +
-        (mode === 'login' ? renderLogin() : renderRegister()) +
+      '<div class="auth-split-wrap">' +
+        '<div class="auth-ancestor-panel">' +
+          '<img src="' + ANCESTOR_IMG + '" alt="' + ANCESTOR_CAPTION + '" loading="lazy" />' +
+          '<p class="auth-ancestor-caption">' + ANCESTOR_CAPTION + '</p>' +
+        '</div>' +
+        '<div class="auth-card auth-card-in-split">' +
+          '<div class="auth-brand">' +
+            '<h1>國際日舜堂</h1>' +
+            '<p>紫微斗數線上排盤 · 會員專區</p>' +
+          '</div>' +
+          formHtml +
+        '</div>' +
       '</div>'
 
     if (mode === 'login') bindLogin()
