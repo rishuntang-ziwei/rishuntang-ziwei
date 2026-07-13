@@ -320,7 +320,6 @@ async function handlePick(card, fromEl) {
   await flyCardToRow(fromEl, $('#pickedRow'));
 
   const [picked] = state.deckRemaining.splice(idx, 1);
-  state.deckRemaining.sort((a, b) => a.cardNo - b.cardNo);
   state.roundPicks.push(picked);
 
   await renderRound();
@@ -332,7 +331,7 @@ async function undoLastPick() {
   state.busy = true;
   const returned = state.roundPicks.pop();
   state.deckRemaining.push(returned);
-  state.deckRemaining.sort((a, b) => a.cardNo - b.cardNo);
+  state.deckRemaining.sort((a, b) => b.cardNo - a.cardNo);
   await renderRound({ dealIn: true });
   state.busy = false;
 }
