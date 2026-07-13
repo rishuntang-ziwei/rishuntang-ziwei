@@ -104,19 +104,26 @@ function outerArc(cx, cy, radius, startDeg, endDeg) {
   return `M ${x1.toFixed(1)} ${y1.toFixed(1)} A ${radius} ${radius} 0 ${large} ${sweep} ${x2.toFixed(1)} ${y2.toFixed(1)}`;
 }
 
+function resolveLayout(options) {
+  if (options.size === 'center') {
+    return { outerDist: 92, outerR: 40, centerR: 36 };
+  }
+  if (options.compact || options.size === 'compact') {
+    return { outerDist: 68, outerR: 24, centerR: 22 };
+  }
+  return { outerDist: 76, outerR: 30, centerR: 26 };
+}
+
 export function buildWuxingPanel(counts, options = {}) {
   const {
     title = '五行統計',
     markerId = 'wuxing-arrow',
     showSummary = true,
-    compact = false,
   } = options;
 
   const cx = 130;
   const cy = 128;
-  const outerDist = compact ? 68 : 76;
-  const outerR = compact ? 24 : 30;
-  const centerR = compact ? 22 : 26;
+  const { outerDist, outerR, centerR } = resolveLayout(options);
   const arcR = outerDist + outerR - 6;
 
   const positions = {};

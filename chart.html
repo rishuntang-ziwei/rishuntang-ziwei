@@ -429,140 +429,139 @@
       }
 
       /* 列印 A4：整體字級放大 */
+      .chart-lines line {
+        stroke-width: 1;
+      }
+
       .star-vcol.major .vname {
-        font-size: 38px;
+        font-size: 45px;
         letter-spacing: 2px;
       }
 
       .star-vcol.g-lg .vname {
-        font-size: 32px;
+        font-size: 38px;
       }
 
       .star-vcol.p-sm .vname,
       .star-vcol.g-sm .vname {
-        font-size: 22px;
+        font-size: 26px;
       }
 
       .star-vcol .vbright {
-        font-size: 20px;
+        font-size: 24px;
       }
 
       .star-vcol.major .vbright {
-        font-size: 22px;
+        font-size: 26px;
       }
 
       .star-vcol.flow .vname {
-        font-size: 17px;
+        font-size: 20px;
       }
 
       .star-vcol.major .mutagen,
       .mutagen {
+        width: 32px;
+        height: 32px;
+        line-height: 30px;
+        font-size: 32px;
+      }
+
+      .mutagen.horoscope {
         width: 28px;
         height: 28px;
         line-height: 26px;
         font-size: 28px;
       }
 
-      .mutagen.horoscope {
-        width: 24px;
-        height: 24px;
-        line-height: 22px;
-        font-size: 24px;
+      .mutagen-circle {
+        width: 30px;
+        height: 30px;
+        line-height: 28px;
+        font-size: 30px;
       }
 
-      .mutagen-circle {
+      .star-vcol.g-lg .mutagen-circle,
+      .star-vcol.g-sm .mutagen-circle,
+      .star-vcol.p-sm .mutagen-circle {
         width: 26px;
         height: 26px;
         line-height: 24px;
         font-size: 26px;
       }
 
-      .star-vcol.g-lg .mutagen-circle,
-      .star-vcol.g-sm .mutagen-circle,
-      .star-vcol.p-sm .mutagen-circle {
-        width: 22px;
-        height: 22px;
-        line-height: 20px;
-        font-size: 22px;
-      }
-
       .palace {
-        font-size: 22px;
+        font-size: 26px;
       }
 
       .palace-label {
-        font-size: 28px;
+        font-size: 34px;
       }
 
       .gz-gan,
       .gz-zhi {
-        font-size: 18px;
+        font-size: 22px;
       }
 
       .daxian,
       .decadal-slot {
-        font-size: 18px;
+        font-size: 22px;
       }
 
       .monthly-badge {
-        width: 26px;
-        height: 26px;
-        font-size: 18px;
+        width: 30px;
+        height: 30px;
+        font-size: 22px;
       }
 
       .shen {
-        font-size: 20px;
-        line-height: 26px;
+        font-size: 24px;
+        line-height: 30px;
       }
 
       .center-info {
-        font-size: 24px;
+        font-size: 28px;
       }
 
       .center-birth,
       .center-age {
-        font-size: 26px;
+        font-size: 30px;
       }
 
       .center-bazi-text {
-        font-size: 18px;
+        font-size: 22px;
       }
 
-      .center-wuxing-panel.wuxing-panel {
-        width: 128px;
-        height: 142px;
+      .center-wuxing-cross .wuxing-node-name {
+        font-size: 22px;
       }
 
-      .center-wuxing-panel .wuxing-node-name {
-        font-size: 14px;
-      }
-
-      .center-wuxing-panel .wuxing-node-count {
-        font-size: 11px;
+      .center-wuxing-cross .wuxing-node-count {
+        font-size: 17px;
       }
 
       .center-birth .lunar-note {
-        font-size: 20px;
-      }
-
-      .center-brand {
-        font-size: 20px;
-      }
-
-      .vtext.tag {
         font-size: 24px;
       }
 
+      .center-brand {
+        font-size: 24px;
+      }
+
+      .vtext.tag {
+        font-size: 28px;
+      }
+
       .vtext.name {
-        font-size: 38px;
+        font-size: 46px;
       }
 
       .vtext.title {
-        font-size: 42px;
+        font-size: 50px;
       }
 
       .palace-bottom {
-        height: 64px;
+        height: 68px;
       }
     }
 
@@ -622,7 +621,7 @@
       z-index: 5;
     }
 
-    .chart-lines line { stroke: var(--line-red); stroke-width: 1.5; }
+    .chart-lines line { stroke: var(--line-red); stroke-width: 1; }
 
     .cell {
       border: 1px solid var(--border);
@@ -1143,6 +1142,7 @@
     .center-info label { display: flex; align-items: center; gap: 3px; cursor: pointer; }
     .center-brand { font-size: 17px; color: var(--brand-red); font-weight: 700; letter-spacing: 0.12em; line-height: 1.45; }
     .center {
+      position: relative;
       display: flex;
       flex-direction: column;
       height: 100%;
@@ -1150,6 +1150,57 @@
       overflow: hidden;
       writing-mode: horizontal-tb;
       box-sizing: border-box;
+    }
+
+    .center-wuxing-cross {
+      position: absolute;
+      left: 50%;
+      top: 54%;
+      transform: translate(-50%, -50%);
+      width: min(68%, 280px);
+      aspect-ratio: 1;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .center-wuxing-cross .wuxing-svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .center-wuxing-cross .wuxing-title,
+    .center-wuxing-cross .wuxing-summary {
+      display: none;
+    }
+
+    .center-wuxing-cross .wuxing-arc,
+    .center-wuxing-cross .wuxing-edge {
+      stroke: #333;
+      stroke-width: 1.6;
+      fill: none;
+    }
+
+    .center-wuxing-cross .wuxing-node-name {
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .center-wuxing-cross .wuxing-node-count {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .center-body {
+      position: relative;
+      z-index: 1;
+      flex: 1;
+      display: flex;
+      flex-direction: row;
+      align-items: stretch;
+      gap: 8px;
+      min-height: 0;
+      overflow: hidden;
     }
 
     .center-top-right {
@@ -1192,16 +1243,6 @@
 
     .center-control-meta { color: #444; white-space: nowrap; }
 
-    .center-body {
-      flex: 1;
-      display: flex;
-      flex-direction: row;
-      align-items: stretch;
-      gap: 8px;
-      min-height: 0;
-      overflow: hidden;
-    }
-
     .center-info {
       flex: 1;
       min-width: 0;
@@ -1232,58 +1273,9 @@
       gap: 2px;
     }
     .center-bazi-text {
-      font-size: 17px;
+      font-size: 18px;
       line-height: 1.4;
       color: #333;
-    }
-
-    .center-wuxing-panel.wuxing-panel {
-      box-sizing: border-box;
-      width: 118px;
-      height: 132px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: space-between;
-      padding: 4px 4px 3px;
-      background: #f6eedb;
-      border: 1px solid #5c4033;
-      border-radius: 8px;
-      box-shadow: none;
-      text-align: center;
-    }
-
-    .center-wuxing-panel .wuxing-title {
-      margin: 0;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      color: #333;
-      flex-shrink: 0;
-    }
-
-    .center-wuxing-panel .wuxing-svg {
-      flex: 1 1 auto;
-      width: 100%;
-      min-height: 0;
-      display: block;
-    }
-
-    .center-wuxing-panel .wuxing-arc,
-    .center-wuxing-panel .wuxing-edge {
-      stroke: #333;
-      stroke-width: 1.4;
-      fill: none;
-    }
-
-    .center-wuxing-panel .wuxing-node-name {
-      font-size: 13px;
-      font-weight: 700;
-    }
-
-    .center-wuxing-panel .wuxing-node-count {
-      font-size: 10px;
-      font-weight: 700;
     }
 
     .center-age { margin-top: 4px; font-size: 22px; line-height: 1.35; }
@@ -1449,9 +1441,16 @@
         font-size: 10px;
       }
 
-      .center-wuxing-panel.wuxing-panel {
-        width: 92px;
-        height: 108px;
+      .center-wuxing-cross {
+        width: min(72%, 220px);
+      }
+
+      .center-wuxing-cross .wuxing-node-name {
+        font-size: 16px;
+      }
+
+      .center-wuxing-cross .wuxing-node-count {
+        font-size: 12px;
       }
 
       .center-birth .lunar-note {
@@ -2737,21 +2736,21 @@
       </div>`
     }
 
-    function renderCenterBaziBlock(a) {
-      const baziText = `八字 ${formatBazi(a)}`
+    function renderCenterWuxingCross(a) {
       const wp = window.WuxingPanel
-      if (!wp) {
-        return `<div class="center-bazi-text">${baziText}</div>`
-      }
+      if (!wp) return ''
       const counts = wp.countBaziElements(a.rawDates.chineseDate)
       const wuxingHtml = wp.buildWuxingPanel(counts, {
-        title: '八字五行',
-        compact: true,
+        title: '',
+        size: 'center',
         showSummary: false,
         markerId: 'center-wuxing-arrow',
       })
-      return `<div class="center-bazi-text">${baziText}</div>
-              <div class="center-wuxing-panel wuxing-panel is-compact">${wuxingHtml}</div>`
+      return `<div class="center-wuxing-cross">${wuxingHtml}</div>`
+    }
+
+    function renderCenterBaziBlock(a) {
+      return `<div class="center-bazi-text">八字 ${formatBazi(a)}</div>`
     }
 
     function renderCenter(name, a, h, input) {
@@ -2793,6 +2792,7 @@
         <div class="center-top-right">
           ${yearControl}
         </div>
+        ${renderCenterWuxingCross(a)}
         <div class="center-body">
           <div class="center-info">
             <div>

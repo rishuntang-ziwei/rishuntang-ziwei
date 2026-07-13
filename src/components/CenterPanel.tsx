@@ -68,6 +68,13 @@ export function CenterPanel({
       ? astrolabe.palace(horoscope.decadal.index)?.decadal?.range
       : null
 
+  const wuxingHtml = buildWuxingPanel(countBaziElements(astrolabe.rawDates.chineseDate), {
+    title: '',
+    size: 'center',
+    showSummary: false,
+    markerId: 'center-wuxing-arrow',
+  })
+
   return (
     <div className="center">
       <div className="center-top-right">
@@ -110,6 +117,11 @@ export function CenterPanel({
         )}
       </div>
 
+      <div
+        className="center-wuxing-cross"
+        dangerouslySetInnerHTML={{ __html: wuxingHtml }}
+      />
+
       <div className="center-body">
         <div className="center-info">
           <div>
@@ -150,17 +162,6 @@ export function CenterPanel({
             </div>
             <div className="center-bazi">
               <div className="center-bazi-text">八字 {formatBazi(astrolabe)}</div>
-              <div
-                className="center-wuxing-panel wuxing-panel is-compact"
-                dangerouslySetInnerHTML={{
-                  __html: buildWuxingPanel(countBaziElements(astrolabe.rawDates.chineseDate), {
-                    title: '八字五行',
-                    compact: true,
-                    showSummary: false,
-                    markerId: 'center-wuxing-arrow',
-                  }),
-                }}
-              />
             </div>
             <div className="center-age">
               {new Date(horoscopeDate + 'T12:00:00').getFullYear()}
