@@ -44,7 +44,7 @@ export const TIERS = {
 
 export const ROUND_ORDER = ['major', 'tierB', 'tierC', 'mutagen'];
 
-/** @typedef {{ id: string, name: string, image?: string, theme?: string, themeEn?: string, rank?: number|string, suit?: string, element?: string, fortune?: string, keywords?: string, keywordsEn?: string, variant?: string }} Card */
+/** @typedef {{ id: string, name: string, cardNo?: number, image?: string, theme?: string, themeEn?: string, rank?: number|string, suit?: string, element?: string, fortune?: string, keywords?: string, keywordsEn?: string, variant?: string }} Card */
 
 /** @type {Record<string, Card[]>} */
 export const DECK = {

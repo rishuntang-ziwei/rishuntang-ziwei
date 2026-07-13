@@ -31,8 +31,16 @@ function currentTier() {
   return TIERS[currentTierId()];
 }
 
-function cardBackHtml() {
-  return `<img src="${CARD_BACK}" alt="" loading="eager">`;
+function formatCardNo(cardNo) {
+  return cardNo != null ? String(cardNo).padStart(2, '0') : '';
+}
+
+function cardBackHtml(card) {
+  const badge =
+    card?.cardNo != null
+      ? `<span class="card-no-badge card-no-back" aria-hidden="true">${formatCardNo(card.cardNo)}</span>`
+      : '';
+  return `<img src="${CARD_BACK}" alt="" loading="eager">${badge}`;
 }
 
 function cardFaceHtml(card) {
@@ -55,7 +63,7 @@ function makeCardEl(card, opts = {}) {
 
   btn.innerHTML = `
     <div class="card-inner">
-      <div class="card-face card-back">${cardBackHtml()}</div>
+      <div class="card-face card-back">${cardBackHtml(card)}</div>
       <div class="card-face card-front">${cardFaceHtml(card)}</div>
     </div>`;
 
@@ -169,10 +177,14 @@ function addControl(label, handler) {
   $('#controls').appendChild(btn);
 }
 
+function assignSpreadNumbers(cards) {
+  return cards.map((card, index) => ({ ...card, cardNo: index + 1 }));
+}
+
 function ensureDeck(tierId) {
   if (state.deckRemaining.length > 0) return false;
-  state.deckRemaining = shuffle(
-    DECK[tierId].map((c) => ({ ...c, tierId })),
+  state.deckRemaining = assignSpreadNumbers(
+    shuffle(DECK[tierId].map((c) => ({ ...c, tierId }))),
   );
   return true;
 }
@@ -304,6 +316,7 @@ async function handlePick(card, fromEl) {
   await flyCardToRow(fromEl, $('#pickedRow'));
 
   const [picked] = state.deckRemaining.splice(idx, 1);
+  state.deckRemaining.sort((a, b) => a.cardNo - b.cardNo);
   state.roundPicks.push(picked);
 
   await renderRound();
@@ -313,7 +326,9 @@ async function handlePick(card, fromEl) {
 async function undoLastPick() {
   if (!state.roundPicks.length || state.phase !== 'round' || state.busy) return;
   state.busy = true;
-  state.roundPicks.pop();
+  const returned = state.roundPicks.pop();
+  state.deckRemaining.push(returned);
+  state.deckRemaining.sort((a, b) => a.cardNo - b.cardNo);
   await renderRound({ dealIn: true });
   state.busy = false;
 }
