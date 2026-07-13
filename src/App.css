@@ -805,6 +805,18 @@ body {
     font-size: 1.75rem;
   }
 
+  .center-vcol {
+    font-size: 1.88rem;
+  }
+
+  .center-vcol-lunar {
+    font-size: 1.5rem;
+  }
+
+  .center-vcol-bazi {
+    font-size: 1.38rem;
+  }
+
   .center-birth,
   .center-age {
     font-size: 1.88rem;
@@ -830,12 +842,8 @@ body {
     font-size: 1.5rem;
   }
 
-  .vtext.tag {
-    font-size: 1.75rem;
-  }
-
   .vtext.name {
-    font-size: 2.88rem;
+    font-size: 2.13rem;
   }
 
   .vtext.title {
@@ -1483,6 +1491,39 @@ body {
   padding-left: 4px;
 }
 
+.center-info-footer {
+  writing-mode: horizontal-tb;
+  flex-shrink: 0;
+}
+
+.center-info-vertical {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+}
+
+.center-vcol {
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  font-size: 1.38rem;
+  line-height: 1.45;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.center-vcol-lunar {
+  font-size: 1.06rem;
+  color: #666;
+}
+
+.center-vcol-bazi {
+  font-size: 1.13rem;
+  color: #333;
+}
+
 .center-birth {
   margin-top: 6px;
   font-size: 1.38rem;
@@ -1520,14 +1561,9 @@ body {
   flex-shrink: 0;
 }
 
-.vtext.tag {
-  font-size: 1.31rem;
-  letter-spacing: 4px;
-}
-
 .vtext.name {
-  font-size: 2rem;
-  letter-spacing: 9px;
+  font-size: 1.5rem;
+  letter-spacing: 8px;
 }
 
 .vtext.title {

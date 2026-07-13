@@ -119,7 +119,7 @@ export function CenterPanel({
 
       <div className="center-body">
         <div className="center-info">
-          <div>
+          <div className="center-info-upper">
             {onBackToNatal && (
               <button type="button" className="back-to-natal" onClick={onBackToNatal}>
                 回到本命盤
@@ -150,21 +150,27 @@ export function CenterPanel({
                 )}
               </div>
             )}
-            <div className="center-birth">
-              <div>{birth.line1}</div>
-              <div>{birth.line2}</div>
-              {birth.lunarNote && <div className="lunar-note">{birth.lunarNote}</div>}
+            <div className="center-info-vertical">
+              <div className="center-vcol center-vcol-birth">{birth.line1}</div>
+              <div className="center-vcol center-vcol-birth">{birth.line2}</div>
+              {birth.lunarNote && (
+                <div className="center-vcol center-vcol-lunar">{birth.lunarNote}</div>
+              )}
+              {formatBazi(astrolabe).split(' ').map((pillar) => (
+                <div key={pillar} className="center-vcol center-vcol-bazi">
+                  {pillar}
+                </div>
+              ))}
             </div>
-            <div className="center-bazi">
-              <div className="center-bazi-text">{formatBazi(astrolabe)}</div>
-            </div>
+          </div>
+          <div className="center-info-footer">
             <div className="center-age">
               {new Date(horoscopeDate + 'T12:00:00').getFullYear()}
               <br />
               {age} 歲
             </div>
+            <div className="center-brand">國際日舜堂</div>
           </div>
-          <div className="center-brand">國際日舜堂</div>
         </div>
 
         <div
@@ -173,7 +179,6 @@ export function CenterPanel({
         />
 
         <div className="center-vtext">
-          <div className="vtext tag">{chartModeTag(chartMode)}</div>
           <div className="vtext name">{name || '匿名'}</div>
           <div className="vtext title">{chartModeTitle(chartMode)}</div>
         </div>

@@ -523,6 +523,18 @@
         font-size: 28px;
       }
 
+      .center-vcol {
+        font-size: 30px;
+      }
+
+      .center-vcol-lunar {
+        font-size: 24px;
+      }
+
+      .center-vcol-bazi {
+        font-size: 22px;
+      }
+
       .center-birth,
       .center-age {
         font-size: 30px;
@@ -548,12 +560,8 @@
         font-size: 24px;
       }
 
-      .vtext.tag {
-        font-size: 28px;
-      }
-
       .vtext.name {
-        font-size: 46px;
+        font-size: 34px;
       }
 
       .vtext.title {
@@ -1265,6 +1273,39 @@
       padding-left: 4px;
     }
 
+    .center-info-vertical {
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .center-vcol {
+      writing-mode: vertical-rl;
+      text-orientation: upright;
+      font-size: 22px;
+      line-height: 1.45;
+      letter-spacing: 0.06em;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .center-vcol-lunar {
+      font-size: 17px;
+      color: #666;
+    }
+
+    .center-vcol-bazi {
+      font-size: 18px;
+      color: #333;
+    }
+
+    .center-info-footer {
+      writing-mode: horizontal-tb;
+      flex-shrink: 0;
+    }
+
     .center-birth { margin-top: 6px; font-size: 22px; line-height: 1.5; }
     .center-birth .lunar-note { font-size: 17px; color: #666; margin-top: 2px; }
     .center-bazi {
@@ -1281,8 +1322,7 @@
 
     .center-age { margin-top: 4px; font-size: 22px; line-height: 1.35; }
 
-    .vtext.tag { font-size: 21px; letter-spacing: 3px; }
-    .vtext.name { font-size: 32px; letter-spacing: 10px; }
+    .vtext.name { font-size: 24px; letter-spacing: 8px; }
     .vtext.title { font-size: 36px; letter-spacing: 9px; font-weight: 800; }
 
     .error-box,
@@ -1459,6 +1499,18 @@
         font-size: 10px;
       }
 
+      .center-vcol {
+        font-size: 12px;
+      }
+
+      .center-vcol-lunar {
+        font-size: 10px;
+      }
+
+      .center-vcol-bazi {
+        font-size: 10px;
+      }
+
       .center-age {
         font-size: 12px;
       }
@@ -1467,14 +1519,9 @@
         font-size: 11px;
       }
 
-      .vtext.tag {
-        font-size: 12px;
-        letter-spacing: 1px;
-      }
-
       .vtext.name {
-        font-size: 16px;
-        letter-spacing: 3px;
+        font-size: 14px;
+        letter-spacing: 2px;
       }
 
       .vtext.title {
@@ -2751,6 +2798,23 @@
       return `<div class="center-wuxing-cross">${wuxingHtml}</div>`
     }
 
+    function renderCenterInfoVertical(b, a) {
+      const baziCols = formatBazi(a).split(' ').map(function (p) {
+        return '<div class="center-vcol center-vcol-bazi">' + p + '</div>'
+      }).join('')
+      const lunarCol = b.lunarNote
+        ? '<div class="center-vcol center-vcol-lunar">' + b.lunarNote + '</div>'
+        : ''
+      return (
+        '<div class="center-info-vertical">' +
+          '<div class="center-vcol center-vcol-birth">' + b.line1 + '</div>' +
+          '<div class="center-vcol center-vcol-birth">' + b.line2 + '</div>' +
+          lunarCol +
+          baziCols +
+        '</div>'
+      )
+    }
+
     function renderCenterBaziBlock(a) {
       return `<div class="center-bazi-text">${formatBazi(a)}</div>`
     }
@@ -2759,7 +2823,6 @@
       const chartMode = resolveEffectiveChartMode()
       const b = centerBirthText(a, input)
       const age = h.age.nominalAge
-      const lunarNote = b.lunarNote ? `<div class="lunar-note">${b.lunarNote}</div>` : ''
       const scopeItem = chartMode === 'decadal' ? h.decadal : chartMode === 'yearly' ? h.yearly : null
       const scopeGz = scopeItem ? `${scopeItem.heavenlyStem}${scopeItem.earthlyBranch}` : ''
       const decadalPalace = chartMode === 'decadal' ? a.palace(h.decadal.index) : null
@@ -2796,25 +2859,19 @@
         </div>
         <div class="center-body">
           <div class="center-info">
-            <div>
+            <div class="center-info-upper">
               ${backToNatal}
               ${scopeLine}
               ${flowScopeLine}
-              <div class="center-birth">
-                <div>${b.line1}</div>
-                <div>${b.line2}</div>
-                ${lunarNote}
-              </div>
-              <div class="center-bazi">
-                ${renderCenterBaziBlock(a)}
-              </div>
-              <div class="center-age">${new Date(horoscopeDate).getFullYear()}<br>${age} 歲</div>
+              ${renderCenterInfoVertical(b, a)}
             </div>
-            <div class="center-brand">國際日舜堂</div>
+            <div class="center-info-footer">
+              <div class="center-age">${new Date(horoscopeDate).getFullYear()}<br>${age} 歲</div>
+              <div class="center-brand">國際日舜堂</div>
+            </div>
           </div>
           ${renderCenterWuxingCross(a)}
           <div class="center-vtext">
-            <div class="vtext tag">${MODE_TAG[chartMode]}</div>
             <div class="vtext name">${name || '匿名'}</div>
             <div class="vtext title">${MODE_TITLE[chartMode]}</div>
           </div>
