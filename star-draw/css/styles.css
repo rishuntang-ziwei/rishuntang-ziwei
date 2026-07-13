@@ -436,10 +436,10 @@ body::before {
 }
 
 .card-no-back {
-  right: 6px;
-  top: 6px;
-  left: auto;
-  bottom: auto;
+  left: 6px;
+  bottom: 6px;
+  right: auto;
+  top: auto;
 }
 
 .card-text-fallback {
