@@ -156,7 +156,7 @@ export function CenterPanel({
               {birth.lunarNote && <div className="lunar-note">{birth.lunarNote}</div>}
             </div>
             <div className="center-bazi">
-              <div className="center-bazi-text">八字 {formatBazi(astrolabe)}</div>
+              <div className="center-bazi-text">{formatBazi(astrolabe)}</div>
             </div>
             <div className="center-age">
               {new Date(horoscopeDate + 'T12:00:00').getFullYear()}

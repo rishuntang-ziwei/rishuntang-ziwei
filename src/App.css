@@ -1256,15 +1256,15 @@ body {
 }
 
 .center-wuxing-cross {
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
   align-self: center;
-  width: min(100%, 210px);
-  max-width: 220px;
+  width: min(100%, 220px);
+  max-width: 230px;
   aspect-ratio: 1;
-  min-width: 0;
+  overflow: visible;
   pointer-events: none;
 }
 

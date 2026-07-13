@@ -125,6 +125,7 @@ export function buildWuxingPanel(counts, options = {}) {
   const cy = 128;
   const { outerDist, outerR, centerR } = resolveLayout(options);
   const arcR = outerDist + outerR - 6;
+  const viewBox = options.size === 'center' ? '-14 -14 288 288' : '0 0 260 260';
 
   const positions = {};
   GENERATING_CYCLE.forEach((name) => {
@@ -187,7 +188,7 @@ export function buildWuxingPanel(counts, options = {}) {
 
   return `
     ${titleHtml}
-    <svg class="wuxing-svg" viewBox="0 0 260 260" aria-hidden="true">
+    <svg class="wuxing-svg" viewBox="${viewBox}" aria-hidden="true">
       <defs>
         <marker id="${markerId}" markerWidth="7" markerHeight="7" refX="5.5" refY="3.5" orient="auto">
           <polygon points="0 0, 7 3.5, 0 7" fill="#333" />
