@@ -1153,13 +1153,15 @@
     }
 
     .center-wuxing-cross {
-      position: absolute;
-      left: 50%;
-      top: 54%;
-      transform: translate(-50%, -50%);
-      width: min(68%, 280px);
+      flex: 1 1 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      align-self: center;
+      width: min(100%, 210px);
+      max-width: 220px;
       aspect-ratio: 1;
-      z-index: 0;
+      min-width: 0;
       pointer-events: none;
     }
 
@@ -1192,13 +1194,11 @@
     }
 
     .center-body {
-      position: relative;
-      z-index: 1;
       flex: 1;
       display: flex;
       flex-direction: row;
       align-items: stretch;
-      gap: 8px;
+      gap: 6px;
       min-height: 0;
       overflow: hidden;
     }
@@ -1244,7 +1244,8 @@
     .center-control-meta { color: #444; white-space: nowrap; }
 
     .center-info {
-      flex: 1;
+      flex: 0 1 auto;
+      max-width: 44%;
       min-width: 0;
       display: flex;
       flex-direction: column;
@@ -1442,7 +1443,8 @@
       }
 
       .center-wuxing-cross {
-        width: min(72%, 220px);
+        width: min(100%, 150px);
+        max-width: 160px;
       }
 
       .center-wuxing-cross .wuxing-node-name {
@@ -2792,7 +2794,6 @@
         <div class="center-top-right">
           ${yearControl}
         </div>
-        ${renderCenterWuxingCross(a)}
         <div class="center-body">
           <div class="center-info">
             <div>
@@ -2811,6 +2812,7 @@
             </div>
             <div class="center-brand">國際日舜堂</div>
           </div>
+          ${renderCenterWuxingCross(a)}
           <div class="center-vtext">
             <div class="vtext tag">${MODE_TAG[chartMode]}</div>
             <div class="vtext name">${name || '匿名'}</div>

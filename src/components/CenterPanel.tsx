@@ -117,11 +117,6 @@ export function CenterPanel({
         )}
       </div>
 
-      <div
-        className="center-wuxing-cross"
-        dangerouslySetInnerHTML={{ __html: wuxingHtml }}
-      />
-
       <div className="center-body">
         <div className="center-info">
           <div>
@@ -171,6 +166,11 @@ export function CenterPanel({
           </div>
           <div className="center-brand">國際日舜堂</div>
         </div>
+
+        <div
+          className="center-wuxing-cross"
+          dangerouslySetInnerHTML={{ __html: wuxingHtml }}
+        />
 
         <div className="center-vtext">
           <div className="vtext tag">{chartModeTag(chartMode)}</div>

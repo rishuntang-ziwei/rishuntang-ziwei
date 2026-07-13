@@ -1256,13 +1256,15 @@ body {
 }
 
 .center-wuxing-cross {
-  position: absolute;
-  left: 50%;
-  top: 54%;
-  transform: translate(-50%, -50%);
-  width: min(68%, 280px);
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  width: min(100%, 210px);
+  max-width: 220px;
   aspect-ratio: 1;
-  z-index: 0;
+  min-width: 0;
   pointer-events: none;
 }
 
@@ -1369,19 +1371,18 @@ body {
 }
 
 .center-body {
-  position: relative;
-  z-index: 1;
   flex: 1;
   display: flex;
   flex-direction: row;
   align-items: stretch;
-  gap: 8px;
+  gap: 6px;
   min-height: 0;
   overflow: hidden;
 }
 
 .center-info {
-  flex: 1;
+  flex: 0 1 auto;
+  max-width: 44%;
   min-width: 0;
   display: flex;
   flex-direction: column;
