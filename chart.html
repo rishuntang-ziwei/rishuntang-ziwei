@@ -524,15 +524,15 @@
       }
 
       .center-vcol {
-        font-size: 30px;
+        font-size: 26px;
       }
 
       .center-vcol-lunar {
-        font-size: 24px;
+        font-size: 22px;
       }
 
       .center-vcol-bazi {
-        font-size: 22px;
+        font-size: 24px;
       }
 
       .center-birth,
@@ -1273,32 +1273,53 @@
       padding-left: 4px;
     }
 
+    .center-info-upper {
+      flex: 1 1 auto;
+      min-height: 0;
+      min-width: 0;
+    }
+
     .center-info-vertical {
       display: flex;
-      flex-direction: row;
-      align-items: flex-start;
-      gap: 8px;
-      margin-top: 6px;
+      flex-direction: row-reverse;
+      align-items: flex-end;
+      gap: 4px;
+      margin-top: 4px;
+    }
+
+    .center-vcol-group-bazi {
+      display: flex;
+      flex-direction: row-reverse;
+      align-items: flex-end;
+      gap: 2px;
+      margin-right: 2px;
+      padding-right: 6px;
+      border-right: 1px solid rgba(196, 165, 116, 0.55);
     }
 
     .center-vcol {
       writing-mode: vertical-rl;
       text-orientation: upright;
-      font-size: 22px;
-      line-height: 1.45;
-      letter-spacing: 0.06em;
+      font-size: 18px;
+      line-height: 1.4;
+      letter-spacing: 0.1em;
       white-space: nowrap;
       flex-shrink: 0;
     }
 
+    .center-vcol-year {
+      font-weight: 700;
+    }
+
     .center-vcol-lunar {
-      font-size: 17px;
-      color: #666;
+      font-size: 15px;
+      color: #555;
     }
 
     .center-vcol-bazi {
-      font-size: 18px;
-      color: #333;
+      font-size: 16px;
+      color: #222;
+      letter-spacing: 0.12em;
     }
 
     .center-info-footer {
@@ -2658,22 +2679,26 @@
       const hour = hourly[1] || '寅'
 
       const lm = a.lunarDate.match(/([正二三四五六七八九十冬臘閏]+)月([初十廿三]*[一二三四五六七八九十]+)/)
-      const lunarLine = lm ? `農曆 ${lm[1]}月${lm[2]}` : ''
+      const lunarNote = lm ? `農曆${lm[1]}月${lm[2]}` : ''
 
       if (input.calendar === 'lunar') {
-        const [y, m, d] = normalizeDate(input.date).split('-')
+        const [y, m, d] = normalizeDate(input.date).split('-').map(Number)
         return {
-          line1: `${y} ${gz} 年`,
-          line2: `${m} 月 ${d} 日 ${hour} 時`,
+          yearNum: String(y),
+          gzYear: `${gz}年`,
+          solarDate: `${m}月${d}日`,
+          hour: `${hour}時`,
           lunarNote: '',
         }
       }
 
       const [sy, sm, sd] = a.solarDate.split('-').map(Number)
       return {
-        line1: `${sy} ${gz} 年`,
-        line2: `${sm} 月 ${sd} 日 ${hour} 時`,
-        lunarNote: lunarLine,
+        yearNum: String(sy),
+        gzYear: `${gz}年`,
+        solarDate: `${sm}月${sd}日`,
+        hour: `${hour}時`,
+        lunarNote,
       }
     }
 
@@ -2799,7 +2824,7 @@
     }
 
     function renderCenterInfoVertical(b, a) {
-      const baziCols = formatBazi(a).split(' ').map(function (p) {
+      const baziGroup = formatBazi(a).split(' ').map(function (p) {
         return '<div class="center-vcol center-vcol-bazi">' + p + '</div>'
       }).join('')
       const lunarCol = b.lunarNote
@@ -2807,10 +2832,12 @@
         : ''
       return (
         '<div class="center-info-vertical">' +
-          '<div class="center-vcol center-vcol-birth">' + b.line1 + '</div>' +
-          '<div class="center-vcol center-vcol-birth">' + b.line2 + '</div>' +
+          '<div class="center-vcol center-vcol-year">' + b.yearNum + '</div>' +
+          '<div class="center-vcol">' + b.gzYear + '</div>' +
+          '<div class="center-vcol">' + b.solarDate + '</div>' +
+          '<div class="center-vcol">' + b.hour + '</div>' +
           lunarCol +
-          baziCols +
+          '<div class="center-vcol-group center-vcol-group-bazi">' + baziGroup + '</div>' +
         '</div>'
       )
     }

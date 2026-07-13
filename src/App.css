@@ -806,15 +806,15 @@ body {
   }
 
   .center-vcol {
-    font-size: 1.88rem;
+    font-size: 1.63rem;
   }
 
   .center-vcol-lunar {
-    font-size: 1.5rem;
+    font-size: 1.38rem;
   }
 
   .center-vcol-bazi {
-    font-size: 1.38rem;
+    font-size: 1.5rem;
   }
 
   .center-birth,
@@ -1496,32 +1496,53 @@ body {
   flex-shrink: 0;
 }
 
+.center-info-upper {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+}
+
 .center-info-vertical {
   display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  gap: 0.5rem;
-  margin-top: 0.35rem;
+  flex-direction: row-reverse;
+  align-items: flex-end;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+}
+
+.center-vcol-group-bazi {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: flex-end;
+  gap: 2px;
+  margin-right: 2px;
+  padding-right: 0.4rem;
+  border-right: 1px solid rgba(196, 165, 116, 0.55);
 }
 
 .center-vcol {
   writing-mode: vertical-rl;
   text-orientation: upright;
-  font-size: 1.38rem;
-  line-height: 1.45;
-  letter-spacing: 0.06em;
+  font-size: 1.13rem;
+  line-height: 1.4;
+  letter-spacing: 0.1em;
   white-space: nowrap;
   flex-shrink: 0;
 }
 
+.center-vcol-year {
+  font-weight: 700;
+}
+
 .center-vcol-lunar {
-  font-size: 1.06rem;
-  color: #666;
+  font-size: 0.94rem;
+  color: #555;
 }
 
 .center-vcol-bazi {
-  font-size: 1.13rem;
-  color: #333;
+  font-size: 1rem;
+  color: #222;
+  letter-spacing: 0.12em;
 }
 
 .center-birth {

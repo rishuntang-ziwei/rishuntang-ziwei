@@ -151,16 +151,20 @@ export function CenterPanel({
               </div>
             )}
             <div className="center-info-vertical">
-              <div className="center-vcol center-vcol-birth">{birth.line1}</div>
-              <div className="center-vcol center-vcol-birth">{birth.line2}</div>
+              <div className="center-vcol center-vcol-year">{birth.yearNum}</div>
+              <div className="center-vcol">{birth.gzYear}</div>
+              <div className="center-vcol">{birth.solarDate}</div>
+              <div className="center-vcol">{birth.hour}</div>
               {birth.lunarNote && (
                 <div className="center-vcol center-vcol-lunar">{birth.lunarNote}</div>
               )}
-              {formatBazi(astrolabe).split(' ').map((pillar) => (
-                <div key={pillar} className="center-vcol center-vcol-bazi">
-                  {pillar}
-                </div>
-              ))}
+              <div className="center-vcol-group center-vcol-group-bazi">
+                {formatBazi(astrolabe).split(' ').map((pillar) => (
+                  <div key={pillar} className="center-vcol center-vcol-bazi">
+                    {pillar}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
           <div className="center-info-footer">
@@ -197,21 +201,25 @@ function centerBirthText(
   const hour = hourly[1] || '寅'
 
   const lm = astrolabe.lunarDate.match(/([正二三四五六七八九十冬臘閏]+)月([初十廿三]*[一二三四五六七八九十]+)/)
-  const lunarLine = lm ? `農曆 ${lm[1]}月${lm[2]}` : ''
+  const lunarNote = lm ? `農曆${lm[1]}月${lm[2]}` : ''
 
   if (calendar === 'lunar') {
     const [y, m, d] = birthDate.split('-').map(Number)
     return {
-      line1: `${y} ${gz} 年`,
-      line2: `${m} 月 ${d} 日 ${hour} 時`,
+      yearNum: String(y),
+      gzYear: `${gz}年`,
+      solarDate: `${m}月${d}日`,
+      hour: `${hour}時`,
       lunarNote: '',
     }
   }
 
   const [sy, sm, sd] = astrolabe.solarDate.split('-').map(Number)
   return {
-    line1: `${sy} ${gz} 年`,
-    line2: `${sm} 月 ${sd} 日 ${hour} 時`,
-    lunarNote: lunarLine,
+    yearNum: String(sy),
+    gzYear: `${gz}年`,
+    solarDate: `${sm}月${sd}日`,
+    hour: `${hour}時`,
+    lunarNote,
   }
 }
