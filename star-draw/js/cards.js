@@ -1,4 +1,4 @@
-/** 45 張牌組 — 全牌面圖已匯入 */
+/** 44 張牌組 — 全牌面圖已匯入 */
 
 export const CARD_BACK = 'assets/ui/card-back.png';
 export const BACKGROUND = 'assets/ui/background.png';
@@ -33,8 +33,8 @@ export const TIERS = {
   },
   mutagen: {
     id: 'mutagen',
-    label: '四化與空牌',
-    subtitle: '洗牌後從 5 張中抽選 1 張',
+    label: '四化星',
+    subtitle: '洗牌後從 4 張中抽選 1 張',
     pickCount: 1,
     mode: 'draw',
     color: '#b71c1c',
@@ -102,6 +102,5 @@ export const DECK = {
     { id: 'h02', name: '化權', theme: '逾越', themeEn: 'Exceed', rank: 4, suit: 'spade', element: '金', fortune: '化', keywords: '明顯、更多、嚴厲', keywordsEn: 'Obvious, More, Severe', variant: 'quan', image: 'assets/cards/mutagen/hua-quan.png' },
     { id: 'h03', name: '化科', theme: '加成', themeEn: 'Boost', rank: 5, suit: 'spade', element: '水', fortune: '化', keywords: '獲得、實至名歸', keywordsEn: 'Get, Well deserved', variant: 'ke', image: 'assets/cards/mutagen/hua-ke.png' },
     { id: 'h04', name: '化忌', theme: '不通', themeEn: 'Blockage', rank: 6, suit: 'diamond', element: '火', fortune: '化', keywords: '阻礙、不順困難', keywordsEn: 'Hindrance, Difficulty', variant: 'ji', image: 'assets/cards/mutagen/hua-ji.png' },
-    { id: 'h05', name: '空牌', theme: '空', themeEn: 'Void', rank: 2, suit: 'spade', element: '', fortune: '', keywords: '', keywordsEn: '', variant: 'void', image: 'assets/cards/mutagen/void.png' },
   ],
 };
