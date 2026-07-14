@@ -351,228 +351,6 @@
       margin: 8mm;
     }
 
-    @media print {
-      * {
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-      }
-
-      html,
-      body {
-        margin: 0 !important;
-        padding: 0 !important;
-        width: auto;
-        height: auto;
-        overflow: visible;
-        background: #fff;
-      }
-
-      #userBar,
-      #adminPanel,
-      .form-panel,
-      .password-modal {
-        display: none !important;
-      }
-
-      #appRoot,
-      .layout {
-        display: block !important;
-        width: 100% !important;
-        height: auto !important;
-        max-width: none !important;
-        margin: 0 !important;
-        padding: 0 !important;
-      }
-
-      .chart-database {
-        display: none !important;
-      }
-
-      .chart-panel {
-        display: block !important;
-        width: 100% !important;
-        height: auto !important;
-        margin: 0 auto !important;
-        padding: 0 !important;
-      }
-
-      #chartView {
-        display: block !important;
-        width: 100% !important;
-      }
-
-      .chart-outer {
-        box-sizing: border-box;
-        width: 100% !important;
-        max-width: calc(297mm - 16mm) !important;
-        height: auto !important;
-        max-height: calc(210mm - 16mm) !important;
-        aspect-ratio: 6 / 4;
-        margin: 0 auto !important;
-        border: 2px double #222;
-        page-break-inside: avoid;
-      }
-
-      .chart-grid {
-        width: 100%;
-        height: 100%;
-      }
-
-      .palace-cell.dimmed {
-        opacity: 1 !important;
-      }
-
-      .center-top-right,
-      .back-to-natal,
-      .center-toggle-btn {
-        display: none !important;
-      }
-
-      /* 列印 A4：整體字級放大 */
-      .chart-lines line {
-        stroke-width: 1;
-      }
-
-      .star-vcol.major .vname {
-        font-size: 45px;
-        letter-spacing: 2px;
-      }
-
-      .star-vcol.g-lg .vname {
-        font-size: 38px;
-      }
-
-      .star-vcol.p-sm .vname,
-      .star-vcol.g-sm .vname {
-        font-size: 26px;
-      }
-
-      .star-vcol .vbright {
-        font-size: 24px;
-      }
-
-      .star-vcol.major .vbright {
-        font-size: 26px;
-      }
-
-      .star-vcol.flow .vname {
-        font-size: 20px;
-      }
-
-      .star-vcol.major .mutagen,
-      .mutagen {
-        width: 32px;
-        height: 32px;
-        line-height: 30px;
-        font-size: 32px;
-      }
-
-      .mutagen.horoscope {
-        width: 28px;
-        height: 28px;
-        line-height: 26px;
-        font-size: 28px;
-      }
-
-      .mutagen-circle {
-        width: 30px;
-        height: 30px;
-        line-height: 28px;
-        font-size: 30px;
-      }
-
-      .star-vcol.g-lg .mutagen-circle,
-      .star-vcol.g-sm .mutagen-circle,
-      .star-vcol.p-sm .mutagen-circle {
-        width: 26px;
-        height: 26px;
-        line-height: 24px;
-        font-size: 26px;
-      }
-
-      .palace {
-        font-size: 26px;
-      }
-
-      .palace-label {
-        font-size: 34px;
-      }
-
-      .gz-gan,
-      .gz-zhi {
-        font-size: 22px;
-      }
-
-      .daxian,
-      .decadal-slot {
-        font-size: 22px;
-      }
-
-      .monthly-badge {
-        width: 30px;
-        height: 30px;
-        font-size: 22px;
-      }
-
-      .shen {
-        font-size: 24px;
-        line-height: 30px;
-      }
-
-      .center-info {
-        font-size: 28px;
-      }
-
-      .center-vcol {
-        font-size: 26px;
-      }
-
-      .center-vcol-lunar {
-        font-size: 22px;
-      }
-
-      .center-vcol-bazi {
-        font-size: 24px;
-      }
-
-      .center-birth,
-      .center-age {
-        font-size: 30px;
-      }
-
-      .center-bazi-text {
-        font-size: 22px;
-      }
-
-      .center-wuxing-cross .wuxing-node-name {
-        font-size: 22px;
-      }
-
-      .center-wuxing-cross .wuxing-node-count {
-        font-size: 17px;
-      }
-
-      .center-birth .lunar-note {
-        font-size: 24px;
-      }
-
-      .center-brand {
-        font-size: 24px;
-      }
-
-      .vtext.name {
-        font-size: 34px;
-      }
-
-      .vtext.title {
-        font-size: 50px;
-      }
-
-      .palace-bottom {
-        height: 68px;
-      }
-    }
-
     .form-panel input[type="number"] {
       width: 100%;
       margin-bottom: 8px;
@@ -1682,6 +1460,214 @@
     .password-modal-actions .secondary {
       border: 1px solid var(--border);
       background: var(--paper-surface);
+    }
+
+    /* 列印樣式置於最末，!important 避免被螢幕版 / RWD 覆蓋 */
+    @media print {
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      html,
+      body {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: auto !important;
+        height: auto !important;
+        overflow: visible !important;
+        background: #fff !important;
+      }
+
+      #userBar,
+      #adminPanel,
+      .form-panel,
+      .password-modal,
+      .chart-database {
+        display: none !important;
+      }
+
+      #appRoot,
+      .layout {
+        display: block !important;
+        width: 100% !important;
+        height: auto !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+
+      .chart-panel,
+      #chartView {
+        display: block !important;
+        width: 100% !important;
+        height: auto !important;
+        margin: 0 auto !important;
+        padding: 0 !important;
+      }
+
+      .chart-outer {
+        box-sizing: border-box !important;
+        width: 277mm !important;
+        height: 184.67mm !important;
+        max-width: none !important;
+        max-height: none !important;
+        aspect-ratio: auto !important;
+        margin: 0 auto !important;
+        border: 2px double #222 !important;
+        page-break-inside: avoid !important;
+      }
+
+      .chart-grid {
+        width: 100% !important;
+        height: 100% !important;
+      }
+
+      .palace-cell.dimmed {
+        opacity: 1 !important;
+      }
+
+      .center-top-right,
+      .back-to-natal,
+      .center-toggle-btn {
+        display: none !important;
+      }
+
+      .chart-lines line {
+        stroke-width: 1 !important;
+      }
+
+      .star-vcol.major .vname {
+        font-size: 58px !important;
+        letter-spacing: 2px !important;
+      }
+
+      .star-vcol.g-lg .vname {
+        font-size: 48px !important;
+        letter-spacing: 4px !important;
+      }
+
+      .star-vcol.p-sm .vname,
+      .star-vcol.g-sm .vname {
+        font-size: 36px !important;
+        letter-spacing: 2px !important;
+      }
+
+      .star-vcol .vbright {
+        font-size: 32px !important;
+      }
+
+      .star-vcol.major .vbright {
+        font-size: 34px !important;
+      }
+
+      .star-vcol.flow .vname {
+        font-size: 28px !important;
+      }
+
+      .star-vcol.major .mutagen,
+      .mutagen {
+        width: 36px !important;
+        height: 36px !important;
+        line-height: 34px !important;
+        font-size: 36px !important;
+      }
+
+      .mutagen.horoscope {
+        width: 32px !important;
+        height: 32px !important;
+        line-height: 30px !important;
+        font-size: 32px !important;
+      }
+
+      .mutagen-circle {
+        width: 34px !important;
+        height: 34px !important;
+        line-height: 32px !important;
+        font-size: 34px !important;
+      }
+
+      .star-vcol.g-lg .mutagen-circle,
+      .star-vcol.g-sm .mutagen-circle,
+      .star-vcol.p-sm .mutagen-circle {
+        width: 30px !important;
+        height: 30px !important;
+        line-height: 28px !important;
+        font-size: 30px !important;
+      }
+
+      .palace {
+        font-size: 28px !important;
+      }
+
+      .palace-label {
+        font-size: 36px !important;
+      }
+
+      .gz-gan,
+      .gz-zhi {
+        font-size: 24px !important;
+      }
+
+      .daxian,
+      .decadal-slot {
+        font-size: 24px !important;
+      }
+
+      .monthly-badge {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 24px !important;
+      }
+
+      .shen {
+        font-size: 26px !important;
+        line-height: 32px !important;
+      }
+
+      .center-info {
+        font-size: 28px !important;
+      }
+
+      .center-vcol {
+        font-size: 26px !important;
+      }
+
+      .center-vcol-lunar {
+        font-size: 22px !important;
+      }
+
+      .center-vcol-bazi {
+        font-size: 24px !important;
+      }
+
+      .center-age {
+        font-size: 30px !important;
+      }
+
+      .center-brand {
+        font-size: 24px !important;
+      }
+
+      .center-wuxing-cross .wuxing-node-name {
+        font-size: 22px !important;
+      }
+
+      .center-wuxing-cross .wuxing-node-count {
+        font-size: 17px !important;
+      }
+
+      .vtext.name {
+        font-size: 34px !important;
+      }
+
+      .vtext.title {
+        font-size: 50px !important;
+      }
+
+      .palace-bottom {
+        height: 72px !important;
+      }
     }
   </style>
   <script>
