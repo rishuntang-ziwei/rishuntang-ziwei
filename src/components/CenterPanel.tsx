@@ -150,10 +150,12 @@ export function CenterPanel({
                 )}
               </div>
             )}
-            <div className="center-info-vertical">
-              <div className="center-vcol center-vcol-year">{birth.yearNum}</div>
-              <div className="center-vcol">{birth.gzYear}</div>
-              <div className="center-vcol">{birth.solarDate}</div>
+            <div className="center-info-detail">
+              <div className="center-vcol center-vcol-year">
+                <span className="center-num">{birth.yearNum}</span>
+                <span>{birth.gzYear}</span>
+              </div>
+              <div className="center-vcol">{wrapCenterNums(birth.solarDate)}</div>
               <div className="center-vcol">{birth.hour}</div>
               {birth.lunarNote && (
                 <div className="center-vcol center-vcol-lunar">{birth.lunarNote}</div>
@@ -169,9 +171,11 @@ export function CenterPanel({
           </div>
           <div className="center-info-footer">
             <div className="center-age">
-              {new Date(horoscopeDate + 'T12:00:00').getFullYear()}
+              <span className="center-num">
+                {new Date(horoscopeDate + 'T12:00:00').getFullYear()}
+              </span>
               <br />
-              {age} 歲
+              <span className="center-num">{age}</span> 歲
             </div>
             <div className="center-brand">國際日舜堂</div>
           </div>
@@ -188,6 +192,18 @@ export function CenterPanel({
         </div>
       </div>
     </div>
+  )
+}
+
+function wrapCenterNums(text: string) {
+  return text.split(/(\d+)/).map((part, index) =>
+    /^\d+$/.test(part) ? (
+      <span key={`${part}-${index}`} className="center-num">
+        {part}
+      </span>
+    ) : (
+      part
+    ),
   )
 }
 

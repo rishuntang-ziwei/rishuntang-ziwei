@@ -421,7 +421,7 @@
       grid-row: 2 / 4;
       grid-column: 2 / 4;
       z-index: 4;
-      overflow: hidden;
+      overflow: visible;
     }
 
     /* ── 宮位 ── */
@@ -933,7 +933,7 @@
       flex-direction: column;
       height: 100%;
       padding: 6px 8px 4px;
-      overflow: hidden;
+      overflow: visible;
       writing-mode: horizontal-tb;
       box-sizing: border-box;
     }
@@ -944,10 +944,12 @@
       align-items: center;
       justify-content: center;
       align-self: center;
-      width: min(100%, 220px);
-      max-width: 230px;
+      width: min(100%, 200px);
+      max-width: 210px;
       aspect-ratio: 1;
       overflow: visible;
+      position: relative;
+      z-index: 6;
       pointer-events: none;
     }
 
@@ -986,7 +988,7 @@
       align-items: stretch;
       gap: 6px;
       min-height: 0;
-      overflow: hidden;
+      overflow: visible;
     }
 
     .center-top-right {
@@ -1031,7 +1033,7 @@
 
     .center-info {
       flex: 0 1 auto;
-      max-width: 44%;
+      max-width: 48%;
       min-width: 0;
       display: flex;
       flex-direction: column;
@@ -1039,6 +1041,7 @@
       font-size: 20px;
       line-height: 1.45;
       writing-mode: horizontal-tb;
+      overflow: visible;
     }
 
     .center-vtext {
@@ -1055,14 +1058,17 @@
       flex: 1 1 auto;
       min-height: 0;
       min-width: 0;
+      overflow: visible;
     }
 
-    .center-info-vertical {
+    .center-info-detail {
       display: flex;
       flex-direction: row-reverse;
       align-items: flex-end;
-      gap: 4px;
+      gap: 5px;
       margin-top: 4px;
+      overflow: visible;
+      max-width: 100%;
     }
 
     .center-vcol-group-bazi {
@@ -1071,38 +1077,51 @@
       align-items: flex-end;
       gap: 2px;
       margin-right: 2px;
-      padding-right: 6px;
-      border-right: 1px solid rgba(196, 165, 116, 0.55);
+      padding-right: 5px;
+      border-right: 1px solid rgba(196, 165, 116, 0.45);
+      flex-shrink: 0;
     }
 
     .center-vcol {
       writing-mode: vertical-rl;
       text-orientation: upright;
-      font-size: 18px;
-      line-height: 1.4;
-      letter-spacing: 0.1em;
+      font-size: 15px;
+      line-height: 1.35;
+      letter-spacing: 0.08em;
       white-space: nowrap;
       flex-shrink: 0;
     }
 
-    .center-vcol-year {
+    .center-num {
+      writing-mode: horizontal-tb;
+      text-orientation: mixed;
+      display: inline-block;
+      letter-spacing: 0.04em;
       font-weight: 700;
     }
 
+    .center-vcol-year .center-num {
+      margin-bottom: 2px;
+    }
+
     .center-vcol-lunar {
-      font-size: 15px;
+      font-size: 13px;
       color: #555;
     }
 
     .center-vcol-bazi {
-      font-size: 16px;
+      font-size: 14px;
       color: #222;
-      letter-spacing: 0.12em;
+      letter-spacing: 0.1em;
     }
 
     .center-info-footer {
       writing-mode: horizontal-tb;
       flex-shrink: 0;
+    }
+
+    .center-age .center-num {
+      font-weight: 700;
     }
 
     .center-birth { margin-top: 6px; font-size: 22px; line-height: 1.5; }
@@ -1534,7 +1553,12 @@
       }
 
       .chart-lines line {
-        stroke-width: 1 !important;
+        stroke: rgba(211, 47, 47, 0.2) !important;
+        stroke-width: 0.75 !important;
+      }
+
+      .center-wuxing-cross {
+        z-index: 6 !important;
       }
 
       .star-vcol.major .vname {
@@ -2809,6 +2833,10 @@
       return `<div class="center-wuxing-cross">${wuxingHtml}</div>`
     }
 
+    function wrapCenterNums(text) {
+      return String(text).replace(/(\d+)/g, '<span class="center-num">$1</span>')
+    }
+
     function renderCenterInfoVertical(b, a) {
       const baziGroup = formatBazi(a).split(' ').map(function (p) {
         return '<div class="center-vcol center-vcol-bazi">' + p + '</div>'
@@ -2817,10 +2845,12 @@
         ? '<div class="center-vcol center-vcol-lunar">' + b.lunarNote + '</div>'
         : ''
       return (
-        '<div class="center-info-vertical">' +
-          '<div class="center-vcol center-vcol-year">' + b.yearNum + '</div>' +
-          '<div class="center-vcol">' + b.gzYear + '</div>' +
-          '<div class="center-vcol">' + b.solarDate + '</div>' +
+        '<div class="center-info-detail">' +
+          '<div class="center-vcol center-vcol-year">' +
+            '<span class="center-num">' + b.yearNum + '</span>' +
+            '<span>' + b.gzYear + '</span>' +
+          '</div>' +
+          '<div class="center-vcol">' + wrapCenterNums(b.solarDate) + '</div>' +
           '<div class="center-vcol">' + b.hour + '</div>' +
           lunarCol +
           '<div class="center-vcol-group center-vcol-group-bazi">' + baziGroup + '</div>' +
@@ -2879,7 +2909,7 @@
               ${renderCenterInfoVertical(b, a)}
             </div>
             <div class="center-info-footer">
-              <div class="center-age">${new Date(horoscopeDate).getFullYear()}<br>${age} 歲</div>
+              <div class="center-age"><span class="center-num">${new Date(horoscopeDate).getFullYear()}</span><br><span class="center-num">${age}</span> 歲</div>
               <div class="center-brand">國際日舜堂</div>
             </div>
           </div>
