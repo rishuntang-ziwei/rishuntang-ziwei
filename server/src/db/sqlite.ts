@@ -3,8 +3,9 @@ import bcrypt from 'bcryptjs'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import type { PublicUser, SavedChartDetail, SavedChartPayload, SavedChartRow, SavedChartSummary, UserRow } from '../types.js'
-import { mapSavedChartRow, mapUserRow, parseSavedChartPayload, toPublicUser, toSavedChartDetail, toSavedChartSummary } from './shared.js'
+import type { PublicUser, SavedChartDetail, SavedChartPayload, SavedChartRow, SavedChartSummary, UserRow, PaymentOrderRow } from '../types.js'
+import { mapPaymentOrderRow, mapSavedChartRow, mapUserRow, parseSavedChartPayload, toPublicUser, toSavedChartDetail, toSavedChartSummary } from './shared.js'
+import { getPaymentPlan } from '../paymentPlans.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const dataDir = process.env.DB_PATH
@@ -54,6 +55,27 @@ export async function initDb() {
     db.exec(`ALTER TABLE saved_charts ADD COLUMN phone TEXT NOT NULL DEFAULT ''`)
   }
 
+  if (!userColumns.some((col) => col.name === 'membership_plan')) {
+    db.exec(`ALTER TABLE users ADD COLUMN membership_plan TEXT`)
+  }
+  if (!userColumns.some((col) => col.name === 'membership_expires_at')) {
+    db.exec(`ALTER TABLE users ADD COLUMN membership_expires_at TEXT`)
+  }
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS payment_orders (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      merchant_order_no TEXT NOT NULL UNIQUE,
+      plan_id TEXT NOT NULL,
+      amount INTEGER NOT NULL,
+      status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending', 'paid', 'failed')),
+      newebpay_trade_no TEXT,
+      paid_at TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )
+  `)
+
   if (process.env.RENDER && !process.env.DB_PATH) {
     console.warn(
       '[db] 警告：Render 免費方案的本機 SQLite 會在重啟後清空。請設定 DATABASE_URL 使用 PostgreSQL，或升級方案並設定 DB_PATH 指向持久磁碟。',
@@ -91,8 +113,8 @@ export async function createUser(input: {
 }): Promise<PublicUser> {
   const result = db
     .prepare(
-      `INSERT INTO users (name, phone, email, password_hash, status, role)
-       VALUES (?, ?, ?, ?, 'pending', 'user')`,
+      `INSERT INTO users (name, phone, email, password_hash, status, role, approved_at)
+       VALUES (?, ?, ?, ?, 'approved', 'user', datetime('now'))`,
     )
     .run(input.name.trim(), input.phone.trim(), input.email.trim().toLowerCase(), input.passwordHash)
   const row = await findUserById(Number(result.lastInsertRowid))
@@ -238,6 +260,71 @@ export async function getSavedChartDetailForUser(
 ): Promise<SavedChartDetail | undefined> {
   const row = await findSavedChartForUser(chartId, userId)
   return row ? toSavedChartDetail(row) : undefined
+}
+
+export async function createPaymentOrder(
+  userId: number,
+  merchantOrderNo: string,
+  planId: string,
+  amount: number,
+): Promise<PaymentOrderRow> {
+  const result = db
+    .prepare(
+      `INSERT INTO payment_orders (user_id, merchant_order_no, plan_id, amount, status)
+       VALUES (?, ?, ?, ?, 'pending')`,
+    )
+    .run(userId, merchantOrderNo, planId, amount)
+  const row = db.prepare('SELECT * FROM payment_orders WHERE id = ?').get(Number(result.lastInsertRowid))
+  if (!row) throw new Error('建立訂單失敗')
+  return mapPaymentOrderRow(row as Record<string, unknown>)
+}
+
+export async function findPaymentOrderByMerchantOrderNo(
+  merchantOrderNo: string,
+): Promise<PaymentOrderRow | undefined> {
+  const row = db.prepare('SELECT * FROM payment_orders WHERE merchant_order_no = ?').get(merchantOrderNo)
+  return row ? mapPaymentOrderRow(row as Record<string, unknown>) : undefined
+}
+
+export async function markPaymentOrderPaid(
+  merchantOrderNo: string,
+  newebpayTradeNo: string,
+): Promise<PaymentOrderRow | undefined> {
+  db.prepare(
+    `UPDATE payment_orders
+     SET status = 'paid', newebpay_trade_no = ?, paid_at = datetime('now')
+     WHERE merchant_order_no = ? AND status = 'pending'`,
+  ).run(newebpayTradeNo, merchantOrderNo)
+  return findPaymentOrderByMerchantOrderNo(merchantOrderNo)
+}
+
+export async function fulfillPaymentOrder(order: PaymentOrderRow): Promise<PublicUser | undefined> {
+  const plan = getPaymentPlan(order.plan_id)
+  if (!plan) return undefined
+
+  const user = await findUserById(order.user_id)
+  if (!user) return undefined
+
+  const now = Date.now()
+  const currentExpiry = user.membership_expires_at
+    ? Math.max(new Date(user.membership_expires_at).getTime(), now)
+    : now
+  const newExpiry = new Date(currentExpiry + plan.days * 24 * 60 * 60 * 1000).toISOString()
+
+  const starDraw = plan.starDraw || user.star_draw_enabled ? 1 : 0
+
+  db.prepare(
+    `UPDATE users
+     SET status = 'approved',
+         approved_at = COALESCE(approved_at, datetime('now')),
+         membership_plan = ?,
+         membership_expires_at = ?,
+         star_draw_enabled = ?
+     WHERE id = ?`,
+  ).run(plan.id, newExpiry, starDraw, order.user_id)
+
+  const row = await findUserById(order.user_id)
+  return row ? toPublicUser(row) : undefined
 }
 
 export async function ensureAdminUser() {

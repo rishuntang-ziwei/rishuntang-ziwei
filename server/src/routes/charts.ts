@@ -6,12 +6,13 @@ import {
   listSavedChartsByUser,
   updateSavedChart,
 } from '../db.js'
-import { requireAuth } from '../middleware.js'
+import { requireAuth, requireActiveMember } from '../middleware.js'
 import type { SavedChartPayload } from '../types.js'
 
 const router = Router()
 
 router.use(requireAuth)
+router.use(requireActiveMember)
 
 function validatePayload(body: unknown): SavedChartPayload | null {
   if (!body || typeof body !== 'object') return null

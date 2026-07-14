@@ -33,7 +33,18 @@ export function toSavedChartDetail(row: SavedChartRow): SavedChartDetail {
   }
 }
 
+export function isMembershipActive(row: UserRow): boolean {
+  if (row.role === 'admin') return true
+  if (!row.membership_expires_at) return false
+  return new Date(row.membership_expires_at).getTime() > Date.now()
+}
+
+export function membershipTier(row: UserRow): 'free' | 'paid' {
+  return isMembershipActive(row) ? 'paid' : 'free'
+}
+
 export function toPublicUser(row: UserRow): PublicUser {
+  const membershipActive = isMembershipActive(row)
   return {
     id: row.id,
     name: row.name,
@@ -42,6 +53,10 @@ export function toPublicUser(row: UserRow): PublicUser {
     status: row.status,
     role: row.role,
     starDrawEnabled: row.star_draw_enabled,
+    membershipPlan: row.membership_plan,
+    membershipExpiresAt: row.membership_expires_at,
+    membershipActive,
+    membershipTier: membershipTier(row),
     createdAt: row.created_at,
     approvedAt: row.approved_at,
   }
@@ -67,8 +82,24 @@ export function mapUserRow(row: Record<string, unknown>): UserRow {
     status: row.status as UserRow['status'],
     role: row.role as UserRow['role'],
     star_draw_enabled: Boolean(row.star_draw_enabled),
+    membership_plan: row.membership_plan != null ? String(row.membership_plan) : null,
+    membership_expires_at: toIsoStringOrNull(row.membership_expires_at),
     created_at: toIsoString(row.created_at),
     approved_at: toIsoStringOrNull(row.approved_at),
+  }
+}
+
+export function mapPaymentOrderRow(row: Record<string, unknown>): import('../types.js').PaymentOrderRow {
+  return {
+    id: Number(row.id),
+    user_id: Number(row.user_id),
+    merchant_order_no: String(row.merchant_order_no),
+    plan_id: String(row.plan_id),
+    amount: Number(row.amount),
+    status: row.status as import('../types.js').PaymentOrderStatus,
+    newebpay_trade_no: row.newebpay_trade_no != null ? String(row.newebpay_trade_no) : null,
+    paid_at: toIsoStringOrNull(row.paid_at),
+    created_at: toIsoString(row.created_at),
   }
 }
 

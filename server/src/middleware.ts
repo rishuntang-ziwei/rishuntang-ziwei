@@ -39,6 +39,31 @@ export function requireAdmin(req: Request, res: Response, next: NextFunction) {
   next()
 }
 
+export function requireActiveMember(req: Request, res: Response, next: NextFunction) {
+  const user = req.authUser
+  if (!user) {
+    res.status(401).json({ error: '請先登入' })
+    return
+  }
+  if (user.role === 'admin') {
+    next()
+    return
+  }
+  if (user.status === 'rejected') {
+    res.status(403).json({ error: '帳號已被拒絕，請聯絡管理員' })
+    return
+  }
+  if (user.status === 'pending') {
+    res.status(403).json({ error: '帳號審核中，請等待管理員開通或完成付費訂閱' })
+    return
+  }
+  if (!user.membershipActive) {
+    res.status(403).json({ error: '此功能需訂閱付費會員，請升級後使用' })
+    return
+  }
+  next()
+}
+
 declare global {
   namespace Express {
     interface Request {

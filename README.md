@@ -1,4 +1,26 @@
-# React + TypeScript + Vite
+# 國際日舜堂 · 紫微斗數線上排盤
+
+- 正式前端（GitHub Pages）：`chart.html`、`index.html`
+- 正式 API（Render）：`rishuntang-ziwei-api`
+
+## 部署設定文件
+
+| 文件 | 用途 |
+|------|------|
+| [server/NEON-SETUP.md](./server/NEON-SETUP.md) | Neon 資料庫 + Render `DATABASE_URL` |
+| [server/NEWEBPAY-SETUP.md](./server/NEWEBPAY-SETUP.md) | 藍新金流 Render 環境變數（手機可照做） |
+
+## 本機開發
+
+```bash
+npm install
+cd server && npm install && npm run dev
+npm run dev   # 根目錄 Vite（app.html）
+```
+
+---
+
+# React + TypeScript + Vite（開發版）
 
 This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
 

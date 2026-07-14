@@ -10,6 +10,8 @@ export interface UserRow {
   status: UserStatus
   role: UserRole
   star_draw_enabled: boolean
+  membership_plan: string | null
+  membership_expires_at: string | null
   created_at: string
   approved_at: string | null
 }
@@ -22,8 +24,26 @@ export interface PublicUser {
   status: UserStatus
   role: UserRole
   starDrawEnabled: boolean
+  membershipPlan: string | null
+  membershipExpiresAt: string | null
+  membershipActive: boolean
+  membershipTier: 'free' | 'paid'
   createdAt: string
   approvedAt: string | null
+}
+
+export type PaymentOrderStatus = 'pending' | 'paid' | 'failed'
+
+export interface PaymentOrderRow {
+  id: number
+  user_id: number
+  merchant_order_no: string
+  plan_id: string
+  amount: number
+  status: PaymentOrderStatus
+  newebpay_trade_no: string | null
+  paid_at: string | null
+  created_at: string
 }
 
 export interface JwtPayload {

@@ -9,9 +9,11 @@ router.get('/access', requireAuth, (req, res) => {
     res.status(401).json({ error: '請先登入' })
     return
   }
-  if (user.status !== 'approved') {
-    res.status(403).json({ error: '會員帳號尚未開通' })
-    return
+      if (user.role !== 'admin') {
+    if (user.status !== 'approved' || !user.membershipActive) {
+      res.status(403).json({ error: '神牌功能需訂閱付費會員' })
+      return
+    }
   }
   if (user.role !== 'admin' && !user.starDrawEnabled) {
     res.status(403).json({ error: '尚未開通神牌功能，請聯絡管理員' })

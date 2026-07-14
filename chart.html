@@ -1753,8 +1753,9 @@
       <div class="row inline">
         <label>排盤類型</label>
         <label><input type="radio" name="chartType" value="natal" checked /> 本命命盤</label>
-        <label><input type="radio" name="chartType" value="yearly" /> 流年命盤</label>
+        <label class="chart-type-premium"><input type="radio" name="chartType" value="yearly" /> 流年命盤</label>
       </div>
+      <p class="membership-note chart-type-note hidden" id="chartTypeNote">免費會員僅可使用本命命盤；升級付費訂閱可解鎖流年、大限等功能</p>
       <div class="row hidden" id="yearlyYearRow">
         <label for="yearlyYear">流年年份（西元）</label>
         <input id="yearlyYear" type="number" min="1900" max="2100" />
@@ -1781,6 +1782,8 @@
       <button type="button" id="submitBtn">開始排盤</button>
 
       <div class="member-section">
+        <div id="membershipPanel" class="membership-panel" hidden></div>
+
         <h3>會員功能</h3>
         <div class="member-actions">
           <button type="button" id="printChartBtn" class="secondary">列印命盤</button>
@@ -1820,6 +1823,29 @@
     window.WuxingPanel = WuxingPanel
   </script>
   <script>
+    function isPremiumMember() {
+      return window.ZiweiMember && window.ZiweiMember.isPremium && window.ZiweiMember.isPremium()
+    }
+
+    window.applyMemberTierUI = function () {
+      const premium = isPremiumMember()
+      const note = document.getElementById('chartTypeNote')
+      if (note) note.classList.toggle('hidden', premium)
+
+      document.querySelectorAll('input[name="chartType"]').forEach(function (el) {
+        if (el.value === 'yearly') {
+          el.disabled = !premium
+          if (!premium && el.checked) {
+            const natal = document.querySelector('input[name="chartType"][value="natal"]')
+            if (natal) natal.checked = true
+          }
+        }
+      })
+      const yearlySelected = document.querySelector('input[name="chartType"]:checked')?.value === 'yearly'
+      const yearlyRow = document.getElementById('yearlyYearRow')
+      if (yearlyRow) yearlyRow.classList.toggle('hidden', !yearlySelected)
+    }
+
     function initChartApp() {
     const { astro } = iztro
     const { Lunar, LunarMonth, LunarYear, Solar } = LunarLib
@@ -2188,6 +2214,9 @@
       if (timeVal === '') throw new Error('請選擇出生時辰')
 
       const chartType = document.querySelector('input[name="chartType"]:checked')?.value || 'natal'
+      if (chartType === 'yearly' && !isPremiumMember()) {
+        throw new Error('流年命盤需訂閱付費會員，請在左側選擇方案升級')
+      }
       const yearVal = Number(document.getElementById('yearlyYear').value)
       if (chartType === 'yearly' && (!yearVal || yearVal < 1900 || yearVal > 2100)) {
         throw new Error('請輸入有效的流年年份（西元）')
@@ -2280,6 +2309,10 @@
     }
 
     function showChartDatabase() {
+      if (!isPremiumMember()) {
+        alert('命盤資料庫需訂閱付費會員，請在左側選擇方案升級')
+        return
+      }
       chartDatabaseVisible = true
       document.getElementById('chartView')?.classList.add('hidden')
       document.getElementById('chartDatabaseView')?.classList.remove('hidden')
@@ -2651,6 +2684,9 @@
     }
 
     async function saveCurrentChart() {
+      if (!isPremiumMember()) {
+        throw new Error('儲存命盤需訂閱付費會員，請在左側選擇方案升級')
+      }
       const input = getInput()
       const a = compute(input)
       const payload = buildSavePayload(input, a)
@@ -3052,6 +3088,10 @@
       document.querySelectorAll('.decadal-slot[data-age-start]').forEach(btn => {
         btn.addEventListener('click', e => {
           e.stopPropagation()
+          if (!isPremiumMember()) {
+            alert('大限命盤需訂閱付費會員，請在左側選擇方案升級')
+            return
+          }
           if (initialChartType !== 'natal') return
           showLines = true
           horoscopeDate = horoscopeDateForNominalAge(a.solarDate, Number(btn.dataset.ageStart))
@@ -3125,6 +3165,10 @@
     document.getElementById('submitBtn').addEventListener('click', run)
 
     document.getElementById('printChartBtn')?.addEventListener('click', function () {
+      if (!isPremiumMember()) {
+        alert('列印功能需訂閱付費會員，請在左側選擇方案升級')
+        return
+      }
       const view = document.getElementById('chartView')
       if (!view || view.querySelector('.chart-placeholder') || view.querySelector('.error-box')) {
         alert('請先完成排盤後再列印')
@@ -3181,6 +3225,7 @@
     }
   </script>
   <script src="./vendor/auth-common.js"></script>
+  <script src="./vendor/payment-ui.js"></script>
   <script src="./vendor/auth-app.js"></script>
   </body>
 </html>

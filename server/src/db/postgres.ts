@@ -1,7 +1,8 @@
 import bcrypt from 'bcryptjs'
 import pg from 'pg'
-import type { PublicUser, SavedChartDetail, SavedChartPayload, SavedChartRow, SavedChartSummary, UserRow } from '../types.js'
-import { mapSavedChartRow, mapUserRow, parseSavedChartPayload, toPublicUser, toSavedChartDetail, toSavedChartSummary } from './shared.js'
+import type { PublicUser, SavedChartDetail, SavedChartPayload, SavedChartRow, SavedChartSummary, UserRow, PaymentOrderRow } from '../types.js'
+import { mapPaymentOrderRow, mapSavedChartRow, mapUserRow, parseSavedChartPayload, toPublicUser, toSavedChartDetail, toSavedChartSummary } from './shared.js'
+import { getPaymentPlan } from '../paymentPlans.js'
 
 const { Pool } = pg
 
@@ -69,6 +70,30 @@ export async function initDb() {
     ADD COLUMN IF NOT EXISTS phone TEXT NOT NULL DEFAULT ''
   `)
 
+  await pool.query(`
+    ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS membership_plan TEXT
+  `)
+
+  await pool.query(`
+    ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS membership_expires_at TIMESTAMPTZ
+  `)
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS payment_orders (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      merchant_order_no TEXT NOT NULL UNIQUE,
+      plan_id TEXT NOT NULL,
+      amount INTEGER NOT NULL,
+      status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending', 'paid', 'failed')),
+      newebpay_trade_no TEXT,
+      paid_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `)
+
   console.log('[db] PostgreSQL 就緒')
 }
 
@@ -100,8 +125,8 @@ export async function createUser(input: {
   passwordHash: string
 }): Promise<PublicUser> {
   const result = await pool.query(
-    `INSERT INTO users (name, phone, email, password_hash, status, role)
-     VALUES ($1, $2, LOWER($3), $4, 'pending', 'user')
+    `INSERT INTO users (name, phone, email, password_hash, status, role, approved_at)
+     VALUES ($1, $2, LOWER($3), $4, 'approved', 'user', NOW())
      RETURNING id`,
     [input.name.trim(), input.phone.trim(), input.email.trim(), input.passwordHash],
   )
@@ -245,6 +270,74 @@ export async function getSavedChartDetailForUser(
 ): Promise<SavedChartDetail | undefined> {
   const row = await findSavedChartForUser(chartId, userId)
   return row ? toSavedChartDetail(row) : undefined
+}
+
+export async function createPaymentOrder(
+  userId: number,
+  merchantOrderNo: string,
+  planId: string,
+  amount: number,
+): Promise<PaymentOrderRow> {
+  const result = await pool.query(
+    `INSERT INTO payment_orders (user_id, merchant_order_no, plan_id, amount, status)
+     VALUES ($1, $2, $3, $4, 'pending')
+     RETURNING *`,
+    [userId, merchantOrderNo, planId, amount],
+  )
+  return mapPaymentOrderRow(result.rows[0])
+}
+
+export async function findPaymentOrderByMerchantOrderNo(
+  merchantOrderNo: string,
+): Promise<PaymentOrderRow | undefined> {
+  const result = await pool.query('SELECT * FROM payment_orders WHERE merchant_order_no = $1', [merchantOrderNo])
+  const row = result.rows[0]
+  return row ? mapPaymentOrderRow(row) : undefined
+}
+
+export async function markPaymentOrderPaid(
+  merchantOrderNo: string,
+  newebpayTradeNo: string,
+): Promise<PaymentOrderRow | undefined> {
+  const result = await pool.query(
+    `UPDATE payment_orders
+     SET status = 'paid', newebpay_trade_no = $2, paid_at = NOW()
+     WHERE merchant_order_no = $1 AND status = 'pending'
+     RETURNING *`,
+    [merchantOrderNo, newebpayTradeNo],
+  )
+  const row = result.rows[0]
+  return row ? mapPaymentOrderRow(row) : undefined
+}
+
+export async function fulfillPaymentOrder(order: PaymentOrderRow): Promise<PublicUser | undefined> {
+  const plan = getPaymentPlan(order.plan_id)
+  if (!plan) return undefined
+
+  const user = await findUserById(order.user_id)
+  if (!user) return undefined
+
+  const now = Date.now()
+  const currentExpiry = user.membership_expires_at
+    ? Math.max(new Date(user.membership_expires_at).getTime(), now)
+    : now
+  const newExpiry = new Date(currentExpiry + plan.days * 24 * 60 * 60 * 1000).toISOString()
+
+  const starDraw = plan.starDraw || user.star_draw_enabled
+
+  const result = await pool.query(
+    `UPDATE users
+     SET status = 'approved',
+         approved_at = COALESCE(approved_at, NOW()),
+         membership_plan = $2,
+         membership_expires_at = $3,
+         star_draw_enabled = $4
+     WHERE id = $1
+     RETURNING *`,
+    [order.user_id, plan.id, newExpiry, starDraw],
+  )
+  const row = result.rows[0]
+  return row ? toPublicUser(mapUserRow(row)) : undefined
 }
 
 export async function ensureAdminUser() {

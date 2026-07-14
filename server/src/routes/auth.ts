@@ -1,7 +1,8 @@
 import { Router } from 'express'
 import bcrypt from 'bcryptjs'
 import { createUser, findUserByEmail, updateUserPassword } from '../db.js'
-import { requireAuth, signToken } from '../middleware.js'
+import { requireAuth, requireActiveMember, signToken } from '../middleware.js'
+import { toPublicUser } from '../db.js'
 
 const router = Router()
 
@@ -50,7 +51,7 @@ router.post('/register', async (req, res) => {
   await createUser({ name, phone, email, passwordHash })
 
   res.status(201).json({
-    message: '註冊成功，請等待管理員開通帳號後再登入',
+    message: '註冊成功！已開通免費會員，請登入使用。升級付費訂閱可解鎖大限流年、列印儲存等完整功能。',
   })
 })
 
@@ -69,10 +70,6 @@ router.post('/login', async (req, res) => {
     return
   }
 
-  if (user.status === 'pending') {
-    res.status(403).json({ error: '帳號審核中，請等待管理員開通' })
-    return
-  }
   if (user.status === 'rejected') {
     res.status(403).json({ error: '帳號已被拒絕，請聯絡管理員' })
     return
@@ -81,16 +78,7 @@ router.post('/login', async (req, res) => {
   const token = signToken(user.id, user.role)
   res.json({
     token,
-    user: {
-      id: user.id,
-      name: user.name,
-      phone: user.phone,
-      email: user.email,
-      status: user.status,
-      role: user.role,
-      createdAt: user.created_at,
-      approvedAt: user.approved_at,
-    },
+    user: toPublicUser(user),
   })
 })
 

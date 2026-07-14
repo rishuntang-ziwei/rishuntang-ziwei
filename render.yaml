@@ -16,6 +16,8 @@ services:
         generateValue: true
       # 請在 Render Dashboard 手動設定 DATABASE_URL（Neon 免費 PostgreSQL 連線字串）
       # 詳見 server/NEON-SETUP.md
+      # 藍新金流變數亦請在 Dashboard 手動設定（勿寫入 Git）
+      # 詳見 server/NEWEBPAY-SETUP.md
       - key: ADMIN_EMAIL
         value: admin@rishuntang.com
       - key: ADMIN_PASSWORD

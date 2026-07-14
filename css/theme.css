@@ -389,6 +389,80 @@ body {
   color: var(--brand-brown);
 }
 
+.membership-panel {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: var(--paper-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.membership-alert {
+  color: var(--brand-brown);
+  margin: 0 0 0.75rem;
+  font-weight: 600;
+}
+
+.membership-note {
+  color: var(--ink-muted);
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.membership-plans {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.membership-plan-card {
+  padding: 0.875rem;
+  background: var(--paper-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.membership-plan-card h4 {
+  margin: 0 0 0.35rem;
+  color: var(--brand-brown);
+}
+
+.membership-plan-desc {
+  margin: 0 0 0.5rem;
+  color: var(--ink-muted);
+  font-size: 0.9rem;
+}
+
+.membership-plan-price {
+  margin: 0 0 0.5rem;
+  font-weight: 700;
+  color: var(--brand-brown);
+}
+
+.membership-plan-tag {
+  margin: 0 0 0.5rem;
+  color: var(--green);
+  font-size: 0.85rem;
+}
+
+.membership-pay-btn {
+  width: 100%;
+}
+
+.membership-active p {
+  margin: 0.25rem 0;
+  color: var(--ink);
+}
+
+.chart-type-note {
+  margin: 0.35rem 0 0.75rem;
+  font-size: 0.85rem;
+}
+
+.chart-type-premium input:disabled + *,
+.chart-type-premium:has(input:disabled) {
+  opacity: 0.55;
+}
+
 .calendar-note {
   color: var(--green);
 }

@@ -17,7 +17,7 @@
     return (
       '<form id="loginForm" class="auth-form">' +
         '<h2>會員登入</h2>' +
-        '<p class="auth-note">請使用已開通的 Email 與密碼登入</p>' +
+        '<p class="auth-note">請使用 Email 與密碼登入；新會員註冊後即可免費排本命命盤</p>' +
         '<p class="auth-note auth-note-muted">忘記密碼？請聯絡管理員，提供註冊時的姓名與電話協助重設。</p>' +
         '<label>Email<input type="email" name="email" required></label>' +
         '<label>密碼<input type="password" name="password" required minlength="8"></label>' +
@@ -32,7 +32,7 @@
     return (
       '<form id="registerForm" class="auth-form">' +
         '<h2>申請會員帳號</h2>' +
-        '<p class="auth-note">註冊後需等待管理員開通，開通後才能登入排盤</p>' +
+        '<p class="auth-note">註冊即開通免費會員（本命命盤）；付費訂閱可解鎖完整功能</p>' +
         '<label>姓名<input type="text" name="name" required></label>' +
         '<label>電話<input type="tel" name="phone" placeholder="例如 0912345678" required></label>' +
         '<label>Email<input type="email" name="email" required></label>' +
@@ -132,11 +132,12 @@
     if (token) {
       try {
         const data = await auth.api('/api/auth/me')
-        if (data.user.status === 'approved') {
+        if (data.user.status === 'rejected') {
+          auth.setToken(null)
+        } else {
           auth.redirectToChart()
           return
         }
-        auth.setToken(null)
       } catch (_err) {
         auth.setToken(null)
       }

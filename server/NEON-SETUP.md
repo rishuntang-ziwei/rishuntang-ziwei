@@ -1,5 +1,7 @@
 # Neon 免費資料庫設定（Render + GitHub Pages）
 
+> 藍新金流設定請見 **[NEWEBPAY-SETUP.md](./NEWEBPAY-SETUP.md)**（Render 環境變數，手機可照做）。
+
 正式環境請使用 **Neon PostgreSQL（$0）**，會員資料才會永久保存。
 
 ---

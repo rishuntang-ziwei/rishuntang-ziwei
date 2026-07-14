@@ -36,6 +36,18 @@ export const updateSavedChart = (
 ) => driver.updateSavedChart(id, userId, updates)
 export const getSavedChartDetailForUser = (chartId: number, userId: number) =>
   driver.getSavedChartDetailForUser(chartId, userId)
+export const createPaymentOrder = (
+  userId: number,
+  merchantOrderNo: string,
+  planId: string,
+  amount: number,
+) => driver.createPaymentOrder(userId, merchantOrderNo, planId, amount)
+export const findPaymentOrderByMerchantOrderNo = (merchantOrderNo: string) =>
+  driver.findPaymentOrderByMerchantOrderNo(merchantOrderNo)
+export const markPaymentOrderPaid = (merchantOrderNo: string, newebpayTradeNo: string) =>
+  driver.markPaymentOrderPaid(merchantOrderNo, newebpayTradeNo)
+export const fulfillPaymentOrder = (order: import('../types.js').PaymentOrderRow) =>
+  driver.fulfillPaymentOrder(order)
 export const ensureAdminUser = () => driver.ensureAdminUser()
 
 export { toPublicUser } from './shared.js'

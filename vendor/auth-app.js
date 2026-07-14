@@ -387,23 +387,65 @@
     return user.role === 'admin' || user.starDrawEnabled
   }
 
+  function isPremiumMember(user) {
+    return user.role === 'admin' || user.membershipActive
+  }
+
   function updateMemberFeatures(user) {
+    const premium = isPremiumMember(user)
     const starDrawBtn = document.getElementById('starDrawBtn')
+    const saveChartBtn = document.getElementById('saveChartBtn')
+    const printChartBtn = document.getElementById('printChartBtn')
+    const chartDbBtn = document.getElementById('chartDbBtn')
+
+    ;[saveChartBtn, printChartBtn, chartDbBtn, starDrawBtn].forEach(function (btn) {
+      if (!btn) return
+      btn.disabled = !premium
+      btn.title = premium ? '' : '付費會員專屬功能，請升級訂閱'
+    })
+
     if (starDrawBtn) {
       starDrawBtn.onclick = function () {
+        if (!premium) {
+          alert('神牌功能需訂閱付費會員，請在上方選擇方案升級')
+          return
+        }
         if (canUseStarDraw(user)) {
           location.href = 'star-draw/index.html'
         } else {
-          alert('請與管理員聯絡開通此功能')
+          alert('神牌功能尚未開通，請聯絡管理員')
         }
       }
     }
+
+    window.ZiweiMember = {
+      currentUser: user,
+      isPremium: function () {
+        return isPremiumMember(window.ZiweiMember.currentUser)
+      },
+      requirePremium: function (featureName) {
+        if (isPremiumMember(window.ZiweiMember.currentUser)) return true
+        alert((featureName || '此功能') + '需訂閱付費會員，請在左側選擇方案升級')
+        return false
+      },
+    }
+
+    if (typeof window.applyMemberTierUI === 'function') {
+      window.applyMemberTierUI()
+    }
   }
 
-  function enterApp(user) {
+  async function enterApp(user) {
     currentUser = user
     setView('app')
     updateMemberFeatures(user)
+
+    if (window.ZiweiPayment) {
+      window.ZiweiPayment.showPaymentToast()
+      user = await window.ZiweiPayment.renderMembershipPanel(user)
+      currentUser = user
+      updateMemberFeatures(user)
+    }
 
     const bar = document.getElementById('userBar')
     if (bar) {
@@ -429,6 +471,7 @@
     }
 
     if (typeof window.initChartApp === 'function') window.initChartApp()
+    if (typeof window.applyMemberTierUI === 'function') window.applyMemberTierUI()
   }
 
   async function boot() {
@@ -440,12 +483,12 @@
 
     try {
       const data = await auth.api('/api/auth/me')
-      if (data.user.status !== 'approved') {
+      if (data.user.status === 'rejected') {
         auth.setToken(null)
         auth.redirectToLogin()
         return
       }
-      enterApp(data.user)
+      await enterApp(data.user)
     } catch (_err) {
       auth.setToken(null)
       auth.redirectToLogin()
