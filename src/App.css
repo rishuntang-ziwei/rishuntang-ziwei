@@ -1611,117 +1611,117 @@ body {
   }
 
   .star-vcol.major .vname {
-    font-size: 58px !important;
+    font-size: 40px !important;
     letter-spacing: 2px !important;
   }
 
   .star-vcol.g .vname,
   .star-vcol.g-lg .vname {
-    font-size: 48px !important;
-    letter-spacing: 4px !important;
+    font-size: 30px !important;
+    letter-spacing: 3px !important;
   }
 
   .star-vcol.p-sm .vname,
   .star-vcol.g-sm .vname {
-    font-size: 36px !important;
+    font-size: 22px !important;
     letter-spacing: 2px !important;
   }
 
   .star-vcol .vbright {
-    font-size: 32px !important;
+    font-size: 18px !important;
   }
 
   .star-vcol.major .vbright {
-    font-size: 34px !important;
+    font-size: 20px !important;
   }
 
   .star-vcol.flow .vname {
-    font-size: 28px !important;
+    font-size: 16px !important;
   }
 
   .star-vcol.major .mutagen-box,
   .mutagen-box {
-    width: 36px !important;
-    height: 36px !important;
-    line-height: 34px !important;
-    font-size: 36px !important;
+    width: 28px !important;
+    height: 28px !important;
+    line-height: 26px !important;
+    font-size: 26px !important;
   }
 
   .mutagen-box.horoscope-mutagen {
-    width: 32px !important;
-    height: 32px !important;
-    line-height: 30px !important;
-    font-size: 32px !important;
+    width: 24px !important;
+    height: 24px !important;
+    line-height: 22px !important;
+    font-size: 24px !important;
   }
 
   .mutagen-circle {
-    width: 34px !important;
-    height: 34px !important;
-    line-height: 32px !important;
-    font-size: 34px !important;
+    width: 26px !important;
+    height: 26px !important;
+    line-height: 24px !important;
+    font-size: 24px !important;
   }
 
   .palace-label {
-    font-size: 36px !important;
+    font-size: 24px !important;
   }
 
   .gz-gan,
   .gz-zhi {
-    font-size: 24px !important;
+    font-size: 15px !important;
   }
 
   .daxian,
   .decadal-slot {
-    font-size: 24px !important;
+    font-size: 15px !important;
   }
 
   .monthly-badge {
-    width: 32px !important;
-    height: 32px !important;
-    font-size: 24px !important;
+    width: 24px !important;
+    height: 24px !important;
+    font-size: 16px !important;
   }
 
   .shen-badge {
-    font-size: 26px !important;
+    font-size: 18px !important;
   }
 
   .center-info {
-    font-size: 28px !important;
+    font-size: 20px !important;
   }
 
   .center-vcol {
-    font-size: 26px !important;
+    font-size: 18px !important;
   }
 
   .center-vcol-lunar {
-    font-size: 22px !important;
+    font-size: 16px !important;
   }
 
   .center-vcol-bazi {
-    font-size: 24px !important;
-  }
-
-  .center-age {
-    font-size: 30px !important;
-  }
-
-  .center-brand {
-    font-size: 24px !important;
-  }
-
-  .center-wuxing-cross .wuxing-node-name {
-    font-size: 22px !important;
-  }
-
-  .center-wuxing-cross .wuxing-node-count {
     font-size: 17px !important;
   }
 
+  .center-age {
+    font-size: 22px !important;
+  }
+
+  .center-brand {
+    font-size: 18px !important;
+  }
+
+  .center-wuxing-cross .wuxing-node-name {
+    font-size: 16px !important;
+  }
+
+  .center-wuxing-cross .wuxing-node-count {
+    font-size: 13px !important;
+  }
+
   .vtext.name {
-    font-size: 34px !important;
+    font-size: 26px !important;
   }
 
   .vtext.title {
-    font-size: 50px !important;
+    font-size: 38px !important;
   }
 }
