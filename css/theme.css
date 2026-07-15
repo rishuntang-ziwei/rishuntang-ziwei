@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Iansui&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@400;600;700&display=swap');
 
 :root {
   /* 淡宣紙 · 深褐朱紅 */
@@ -37,8 +37,9 @@
   --purple: #6a1b9a;
   --line-red: #d32f2f;
 
-  --font-body: 'Iansui', '芫荽', 'DFKai-SB', '標楷體', 'BiauKai', 'KaiTi', serif;
-  --font-brand: 'Iansui', '芫荽', 'DFKai-SB', '標楷體', serif;
+  --font-body: 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+  --font-brand: 'Noto Serif TC', 'Noto Sans TC', serif;
+  --font-chart: 'Noto Serif TC', 'KaiTi', 'BiauKai', 'DFKai-SB', serif;
 }
 
 * {
@@ -54,6 +55,12 @@ body {
   color: var(--ink);
   min-height: 100vh;
   margin: 0;
+}
+
+.chart-panel,
+.chart-outer,
+#chartView {
+  font-family: var(--font-chart);
 }
 
 [hidden] {

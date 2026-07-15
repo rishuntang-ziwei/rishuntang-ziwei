@@ -176,8 +176,8 @@ export function buildWuxingPanel(counts, options = {}) {
     ${titleHtml}
     <svg class="wuxing-svg" viewBox="${viewBox}" aria-hidden="true">
       <defs>
-        <marker id="${markerId}" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="8" markerHeight="8" orient="auto" markerUnits="userSpaceOnUse">
-          <path d="M1 1 L9 5 L1 9" fill="none" stroke="#333" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+        <marker id="${markerId}" markerWidth="7" markerHeight="7" refX="5.5" refY="3.5" orient="auto" markerUnits="userSpaceOnUse">
+          <polygon points="0 0, 7 3.5, 0 7" fill="#333" />
         </marker>
       </defs>
       ${generatingEdges}
