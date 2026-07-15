@@ -93,17 +93,6 @@ function edgeLine(from, to, fromR, toR) {
   };
 }
 
-function outerArc(cx, cy, radius, startDeg, endDeg) {
-  const toRad = (d) => (d * Math.PI) / 180;
-  const x1 = cx + radius * Math.cos(toRad(startDeg));
-  const y1 = cy + radius * Math.sin(toRad(startDeg));
-  const x2 = cx + radius * Math.cos(toRad(endDeg));
-  const y2 = cy + radius * Math.sin(toRad(endDeg));
-  const large = Math.abs(endDeg - startDeg) > 180 ? 1 : 0;
-  const sweep = endDeg > startDeg ? 1 : 0;
-  return `M ${x1.toFixed(1)} ${y1.toFixed(1)} A ${radius} ${radius} 0 ${large} ${sweep} ${x2.toFixed(1)} ${y2.toFixed(1)}`;
-}
-
 function resolveLayout(options) {
   if (options.size === 'center') {
     return { outerDist: 92, outerR: 40, centerR: 36 };
@@ -112,6 +101,10 @@ function resolveLayout(options) {
     return { outerDist: 68, outerR: 24, centerR: 22 };
   }
   return { outerDist: 76, outerR: 30, centerR: 26 };
+}
+
+function nodeRadius(name, outerR, centerR) {
+  return name === '土' ? centerR : outerR;
 }
 
 export function buildWuxingPanel(counts, options = {}) {
@@ -124,7 +117,6 @@ export function buildWuxingPanel(counts, options = {}) {
   const cx = 130;
   const cy = 128;
   const { outerDist, outerR, centerR } = resolveLayout(options);
-  const arcR = outerDist + outerR - 6;
   const viewBox = options.size === 'center' ? '-14 -14 288 288' : '0 0 260 260';
 
   const positions = {};
@@ -132,21 +124,15 @@ export function buildWuxingPanel(counts, options = {}) {
     positions[name] = getPosition(name, cx, cy, name === '土' ? 0 : outerDist);
   });
 
-  const arcs = [
-    outerArc(cx, cy, arcR, -80, -10),
-    outerArc(cx, cy, arcR, 10, 80),
-  ]
-    .map(
-      (d) =>
-        `<path d="${d}" class="wuxing-arc" fill="none" marker-end="url(#${markerId})" />`,
-    )
-    .join('');
-
-  const innerEdges = [
-    edgeLine(positions.火, positions.土, outerR, centerR),
-    edgeLine(positions.土, positions.金, centerR, outerR),
-    edgeLine(positions.金, positions.水, outerR, outerR),
-  ]
+  const generatingEdges = GENERATING_CYCLE.map((from, index) => {
+    const to = GENERATING_CYCLE[(index + 1) % GENERATING_CYCLE.length];
+    return edgeLine(
+      positions[from],
+      positions[to],
+      nodeRadius(from, outerR, centerR),
+      nodeRadius(to, outerR, centerR),
+    );
+  })
     .map(
       (e) =>
         `<line x1="${e.x1.toFixed(1)}" y1="${e.y1.toFixed(1)}" x2="${e.x2.toFixed(1)}" y2="${e.y2.toFixed(1)}" class="wuxing-edge" marker-end="url(#${markerId})" />`,
@@ -190,12 +176,11 @@ export function buildWuxingPanel(counts, options = {}) {
     ${titleHtml}
     <svg class="wuxing-svg" viewBox="${viewBox}" aria-hidden="true">
       <defs>
-        <marker id="${markerId}" markerWidth="7" markerHeight="7" refX="5.5" refY="3.5" orient="auto">
-          <polygon points="0 0, 7 3.5, 0 7" fill="#333" />
+        <marker id="${markerId}" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="8" markerHeight="8" orient="auto" markerUnits="userSpaceOnUse">
+          <path d="M1 1 L9 5 L1 9" fill="none" stroke="#333" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
         </marker>
       </defs>
-      ${arcs}
-      ${innerEdges}
+      ${generatingEdges}
       ${nodes}
     </svg>
     ${summary}`;
