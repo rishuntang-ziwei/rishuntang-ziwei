@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import bcrypt from 'bcryptjs'
+import { memberSummary, parseMemberSegment, segmentMembers, toAdminMemberRow } from '../adminMembers.js'
 import {
   countAdmins,
   deleteUser,
@@ -20,6 +21,28 @@ router.use(requireAuth, requireAdmin)
 
 router.get('/users', async (_req, res) => {
   res.json({ users: await listUsers() })
+})
+
+router.get('/members/summary', async (_req, res) => {
+  const users = await listUsers()
+  res.json({ summary: memberSummary(users) })
+})
+
+router.get('/members/:segment', async (req, res) => {
+  const segment = parseMemberSegment(String(req.params.segment))
+  if (!segment) {
+    res.status(400).json({ error: '無效的會員分類' })
+    return
+  }
+
+  const users = await listUsers()
+  const members = segmentMembers(users, segment).map(toAdminMemberRow)
+  res.json({
+    segment,
+    members,
+    total: members.length,
+    summary: memberSummary(users),
+  })
 })
 
 router.get('/users/:id/charts', async (req, res) => {

@@ -1,5 +1,6 @@
 export type UserStatus = 'pending' | 'approved' | 'rejected'
 export type UserRole = 'user' | 'admin'
+export type MembershipTier = 'free' | 'paid'
 
 export interface AuthUser {
   id: number
@@ -9,6 +10,11 @@ export interface AuthUser {
   status: UserStatus
   role: UserRole
   starDrawEnabled: boolean
+  membershipPlan: string | null
+  membershipPlanLabel?: string
+  membershipExpiresAt: string | null
+  membershipActive: boolean
+  membershipTier: MembershipTier
   createdAt: string
   approvedAt: string | null
 }
@@ -28,4 +34,24 @@ export interface MeResponse {
 
 export interface UsersResponse {
   users: AuthUser[]
+}
+
+export type AdminMemberSegment = 'free' | 'paid' | 'pending' | 'admins'
+
+export interface AdminMemberSummary {
+  free: number
+  paid: number
+  pending: number
+  admins: number
+}
+
+export interface AdminMembersResponse {
+  segment: AdminMemberSegment
+  members: AuthUser[]
+  total: number
+  summary: AdminMemberSummary
+}
+
+export interface AdminMemberSummaryResponse {
+  summary: AdminMemberSummary
 }

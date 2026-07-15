@@ -1,4 +1,7 @@
 import type {
+  AdminMemberSegment,
+  AdminMembersResponse,
+  AdminMemberSummaryResponse,
   LoginResponse,
   MeResponse,
   RegisterResponse,
@@ -70,6 +73,14 @@ export function fetchCurrentUser() {
 
 export function fetchAdminUsers() {
   return request<UsersResponse>('/api/admin/users')
+}
+
+export function fetchAdminMemberSummary() {
+  return request<AdminMemberSummaryResponse>('/api/admin/members/summary')
+}
+
+export function fetchAdminMembers(segment: AdminMemberSegment) {
+  return request<AdminMembersResponse>(`/api/admin/members/${segment}`)
 }
 
 export function approveUser(id: number) {

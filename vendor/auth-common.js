@@ -33,6 +33,21 @@ window.ZiweiAuth = (function () {
     return '已拒絕'
   }
 
+  function membershipTierLabel(user) {
+    if (user.role === 'admin') return '管理員'
+    if (user.membershipActive) return '付費會員'
+    if (user.status === 'pending') return '待審核'
+    if (user.status === 'rejected') return '已拒絕'
+    return '免費會員'
+  }
+
+  function formatMembershipExpiry(iso) {
+    if (!iso) return '—'
+    const d = new Date(iso)
+    if (Number.isNaN(d.getTime())) return '—'
+    return d.toLocaleDateString('zh-TW')
+  }
+
   function redirectToLogin() {
     location.href = LOGIN_PAGE
   }
@@ -50,6 +65,8 @@ window.ZiweiAuth = (function () {
     setToken,
     api,
     statusLabel,
+    membershipTierLabel,
+    formatMembershipExpiry,
     redirectToLogin,
     redirectToChart,
   }

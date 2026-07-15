@@ -423,7 +423,7 @@
       grid-row: 2 / 4;
       grid-column: 2 / 4;
       z-index: 4;
-      overflow: visible;
+      overflow: hidden;
     }
 
     /* ── 宮位 ── */
@@ -935,19 +935,20 @@
       flex-direction: column;
       height: 100%;
       padding: 6px 8px 4px;
-      overflow: visible;
+      overflow: hidden;
       writing-mode: horizontal-tb;
       box-sizing: border-box;
     }
 
     .center-wuxing-cross {
-      flex: 0 0 auto;
+      flex: 0 1 auto;
       display: flex;
       align-items: center;
       justify-content: center;
       align-self: center;
       width: min(100%, 200px);
-      max-width: 210px;
+      max-width: min(38%, 210px);
+      min-width: 0;
       aspect-ratio: 1;
       overflow: visible;
       position: relative;
@@ -985,12 +986,13 @@
 
     .center-body {
       flex: 1;
-      display: flex;
-      flex-direction: row;
-      align-items: stretch;
+      display: grid;
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.15fr) minmax(0, 0.85fr);
+      align-items: center;
       gap: 6px;
       min-height: 0;
-      overflow: visible;
+      min-width: 0;
+      overflow: hidden;
     }
 
     .center-top-right {
@@ -1034,8 +1036,8 @@
     .center-control-meta { color: #444; white-space: nowrap; }
 
     .center-info {
-      flex: 0 1 auto;
-      max-width: 48%;
+      width: 100%;
+      max-width: 100%;
       min-width: 0;
       display: flex;
       flex-direction: column;
@@ -1043,24 +1045,26 @@
       font-size: 20px;
       line-height: 1.45;
       writing-mode: horizontal-tb;
-      overflow: visible;
+      overflow: hidden;
     }
 
     .center-vtext {
-      flex-shrink: 0;
+      min-width: 0;
       display: flex;
       flex-direction: row;
       align-items: center;
       justify-content: center;
       gap: 6px;
       padding-left: 4px;
+      overflow: hidden;
+      justify-self: end;
     }
 
     .center-info-upper {
       flex: 1 1 auto;
       min-height: 0;
       min-width: 0;
-      overflow: visible;
+      overflow: hidden;
     }
 
     .center-info-detail {
@@ -1069,7 +1073,7 @@
       align-items: flex-end;
       gap: 5px;
       margin-top: 4px;
-      overflow: visible;
+      overflow: hidden;
       max-width: 100%;
     }
 
@@ -1304,7 +1308,8 @@
 
       .center-wuxing-cross {
         width: min(100%, 150px);
-        max-width: 160px;
+        max-width: min(34%, 160px);
+        min-width: 0;
       }
 
       .center-wuxing-cross .wuxing-node-name {
@@ -1414,6 +1419,88 @@
 
     #adminPanel .danger {
       color: #c62828;
+    }
+
+    .admin-member-db {
+      background: var(--paper-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .admin-member-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .admin-member-header h2 {
+      margin: 0;
+      color: var(--brand-brown);
+    }
+
+    .admin-member-subtitle {
+      margin: 4px 0 0;
+      color: var(--ink-muted);
+      font-size: 14px;
+    }
+
+    .admin-member-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .admin-member-tab {
+      border: 1px solid var(--border);
+      background: var(--paper-muted);
+      color: var(--brand-brown);
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-family: inherit;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .admin-member-tab.is-active {
+      background: var(--brand-brown);
+      border-color: var(--brand-brown);
+      color: #fff;
+    }
+
+    .admin-member-note {
+      margin: 0 0 12px;
+      color: var(--ink-muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .admin-table-wrap {
+      overflow-x: auto;
+    }
+
+    .admin-member-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .admin-member-table th,
+    .admin-member-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--brand-gold-light);
+      text-align: left;
+      font-size: 14px;
+      vertical-align: top;
+    }
+
+    .admin-empty {
+      text-align: center;
+      color: var(--ink-muted);
+      padding: 24px 12px !important;
     }
 
     .password-modal {
@@ -1559,11 +1646,46 @@
         stroke-width: 0.75 !important;
       }
 
+      .cell.center {
+        overflow: hidden !important;
+      }
+
+      .center {
+        overflow: hidden !important;
+        padding: 4px 6px 3px !important;
+      }
+
+      .center-body {
+        grid-template-columns: minmax(0, 31%) minmax(0, 39%) minmax(0, 28%) !important;
+        gap: 3px !important;
+        overflow: hidden !important;
+        min-width: 0 !important;
+      }
+
+      .center-info,
+      .center-info-upper,
+      .center-info-detail {
+        overflow: hidden !important;
+        max-width: 100% !important;
+      }
+
+      .center-info-detail {
+        gap: 3px !important;
+      }
+
+      .center-vtext {
+        min-width: 0 !important;
+        overflow: hidden !important;
+        gap: 4px !important;
+        padding-left: 0 !important;
+      }
+
       .center-wuxing-cross {
         z-index: 6 !important;
-        width: min(100%, 270px) !important;
-        max-width: 290px !important;
-        min-width: 240px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        justify-self: center !important;
       }
 
       .center-wuxing-cross .wuxing-arc,

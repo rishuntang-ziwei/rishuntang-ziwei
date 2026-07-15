@@ -151,7 +151,271 @@
     })
   }
 
+  let adminMemberTab = 'free'
   let adminChartSearchQuery = ''
+
+  function bindAdminPanelEvents(panel) {
+    panel.querySelectorAll('[data-admin-tab]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        renderAdminPanel(btn.dataset.adminTab)
+      })
+    })
+
+    const backBtn = document.getElementById('backToAppBtn')
+    if (backBtn) {
+      backBtn.addEventListener('click', function () {
+        enterApp(currentUser)
+      })
+    }
+
+    panel.querySelectorAll('[data-approve]').forEach(function (btn) {
+      btn.addEventListener('click', async function () {
+        await auth.api('/api/admin/users/' + btn.dataset.approve + '/approve', { method: 'POST' })
+        await renderAdminPanel()
+      })
+    })
+
+    panel.querySelectorAll('[data-reject]').forEach(function (btn) {
+      btn.addEventListener('click', async function () {
+        await auth.api('/api/admin/users/' + btn.dataset.reject + '/reject', { method: 'POST' })
+        await renderAdminPanel()
+      })
+    })
+
+    panel.querySelectorAll('[data-reset]').forEach(function (btn) {
+      btn.addEventListener('click', async function () {
+        try {
+          await resetUserPassword(btn.dataset.reset, btn.dataset.name)
+          await renderAdminPanel()
+        } catch (err) {
+          alert(err.message)
+        }
+      })
+    })
+
+    panel.querySelectorAll('[data-make-admin]').forEach(function (btn) {
+      btn.addEventListener('click', async function () {
+        try {
+          await makeUserAdmin(btn.dataset.makeAdmin, btn.dataset.name)
+          await renderAdminPanel()
+        } catch (err) {
+          alert(err.message)
+        }
+      })
+    })
+
+    panel.querySelectorAll('[data-revoke-admin]').forEach(function (btn) {
+      btn.addEventListener('click', async function () {
+        try {
+          await revokeUserAdmin(btn.dataset.revokeAdmin, btn.dataset.name)
+          await renderAdminPanel()
+        } catch (err) {
+          alert(err.message)
+        }
+      })
+    })
+
+    panel.querySelectorAll('[data-delete]').forEach(function (btn) {
+      btn.addEventListener('click', async function () {
+        try {
+          await deleteUserAccount(btn.dataset.delete, btn.dataset.name)
+          await renderAdminPanel()
+        } catch (err) {
+          alert(err.message)
+        }
+      })
+    })
+
+    panel.querySelectorAll('[data-view-charts]').forEach(function (btn) {
+      btn.addEventListener('click', async function () {
+        try {
+          await renderUserChartsPanel(btn.dataset.viewCharts, btn.dataset.name)
+        } catch (err) {
+          alert(err.message)
+        }
+      })
+    })
+
+    panel.querySelectorAll('[data-enable-star-draw]').forEach(function (btn) {
+      btn.addEventListener('click', async function () {
+        if (!confirm('確定要為「' + btn.dataset.name + '」開通神牌功能？')) return
+        try {
+          await auth.api('/api/admin/users/' + btn.dataset.enableStarDraw + '/enable-star-draw', { method: 'POST' })
+          await renderAdminPanel()
+        } catch (err) {
+          alert(err.message)
+        }
+      })
+    })
+
+    panel.querySelectorAll('[data-disable-star-draw]').forEach(function (btn) {
+      btn.addEventListener('click', async function () {
+        if (!confirm('確定要取消「' + btn.dataset.name + '」的神牌功能？')) return
+        try {
+          await auth.api('/api/admin/users/' + btn.dataset.disableStarDraw + '/disable-star-draw', { method: 'POST' })
+          await renderAdminPanel()
+        } catch (err) {
+          alert(err.message)
+        }
+      })
+    })
+  }
+
+  function renderAdminMemberTabs(summary, activeTab) {
+    return (
+      '<div class="admin-member-tabs">' +
+        '<button type="button" class="admin-member-tab' + (activeTab === 'free' ? ' is-active' : '') + '" data-admin-tab="free">免費會員（' + summary.free + '）</button>' +
+        '<button type="button" class="admin-member-tab' + (activeTab === 'paid' ? ' is-active' : '') + '" data-admin-tab="paid">付費會員（' + summary.paid + '）</button>' +
+        '<button type="button" class="admin-member-tab' + (activeTab === 'pending' ? ' is-active' : '') + '" data-admin-tab="pending">待審核（' + summary.pending + '）</button>' +
+        '<button type="button" class="admin-member-tab' + (activeTab === 'admins' ? ' is-active' : '') + '" data-admin-tab="admins">管理員（' + summary.admins + '）</button>' +
+      '</div>'
+    )
+  }
+
+  function renderAdminMemberRows(tab, members) {
+    if (!members.length) {
+      const emptyMsg =
+        tab === 'free'
+          ? '目前沒有免費會員'
+          : tab === 'paid'
+            ? '目前沒有付費會員'
+            : tab === 'pending'
+              ? '目前沒有待審核會員'
+              : '尚無其他管理員'
+      return '<tr><td colspan="8" class="admin-empty">' + emptyMsg + '</td></tr>'
+    }
+
+    return members
+      .map(function (user) {
+        const starDrawCell =
+          user.role === 'admin'
+            ? '—'
+            : user.starDrawEnabled
+              ? '已開通'
+              : '未開通'
+
+        if (tab === 'paid') {
+          return (
+            '<tr>' +
+              '<td>' + user.name + '</td>' +
+              '<td>' + user.phone + '</td>' +
+              '<td>' + user.email + '</td>' +
+              '<td>' + (user.membershipPlanLabel || '付費會員') + '</td>' +
+              '<td>' + auth.formatMembershipExpiry(user.membershipExpiresAt) + '</td>' +
+              '<td>' + starDrawCell + '</td>' +
+              '<td>' + new Date(user.createdAt).toLocaleString('zh-TW') + '</td>' +
+              '<td>' + renderUserActions(user) + '</td>' +
+            '</tr>'
+          )
+        }
+
+        if (tab === 'admins') {
+          return (
+            '<tr>' +
+              '<td>' + user.name + '</td>' +
+              '<td>' + user.phone + '</td>' +
+              '<td>' + user.email + '</td>' +
+              '<td>' + new Date(user.createdAt).toLocaleString('zh-TW') + '</td>' +
+              '<td>' + renderUserActions(user) + '</td>' +
+            '</tr>'
+          )
+        }
+
+        return (
+          '<tr>' +
+            '<td>' + user.name + '</td>' +
+            '<td>' + user.phone + '</td>' +
+            '<td>' + user.email + '</td>' +
+            '<td>' + auth.membershipTierLabel(user) + '</td>' +
+            '<td>' + starDrawCell + '</td>' +
+            '<td>' + new Date(user.createdAt).toLocaleString('zh-TW') + '</td>' +
+            '<td>' + renderUserActions(user) + '</td>' +
+          '</tr>'
+        )
+      })
+      .join('')
+  }
+
+  function renderAdminMemberTable(tab, members) {
+    if (tab === 'paid') {
+      return (
+        '<table class="admin-member-table">' +
+          '<thead><tr><th>姓名</th><th>電話</th><th>Email</th><th>訂閱方案</th><th>有效至</th><th>神牌</th><th>註冊時間</th><th>操作</th></tr></thead>' +
+          '<tbody>' + renderAdminMemberRows(tab, members) + '</tbody>' +
+        '</table>'
+      )
+    }
+
+    if (tab === 'admins') {
+      return (
+        '<table class="admin-member-table">' +
+          '<thead><tr><th>姓名</th><th>電話</th><th>Email</th><th>建立時間</th><th>操作</th></tr></thead>' +
+          '<tbody>' + renderAdminMemberRows(tab, members) + '</tbody>' +
+        '</table>'
+      )
+    }
+
+    return (
+      '<table class="admin-member-table">' +
+        '<thead><tr><th>姓名</th><th>電話</th><th>Email</th><th>會員類型</th><th>神牌</th><th>註冊時間</th><th>操作</th></tr></thead>' +
+        '<tbody>' + renderAdminMemberRows(tab, members) + '</tbody>' +
+      '</table>'
+    )
+  }
+
+  function adminTabDescription(tab) {
+    if (tab === 'free') {
+      return '註冊即列入免費會員資料庫，可使用本命命盤；付費訂閱後會自動移至付費會員。'
+    }
+    if (tab === 'paid') {
+      return '付費訂閱中的會員，可完整使用大限流年、列印儲存與神牌等功能。'
+    }
+    if (tab === 'pending') {
+      return '尚未審核通過的申請（若仍使用人工審核流程）。'
+    }
+    return '系統管理員帳號。'
+  }
+
+  async function renderAdminPanel(tab) {
+    if (tab) adminMemberTab = tab
+    const panel = document.getElementById('adminPanel')
+    if (!panel) return
+
+    setView('admin')
+    panel.innerHTML = '<div class="auth-card"><p>載入中…</p></div>'
+
+    try {
+      const data = await auth.api('/api/admin/members/' + adminMemberTab)
+      const summary = data.summary || { free: 0, paid: 0, pending: 0, admins: 0 }
+      const members = data.members || []
+      const tabTitle =
+        adminMemberTab === 'free'
+          ? '免費會員資料庫'
+          : adminMemberTab === 'paid'
+            ? '付費會員資料庫'
+            : adminMemberTab === 'pending'
+              ? '待審核會員'
+              : '管理員'
+
+      panel.innerHTML =
+        '<div id="adminPanelInner" class="admin-member-db">' +
+          '<div class="admin-member-header">' +
+            '<div>' +
+              '<h2>會員資料庫</h2>' +
+              '<p class="admin-member-subtitle">' + tabTitle + ' · 共 ' + members.length + ' 筆</p>' +
+            '</div>' +
+            '<button type="button" id="backToAppBtn">返回排盤</button>' +
+          '</div>' +
+          renderAdminMemberTabs(summary, adminMemberTab) +
+          '<p class="admin-member-note">' + adminTabDescription(adminMemberTab) + '</p>' +
+          '<div class="admin-table-wrap">' + renderAdminMemberTable(adminMemberTab, members) + '</div>' +
+        '</div>'
+
+      bindAdminPanelEvents(panel)
+    } catch (err) {
+      panel.innerHTML = '<div class="auth-card auth-error">' + err.message + '</div>'
+    }
+  }
 
   async function loadAdminChartAndShow(userId, chartId) {
     const data = await auth.api('/api/admin/users/' + userId + '/charts/' + chartId)
@@ -200,7 +464,7 @@
         '<div id="adminPanelInner">' +
           '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">' +
             '<h2>「' + userName + '」的已存命盤</h2>' +
-            '<button type="button" id="backToAdminBtn">返回會員管理</button>' +
+            '<button type="button" id="backToAdminBtn">返回會員資料庫</button>' +
           '</div>' +
           '<div style="display:flex;gap:8px;margin-bottom:8px;">' +
             '<input type="search" id="adminChartSearch" placeholder="搜尋姓名或電話…" style="flex:1;padding:8px;font-family:inherit;" />' +
@@ -245,139 +509,6 @@
 
     try {
       await loadCharts('')
-    } catch (err) {
-      panel.innerHTML = '<div class="auth-card auth-error">' + err.message + '</div>'
-    }
-  }
-
-  async function renderAdminPanel() {
-    const panel = document.getElementById('adminPanel')
-    if (!panel) return
-
-    setView('admin')
-    panel.innerHTML = '<div class="auth-card"><p>載入中…</p></div>'
-
-    try {
-      const data = await auth.api('/api/admin/users')
-      const rows = data.users.map(function (user) {
-        return (
-          '<tr>' +
-            '<td>' + user.name + '</td>' +
-            '<td>' + user.phone + '</td>' +
-            '<td>' + user.email + '</td>' +
-            '<td>' + auth.statusLabel(user.status, user.role) + '</td>' +
-            '<td>' + new Date(user.createdAt).toLocaleString('zh-TW') + '</td>' +
-            '<td>' + renderUserActions(user) + '</td>' +
-          '</tr>'
-        )
-      }).join('')
-
-      panel.innerHTML =
-        '<div id="adminPanelInner">' +
-          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">' +
-            '<h2>會員管理</h2>' +
-            '<button type="button" id="backToAppBtn">返回排盤</button>' +
-          '</div>' +
-          '<table>' +
-            '<thead><tr><th>姓名</th><th>電話</th><th>Email</th><th>狀態</th><th>申請時間</th><th>操作</th></tr></thead>' +
-            '<tbody>' + rows + '</tbody>' +
-          '</table>' +
-        '</div>'
-
-      document.getElementById('backToAppBtn').addEventListener('click', function () {
-        enterApp(currentUser)
-      })
-
-      panel.querySelectorAll('[data-approve]').forEach(function (btn) {
-        btn.addEventListener('click', async function () {
-          await auth.api('/api/admin/users/' + btn.dataset.approve + '/approve', { method: 'POST' })
-          await renderAdminPanel()
-        })
-      })
-
-      panel.querySelectorAll('[data-reject]').forEach(function (btn) {
-        btn.addEventListener('click', async function () {
-          await auth.api('/api/admin/users/' + btn.dataset.reject + '/reject', { method: 'POST' })
-          await renderAdminPanel()
-        })
-      })
-
-      panel.querySelectorAll('[data-reset]').forEach(function (btn) {
-        btn.addEventListener('click', async function () {
-          try {
-            await resetUserPassword(btn.dataset.reset, btn.dataset.name)
-          } catch (err) {
-            alert(err.message)
-          }
-        })
-      })
-
-      panel.querySelectorAll('[data-make-admin]').forEach(function (btn) {
-        btn.addEventListener('click', async function () {
-          try {
-            await makeUserAdmin(btn.dataset.makeAdmin, btn.dataset.name)
-            await renderAdminPanel()
-          } catch (err) {
-            alert(err.message)
-          }
-        })
-      })
-
-      panel.querySelectorAll('[data-revoke-admin]').forEach(function (btn) {
-        btn.addEventListener('click', async function () {
-          try {
-            await revokeUserAdmin(btn.dataset.revokeAdmin, btn.dataset.name)
-            await renderAdminPanel()
-          } catch (err) {
-            alert(err.message)
-          }
-        })
-      })
-
-      panel.querySelectorAll('[data-delete]').forEach(function (btn) {
-        btn.addEventListener('click', async function () {
-          try {
-            await deleteUserAccount(btn.dataset.delete, btn.dataset.name)
-            await renderAdminPanel()
-          } catch (err) {
-            alert(err.message)
-          }
-        })
-      })
-
-      panel.querySelectorAll('[data-view-charts]').forEach(function (btn) {
-        btn.addEventListener('click', async function () {
-          try {
-            await renderUserChartsPanel(btn.dataset.viewCharts, btn.dataset.name)
-          } catch (err) {
-            alert(err.message)
-          }
-        })
-      })
-
-      panel.querySelectorAll('[data-enable-star-draw]').forEach(function (btn) {
-        btn.addEventListener('click', async function () {
-          if (!confirm('確定要為「' + btn.dataset.name + '」開通神牌功能？')) return
-          try {
-            await auth.api('/api/admin/users/' + btn.dataset.enableStarDraw + '/enable-star-draw', { method: 'POST' })
-            await renderAdminPanel()
-          } catch (err) {
-            alert(err.message)
-          }
-        })
-      })
-
-      panel.querySelectorAll('[data-disable-star-draw]').forEach(function (btn) {
-        btn.addEventListener('click', async function () {
-          if (!confirm('確定要取消「' + btn.dataset.name + '」的神牌功能？')) return
-          try {
-            await auth.api('/api/admin/users/' + btn.dataset.disableStarDraw + '/disable-star-draw', { method: 'POST' })
-            await renderAdminPanel()
-          } catch (err) {
-            alert(err.message)
-          }
-        })
-      })
     } catch (err) {
       panel.innerHTML = '<div class="auth-card auth-error">' + err.message + '</div>'
     }
@@ -453,7 +584,7 @@
         '<span>' + user.name + '</span>' +
         '<button type="button" id="changePasswordBtn">修改密碼</button>' +
         (user.role === 'admin'
-          ? '<button type="button" id="openAdminBtn">會員管理</button>'
+          ? '<button type="button" id="openAdminBtn">會員資料庫</button>'
           : '') +
         '<button type="button" id="logoutBtn">登出</button>'
 
