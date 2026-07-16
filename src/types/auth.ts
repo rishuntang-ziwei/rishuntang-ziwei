@@ -15,6 +15,7 @@ export interface AuthUser {
   membershipExpiresAt: string | null
   membershipActive: boolean
   membershipTier: MembershipTier
+  birthDateTime: string | null
   createdAt: string
   approvedAt: string | null
 }

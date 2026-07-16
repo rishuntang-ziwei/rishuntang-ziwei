@@ -238,6 +238,83 @@ body {
   color: var(--ink-light);
 }
 
+.register-birth-fieldset {
+  margin: 0 0 14px;
+  padding: 12px 14px 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.register-birth-fieldset legend {
+  padding: 0 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--brand-brown);
+}
+
+.register-birth-row {
+  margin-bottom: 10px;
+}
+
+.register-birth-row.inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+}
+
+.register-birth-row.inline > label:first-child {
+  min-width: 2.5em;
+  margin-bottom: 0;
+  font-weight: 600;
+  color: var(--ink-muted);
+}
+
+.register-birth-row.inline label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 0;
+  cursor: pointer;
+}
+
+.register-birth-row label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 14px;
+  color: var(--ink-muted);
+}
+
+.register-birth-row input[type="date"],
+.register-birth-row input[type="number"],
+.register-birth-row select {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 9px 10px;
+  font-family: inherit;
+  font-size: 15px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--paper-surface);
+  color: var(--ink);
+}
+
+.register-date-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.register-date-row label {
+  font-size: 12px;
+}
+
+.auth-form .hidden {
+  display: none !important;
+}
+
 .auth-form label {
   display: block;
   margin-bottom: 10px;

@@ -29,12 +29,15 @@
   }
 
   function renderRegister() {
+    const birth = window.ZiweiRegisterBirth
+    const birthHtml = birth ? birth.renderBirthFieldsHtml() : ''
     return (
       '<form id="registerForm" class="auth-form">' +
         '<h2>申請會員帳號</h2>' +
         '<p class="auth-note">註冊即開通免費會員（本命命盤）；付費訂閱可解鎖完整功能</p>' +
         '<label>姓名<input type="text" name="name" required></label>' +
         '<label>電話<input type="tel" name="phone" placeholder="例如 0912345678" required></label>' +
+        birthHtml +
         '<label>Email<input type="email" name="email" required></label>' +
         '<label>密碼<input type="password" name="password" required minlength="8"></label>' +
         '<label>確認密碼<input type="password" name="confirmPassword" required minlength="8"></label>' +
@@ -100,14 +103,23 @@
     document.getElementById('goLogin').addEventListener('click', function () {
       renderAuth('login')
     })
-    document.getElementById('registerForm').addEventListener('submit', async function (e) {
+    const form = document.getElementById('registerForm')
+    if (window.ZiweiRegisterBirth) {
+      window.ZiweiRegisterBirth.bindBirthFields(form)
+    }
+    form.addEventListener('submit', async function (e) {
       e.preventDefault()
-      const form = e.target
       const errorEl = document.getElementById('registerError')
       const successEl = document.getElementById('registerSuccess')
       hideError(errorEl)
       hideError(successEl)
       try {
+        let birth
+        if (window.ZiweiRegisterBirth) {
+          birth = window.ZiweiRegisterBirth.buildRegistrationBirth(form, form.name.value)
+        } else {
+          throw new Error('出生資料表單尚未載入，請重新整理頁面')
+        }
         const data = await auth.api('/api/auth/register', {
           method: 'POST',
           body: JSON.stringify({
@@ -116,6 +128,7 @@
             email: form.email.value.trim(),
             password: form.password.value,
             confirmPassword: form.confirmPassword.value,
+            birth: birth,
           }),
         })
         successEl.textContent = data.message

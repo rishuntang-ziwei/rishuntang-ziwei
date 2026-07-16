@@ -61,6 +61,9 @@ export async function initDb() {
   if (!userColumns.some((col) => col.name === 'membership_expires_at')) {
     db.exec(`ALTER TABLE users ADD COLUMN membership_expires_at TEXT`)
   }
+  if (!userColumns.some((col) => col.name === 'birth_payload')) {
+    db.exec(`ALTER TABLE users ADD COLUMN birth_payload TEXT`)
+  }
 
   db.exec(`
     CREATE TABLE IF NOT EXISTS payment_orders (
@@ -110,13 +113,20 @@ export async function createUser(input: {
   phone: string
   email: string
   passwordHash: string
+  birthPayload: SavedChartPayload
 }): Promise<PublicUser> {
   const result = db
     .prepare(
-      `INSERT INTO users (name, phone, email, password_hash, status, role, approved_at)
-       VALUES (?, ?, ?, ?, 'approved', 'user', datetime('now'))`,
+      `INSERT INTO users (name, phone, email, password_hash, status, role, approved_at, birth_payload)
+       VALUES (?, ?, ?, ?, 'approved', 'user', datetime('now'), ?)`,
     )
-    .run(input.name.trim(), input.phone.trim(), input.email.trim().toLowerCase(), input.passwordHash)
+    .run(
+      input.name.trim(),
+      input.phone.trim(),
+      input.email.trim().toLowerCase(),
+      input.passwordHash,
+      JSON.stringify(input.birthPayload),
+    )
   const row = await findUserById(Number(result.lastInsertRowid))
   if (!row) throw new Error('建立使用者失敗')
   return toPublicUser(row)

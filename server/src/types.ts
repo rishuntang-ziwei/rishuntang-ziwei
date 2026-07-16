@@ -12,6 +12,7 @@ export interface UserRow {
   star_draw_enabled: boolean
   membership_plan: string | null
   membership_expires_at: string | null
+  birth_payload: string | null
   created_at: string
   approved_at: string | null
 }
@@ -28,6 +29,7 @@ export interface PublicUser {
   membershipExpiresAt: string | null
   membershipActive: boolean
   membershipTier: 'free' | 'paid'
+  birthDateTime: string | null
   createdAt: string
   approvedAt: string | null
 }

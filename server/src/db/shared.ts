@@ -8,6 +8,16 @@ import type {
   UserRow,
 } from '../types.js'
 
+export function birthDateTimeFromUser(row: UserRow): string | null {
+  if (!row.birth_payload) return null
+  try {
+    const payload = parseSavedChartPayload(row.birth_payload)
+    return formatBirthDateTime(payload)
+  } catch {
+    return null
+  }
+}
+
 export function parseSavedChartPayload(raw: string): SavedChartPayload {
   return JSON.parse(raw) as SavedChartPayload
 }
@@ -57,6 +67,7 @@ export function toPublicUser(row: UserRow): PublicUser {
     membershipExpiresAt: row.membership_expires_at,
     membershipActive,
     membershipTier: membershipTier(row),
+    birthDateTime: birthDateTimeFromUser(row),
     createdAt: row.created_at,
     approvedAt: row.approved_at,
   }
@@ -84,6 +95,7 @@ export function mapUserRow(row: Record<string, unknown>): UserRow {
     star_draw_enabled: Boolean(row.star_draw_enabled),
     membership_plan: row.membership_plan != null ? String(row.membership_plan) : null,
     membership_expires_at: toIsoStringOrNull(row.membership_expires_at),
+    birth_payload: row.birth_payload != null ? String(row.birth_payload) : null,
     created_at: toIsoString(row.created_at),
     approved_at: toIsoStringOrNull(row.approved_at),
   }

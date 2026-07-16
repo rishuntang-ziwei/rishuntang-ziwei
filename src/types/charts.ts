@@ -41,3 +41,13 @@ export interface AdminUserChartsResponse {
   }
   charts: SavedChartSummary[]
 }
+
+export interface AdminUserBirthChartResponse {
+  chart: {
+    subjectName: string
+    gender: '男' | '女'
+    birthDateTime: string
+    payload: SavedChartPayload
+    source: 'registration'
+  }
+}

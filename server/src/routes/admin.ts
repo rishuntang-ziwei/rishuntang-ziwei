@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import bcrypt from 'bcryptjs'
 import { memberSummary, parseMemberSegment, segmentMembers, toAdminMemberRow } from '../adminMembers.js'
+import { formatBirthDateTime } from '../chartFormat.js'
 import {
   countAdmins,
   deleteUser,
@@ -13,6 +14,7 @@ import {
   updateUserStarDraw,
   updateUserStatus,
 } from '../db.js'
+import { parseSavedChartPayload } from '../db/shared.js'
 import { requireAdmin, requireAuth } from '../middleware.js'
 
 const router = Router()
@@ -91,6 +93,42 @@ router.get('/users/:id/charts/:chartId', async (req, res) => {
   }
 
   res.json({ chart })
+})
+
+router.get('/users/:id/birth-chart', async (req, res) => {
+  const userId = Number(req.params.id)
+  if (!Number.isFinite(userId)) {
+    res.status(400).json({ error: '無效的使用者 ID' })
+    return
+  }
+
+  const target = await findUserById(userId)
+  if (!target) {
+    res.status(404).json({ error: '找不到使用者' })
+    return
+  }
+  if (!target.birth_payload) {
+    res.status(404).json({ error: '此會員尚未登記出生資料' })
+    return
+  }
+
+  let payload
+  try {
+    payload = parseSavedChartPayload(target.birth_payload)
+  } catch {
+    res.status(500).json({ error: '出生資料格式錯誤' })
+    return
+  }
+
+  res.json({
+    chart: {
+      subjectName: payload.name,
+      gender: payload.gender,
+      birthDateTime: formatBirthDateTime(payload),
+      payload,
+      source: 'registration' as const,
+    },
+  })
 })
 
 router.post('/users/:id/approve', async (req, res) => {

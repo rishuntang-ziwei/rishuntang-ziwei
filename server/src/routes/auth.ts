@@ -3,6 +3,8 @@ import bcrypt from 'bcryptjs'
 import { createUser, findUserByEmail, updateUserPassword } from '../db.js'
 import { requireAuth, requireActiveMember, signToken } from '../middleware.js'
 import { toPublicUser } from '../db.js'
+import { validateChartPayload } from '../chartPayload.js'
+import type { SavedChartPayload } from '../types.js'
 
 const router = Router()
 
@@ -47,8 +49,22 @@ router.post('/register', async (req, res) => {
     return
   }
 
+  const birthRaw = req.body?.birth ?? req.body?.birthPayload
+  let birthPayload = validateChartPayload(birthRaw)
+  if (!birthPayload) {
+    res.status(400).json({ error: '請填寫完整出生資料（性別、曆法、日期、時辰）' })
+    return
+  }
+
+  birthPayload = {
+    ...birthPayload,
+    name,
+    initialChartType: 'natal',
+    yearlyYear: new Date().getFullYear(),
+  } satisfies SavedChartPayload
+
   const passwordHash = await bcrypt.hash(password, 10)
-  await createUser({ name, phone, email, passwordHash })
+  await createUser({ name, phone, email, passwordHash, birthPayload })
 
   res.status(201).json({
     message: '註冊成功！已開通免費會員，請登入使用。升級付費訂閱可解鎖大限流年、列印儲存等完整功能。',

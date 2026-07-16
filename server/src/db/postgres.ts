@@ -81,6 +81,11 @@ export async function initDb() {
   `)
 
   await pool.query(`
+    ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS birth_payload TEXT
+  `)
+
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS payment_orders (
       id SERIAL PRIMARY KEY,
       user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -123,12 +128,19 @@ export async function createUser(input: {
   phone: string
   email: string
   passwordHash: string
+  birthPayload: SavedChartPayload
 }): Promise<PublicUser> {
   const result = await pool.query(
-    `INSERT INTO users (name, phone, email, password_hash, status, role, approved_at)
-     VALUES ($1, $2, LOWER($3), $4, 'approved', 'user', NOW())
+    `INSERT INTO users (name, phone, email, password_hash, status, role, approved_at, birth_payload)
+     VALUES ($1, $2, LOWER($3), $4, 'approved', 'user', NOW(), $5)
      RETURNING id`,
-    [input.name.trim(), input.phone.trim(), input.email.trim(), input.passwordHash],
+    [
+      input.name.trim(),
+      input.phone.trim(),
+      input.email.trim(),
+      input.passwordHash,
+      JSON.stringify(input.birthPayload),
+    ],
   )
   const row = await findUserById(Number(result.rows[0].id))
   if (!row) throw new Error('建立使用者失敗')

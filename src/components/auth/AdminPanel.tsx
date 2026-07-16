@@ -157,6 +157,9 @@ export function AdminPanel({
     if (item.status === 'pending') {
       return (
         <div className="admin-actions">
+          <button type="button" onClick={() => setViewingCharts({ id: item.id, name: item.name })}>
+            查看命盤
+          </button>
           <button type="button" onClick={() => handleApprove(item.id)}>
             開通
           </button>
@@ -254,6 +257,7 @@ export function AdminPanel({
                 <th>Email</th>
                 {tab === 'paid' ? (
                   <>
+                    <th>出生資料</th>
                     <th>訂閱方案</th>
                     <th>有效至</th>
                     <th>神牌</th>
@@ -263,6 +267,7 @@ export function AdminPanel({
                   <th>建立時間</th>
                 ) : (
                   <>
+                    <th>出生資料</th>
                     <th>會員類型</th>
                     <th>神牌</th>
                     <th>註冊時間</th>
@@ -274,7 +279,7 @@ export function AdminPanel({
             <tbody>
               {members.length === 0 ? (
                 <tr>
-                  <td colSpan={tab === 'paid' ? 8 : tab === 'admins' ? 5 : 7} className="admin-empty">
+                  <td colSpan={tab === 'paid' ? 9 : tab === 'admins' ? 5 : 8} className="admin-empty">
                     {tab === 'free'
                       ? '目前沒有免費會員'
                       : tab === 'paid'
@@ -292,6 +297,7 @@ export function AdminPanel({
                     <td>{item.email}</td>
                     {tab === 'paid' ? (
                       <>
+                        <td>{item.birthDateTime || '—'}</td>
                         <td>{item.membershipPlanLabel || '付費會員'}</td>
                         <td>{formatExpiry(item.membershipExpiresAt)}</td>
                         <td>{item.starDrawEnabled ? '已開通' : '未開通'}</td>
@@ -301,6 +307,7 @@ export function AdminPanel({
                       <td>{new Date(item.createdAt).toLocaleString('zh-TW')}</td>
                     ) : (
                       <>
+                        <td>{item.birthDateTime || '—'}</td>
                         <td>{membershipTierLabel(item)}</td>
                         <td>{item.starDrawEnabled ? '已開通' : '未開通'}</td>
                         <td>{new Date(item.createdAt).toLocaleString('zh-TW')}</td>

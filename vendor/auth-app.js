@@ -35,6 +35,7 @@
 
     if (user.status === 'pending') {
       actions.push(
+        '<button type="button" data-view-charts="' + user.id + '" data-name="' + user.name + '">查看命盤</button>',
         '<button type="button" data-approve="' + user.id + '">開通</button>',
         '<button type="button" class="danger" data-reject="' + user.id + '">拒絕</button>',
         '<button type="button" data-make-admin="' + user.id + '" data-name="' + user.name + '">設為管理員</button>',
@@ -282,7 +283,8 @@
             : tab === 'pending'
               ? '目前沒有待審核會員'
               : '尚無其他管理員'
-      return '<tr><td colspan="8" class="admin-empty">' + emptyMsg + '</td></tr>'
+      const colspan = tab === 'paid' ? 9 : tab === 'admins' ? 5 : 8
+      return '<tr><td colspan="' + colspan + '" class="admin-empty">' + emptyMsg + '</td></tr>'
     }
 
     return members
@@ -293,6 +295,7 @@
             : user.starDrawEnabled
               ? '已開通'
               : '未開通'
+        const birthCell = user.birthDateTime || '—'
 
         if (tab === 'paid') {
           return (
@@ -300,6 +303,7 @@
               '<td>' + user.name + '</td>' +
               '<td>' + user.phone + '</td>' +
               '<td>' + user.email + '</td>' +
+              '<td>' + birthCell + '</td>' +
               '<td>' + (user.membershipPlanLabel || '付費會員') + '</td>' +
               '<td>' + auth.formatMembershipExpiry(user.membershipExpiresAt) + '</td>' +
               '<td>' + starDrawCell + '</td>' +
@@ -326,6 +330,7 @@
             '<td>' + user.name + '</td>' +
             '<td>' + user.phone + '</td>' +
             '<td>' + user.email + '</td>' +
+            '<td>' + birthCell + '</td>' +
             '<td>' + auth.membershipTierLabel(user) + '</td>' +
             '<td>' + starDrawCell + '</td>' +
             '<td>' + new Date(user.createdAt).toLocaleString('zh-TW') + '</td>' +
@@ -340,7 +345,7 @@
     if (tab === 'paid') {
       return (
         '<table class="admin-member-table">' +
-          '<thead><tr><th>姓名</th><th>電話</th><th>Email</th><th>訂閱方案</th><th>有效至</th><th>神牌</th><th>註冊時間</th><th>操作</th></tr></thead>' +
+          '<thead><tr><th>姓名</th><th>電話</th><th>Email</th><th>出生資料</th><th>訂閱方案</th><th>有效至</th><th>神牌</th><th>註冊時間</th><th>操作</th></tr></thead>' +
           '<tbody>' + renderAdminMemberRows(tab, members) + '</tbody>' +
         '</table>'
       )
@@ -357,7 +362,7 @@
 
     return (
       '<table class="admin-member-table">' +
-        '<thead><tr><th>姓名</th><th>電話</th><th>Email</th><th>會員類型</th><th>神牌</th><th>註冊時間</th><th>操作</th></tr></thead>' +
+        '<thead><tr><th>姓名</th><th>電話</th><th>Email</th><th>出生資料</th><th>會員類型</th><th>神牌</th><th>註冊時間</th><th>操作</th></tr></thead>' +
         '<tbody>' + renderAdminMemberRows(tab, members) + '</tbody>' +
       '</table>'
     )
@@ -427,12 +432,30 @@
     }
   }
 
+  async function loadAdminBirthChartAndShow(userId) {
+    const data = await auth.api('/api/admin/users/' + userId + '/birth-chart')
+    enterApp(currentUser)
+    if (typeof window.loadSavedChartPayload === 'function') {
+      window.loadSavedChartPayload(data.chart.payload)
+    } else {
+      alert('排盤功能尚未就緒，請重新整理頁面後再試')
+    }
+  }
+
   async function renderUserChartsPanel(userId, userName) {
     const panel = document.getElementById('adminPanel')
     if (!panel) return
 
     setView('admin')
     panel.innerHTML = '<div class="auth-card"><p>載入中…</p></div>'
+
+    let registrationChart = null
+    try {
+      const birthData = await auth.api('/api/admin/users/' + userId + '/birth-chart')
+      registrationChart = birthData.chart
+    } catch (_err) {
+      registrationChart = null
+    }
 
     async function loadCharts(search) {
       adminChartSearchQuery = search || ''
@@ -444,6 +467,28 @@
           ? '搜尋「' + adminChartSearchQuery.trim() + '」共 ' + charts.length + ' 筆'
           : '搜尋「' + adminChartSearchQuery.trim() + '」找不到符合的命盤')
         : (charts.length ? '共 ' + charts.length + ' 筆已存命盤' : '尚無已存命盤')
+
+      const regSection = registrationChart
+        ? (
+          '<div class="admin-birth-chart-section">' +
+            '<h3>註冊出生資料（本命）</h3>' +
+            '<table>' +
+              '<thead><tr><th>姓名</th><th>性別</th><th>出生年月日時</th><th>操作</th></tr></thead>' +
+              '<tbody><tr>' +
+                '<td>' + registrationChart.subjectName + '</td>' +
+                '<td>' + registrationChart.gender + '</td>' +
+                '<td>' + (registrationChart.birthDateTime || registrationChart.payload.bazi) + '</td>' +
+                '<td><button type="button" id="loadRegistrationBirthChart">提取命盤</button></td>' +
+              '</tr></tbody>' +
+            '</table>' +
+          '</div>'
+        )
+        : (
+          '<div class="admin-birth-chart-section admin-birth-chart-empty">' +
+            '<p style="color:#888;font-size:14px;margin:0 0 12px;">此會員尚未登記出生資料（舊帳號可能未填寫）</p>' +
+          '</div>'
+        )
+
       const rows = charts.length
         ? charts.map(function (chart) {
             return (
@@ -463,9 +508,11 @@
       panel.innerHTML =
         '<div id="adminPanelInner">' +
           '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">' +
-            '<h2>「' + userName + '」的已存命盤</h2>' +
+            '<h2>「' + userName + '」的命盤</h2>' +
             '<button type="button" id="backToAdminBtn">返回會員資料庫</button>' +
           '</div>' +
+          regSection +
+          '<h3 style="margin:16px 0 8px;font-size:16px;">已存命盤</h3>' +
           '<div style="display:flex;gap:8px;margin-bottom:8px;">' +
             '<input type="search" id="adminChartSearch" placeholder="搜尋姓名或電話…" style="flex:1;padding:8px;font-family:inherit;" />' +
             '<button type="button" id="adminChartSearchBtn" style="padding:8px 14px;">搜尋</button>' +
@@ -480,6 +527,17 @@
       document.getElementById('backToAdminBtn').addEventListener('click', function () {
         renderAdminPanel()
       })
+
+      const regBtn = document.getElementById('loadRegistrationBirthChart')
+      if (regBtn) {
+        regBtn.addEventListener('click', async function () {
+          try {
+            await loadAdminBirthChartAndShow(userId)
+          } catch (err) {
+            alert(err.message)
+          }
+        })
+      }
 
       document.getElementById('adminChartSearchBtn').addEventListener('click', function () {
         loadCharts(document.getElementById('adminChartSearch').value || '')

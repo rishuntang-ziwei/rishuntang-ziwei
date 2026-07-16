@@ -8,6 +8,7 @@ import type {
   UsersResponse,
 } from '../types/auth'
 import type {
+  AdminUserBirthChartResponse,
   AdminUserChartsResponse,
   SavedChartPayload,
   SavedChartResponse,
@@ -53,6 +54,7 @@ export function registerUser(body: {
   email: string
   password: string
   confirmPassword: string
+  birth: SavedChartPayload
 }) {
   return request<RegisterResponse>('/api/auth/register', {
     method: 'POST',
@@ -164,4 +166,8 @@ export function fetchAdminUserCharts(userId: number, search?: string) {
 
 export function fetchAdminUserChart(userId: number, chartId: number) {
   return request<SavedChartResponse>(`/api/admin/users/${userId}/charts/${chartId}`)
+}
+
+export function fetchAdminUserBirthChart(userId: number) {
+  return request<AdminUserBirthChartResponse>(`/api/admin/users/${userId}/birth-chart`)
 }

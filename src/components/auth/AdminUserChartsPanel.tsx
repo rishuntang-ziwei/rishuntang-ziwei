@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
-import { fetchAdminUserChart, fetchAdminUserCharts } from '../../lib/api'
+import {
+  fetchAdminUserBirthChart,
+  fetchAdminUserChart,
+  fetchAdminUserCharts,
+} from '../../lib/api'
 import type { SavedChartPayload, SavedChartSummary } from '../../types/charts'
 
 function searchStatusText(count: number, query: string) {
@@ -23,6 +27,12 @@ export function AdminUserChartsPanel({
   onLoadChart: (payload: SavedChartPayload) => void
 }) {
   const [charts, setCharts] = useState<SavedChartSummary[]>([])
+  const [registrationChart, setRegistrationChart] = useState<{
+    subjectName: string
+    gender: string
+    birthDateTime: string
+    payload: SavedChartPayload
+  } | null>(null)
   const [searchInput, setSearchInput] = useState('')
   const [appliedQuery, setAppliedQuery] = useState('')
   const [loading, setLoading] = useState(true)
@@ -32,8 +42,12 @@ export function AdminUserChartsPanel({
     setLoading(true)
     setError('')
     try {
-      const { charts: list } = await fetchAdminUserCharts(userId, query)
+      const [{ charts: list }, birthResult] = await Promise.all([
+        fetchAdminUserCharts(userId, query),
+        fetchAdminUserBirthChart(userId).catch(() => null),
+      ])
       setCharts(list)
+      setRegistrationChart(birthResult?.chart ?? null)
       setAppliedQuery(query)
     } catch (err) {
       setError(err instanceof Error ? err.message : '載入失敗')
@@ -64,7 +78,7 @@ export function AdminUserChartsPanel({
     <div className="admin-page">
       <header className="admin-header">
         <div>
-          <h1>「{userName}」的已存命盤</h1>
+          <h1>「{userName}」的命盤</h1>
         </div>
         <div className="admin-header-actions">
           <button type="button" onClick={onBack}>
@@ -74,6 +88,44 @@ export function AdminUserChartsPanel({
       </header>
 
       {error && <div className="auth-error">{error}</div>}
+
+      {registrationChart ? (
+        <div className="admin-birth-chart-section">
+          <h2 style={{ fontSize: '16px', margin: '0 0 8px' }}>註冊出生資料（本命）</h2>
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>姓名</th>
+                  <th>性別</th>
+                  <th>出生年月日時</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>{registrationChart.subjectName}</td>
+                  <td>{registrationChart.gender}</td>
+                  <td>{registrationChart.birthDateTime}</td>
+                  <td>
+                    <button type="button" onClick={() => onLoadChart(registrationChart.payload)}>
+                      提取命盤
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : (
+        !loading && (
+          <p style={{ color: '#888', fontSize: '14px' }}>
+            此會員尚未登記出生資料（舊帳號可能未填寫）
+          </p>
+        )
+      )}
+
+      <h2 style={{ fontSize: '16px', margin: '16px 0 8px' }}>已存命盤</h2>
 
       <div className="saved-chart-search-row admin-chart-search-row">
         <input

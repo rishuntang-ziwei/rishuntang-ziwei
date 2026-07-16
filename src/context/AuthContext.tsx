@@ -26,6 +26,7 @@ interface AuthContextValue {
     email: string
     password: string
     confirmPassword: string
+    birth: import('../types/charts').SavedChartPayload
   }) => Promise<string>
   logout: () => void
   refreshUser: () => Promise<void>
@@ -69,6 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email: string
       password: string
       confirmPassword: string
+      birth: import('../types/charts').SavedChartPayload
     }) => {
       const { message } = await registerUser(input)
       return message
