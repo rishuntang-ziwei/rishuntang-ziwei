@@ -1,13 +1,13 @@
-/** 本命簡易解盤 — 事業（官祿）、愛情（夫妻）、健康（疾厄） */
+/** 本命簡易解盤 — 事業宮、夫妻宮、疾厄宮 */
 
-const PALACE_DISPLAY = { 官祿: '事業', 僕役: '交友' }
+const PALACE_DISPLAY = { 官祿: '事業宮', 僕役: '交友宮' }
 
 const TOPICS = [
   {
     id: 'career',
     label: '事業',
     palace: '官祿',
-    intro: '官祿宮主職場、仕途與社會成就。以下依本命主星簡述方向，供參考。',
+    intro: '事業宮主職場、仕途與社會成就。以下依本命主星簡述方向，供參考。',
     emptyHint: '事業方向常受對宮環境與外出機會牽引，宜觀察職場變化並主動歷練。',
     tips: ['設定階段性目標，比一次求成更穩。', '贵人與合作比單打獨鬥省力。'],
   },
@@ -96,7 +96,9 @@ const AUX_STARS = {
 }
 
 function formatPalaceName(name) {
-  return PALACE_DISPLAY[name] || name
+  if (PALACE_DISPLAY[name]) return PALACE_DISPLAY[name]
+  if (name.endsWith('宮')) return name
+  return `${name}宮`
 }
 
 function escapeHtml(text) {
@@ -206,7 +208,7 @@ function buildTopicReading(astrolabe, topic) {
   const soul = astrolabe.palace('命宮')
   if (soul?.majorStars?.length && topic.id === 'career') {
     paragraphs.push(
-      `綜合命宮主星 ${soul.majorStars.map((s) => s.name).join('、')}，整體人生節奏會影響職涯取捨，宜與官祿宮一併參考。`,
+      `綜合命宮主星 ${soul.majorStars.map((s) => s.name).join('、')}，整體人生節奏會影響職涯取捨，宜與事業宮一併參考。`,
     )
   }
 
