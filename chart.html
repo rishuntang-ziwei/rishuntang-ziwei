@@ -129,6 +129,90 @@
       min-width: 0;
     }
 
+    .mobile-reading {
+      display: none;
+    }
+
+    .mobile-reading-header {
+      margin-bottom: 10px;
+    }
+
+    .mobile-reading-title {
+      margin: 0;
+      font-size: 18px;
+      color: var(--brand-brown);
+      letter-spacing: 0.1em;
+    }
+
+    .mobile-reading-sub {
+      margin: 4px 0 0;
+      font-size: 13px;
+      color: var(--ink-muted);
+    }
+
+    .mobile-reading-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .mobile-reading-tab {
+      flex: 1;
+      border: 1px solid var(--border);
+      background: var(--paper-muted);
+      color: var(--brand-brown);
+      border-radius: 999px;
+      padding: 10px 8px;
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .mobile-reading-tab.is-active {
+      background: var(--brand-brown);
+      border-color: var(--brand-brown);
+      color: #fff;
+    }
+
+    .mobile-reading-body {
+      background: var(--paper-surface);
+      border: 1px solid var(--brand-gold-light);
+      border-radius: var(--radius-md);
+      padding: 14px;
+    }
+
+    .mobile-reading-section-title {
+      margin: 0 0 10px;
+      font-size: 16px;
+      color: var(--brand-red);
+      letter-spacing: 0.08em;
+    }
+
+    .mobile-reading-p {
+      margin: 0 0 10px;
+      font-size: 15px;
+      line-height: 1.65;
+      color: #333;
+    }
+
+    .mobile-reading-tip {
+      margin: 12px 0 8px;
+      padding: 10px 12px;
+      background: #fff8e1;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      line-height: 1.55;
+      color: #5d4037;
+    }
+
+    .mobile-reading-disclaimer {
+      margin: 0;
+      font-size: 12px;
+      line-height: 1.5;
+      color: var(--ink-muted);
+    }
+
     .chart-database {
       flex: 1;
       min-width: 0;
@@ -1376,6 +1460,16 @@
         flex-wrap: wrap;
         justify-content: flex-start;
       }
+
+      .mobile-reading.is-active {
+        display: block;
+        margin-top: 12px;
+        padding: 12px;
+        background: var(--paper);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-soft);
+      }
     }
 
     @media (max-width: 480px) {
@@ -1944,6 +2038,7 @@
       <div id="chartView">
         <div class="chart-placeholder">請輸入資料後按「開始排盤」</div>
       </div>
+      <div id="mobileReadingPanel" class="mobile-reading" aria-live="polite"></div>
       <div id="chartDatabaseView" class="chart-database hidden">
         <div class="chart-db-header">
           <h2>命盤資料庫</h2>
@@ -1965,7 +2060,9 @@
   <script src="./vendor/iztro.min.js"></script>
   <script type="module">
     import * as WuxingPanel from './vendor/wuxing-panel.mjs'
+    import * as NatalReading from './vendor/natal-reading.mjs'
     window.WuxingPanel = WuxingPanel
+    window.NatalReading = NatalReading
   </script>
   <script>
     function isPremiumMember() {
@@ -2050,6 +2147,33 @@
     let palaceClickTimer = null
     let currentInput = null
     let currentAstrolabe = null
+    let mobileReadingTab = 'career'
+
+    function shouldShowMobileReading() {
+      return initialChartType === 'natal' && resolveEffectiveChartMode() === 'origin'
+    }
+
+    function renderMobileReadingPanel(name, a) {
+      const panel = document.getElementById('mobileReadingPanel')
+      if (!panel) return
+
+      if (!shouldShowMobileReading() || !a || !window.NatalReading) {
+        panel.classList.remove('is-active')
+        panel.innerHTML = ''
+        return
+      }
+
+      const reading = window.NatalReading.buildNatalReading(a, name)
+      panel.innerHTML = window.NatalReading.renderReadingPanel(reading, mobileReadingTab, name)
+      panel.classList.add('is-active')
+
+      panel.querySelectorAll('.mobile-reading-tab').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          mobileReadingTab = btn.dataset.tab || 'career'
+          renderMobileReadingPanel(name, a)
+        })
+      })
+    }
 
     function resolveEffectiveChartMode() {
       if (initialChartType === 'yearly') return 'yearly'
@@ -2451,6 +2575,16 @@
       chartDatabaseVisible = false
       document.getElementById('chartView')?.classList.remove('hidden')
       document.getElementById('chartDatabaseView')?.classList.add('hidden')
+      if (currentAstrolabe && currentInput) {
+        renderMobileReadingPanel(currentInput.name, currentAstrolabe)
+      }
+    }
+
+    function hideMobileReadingPanel() {
+      const panel = document.getElementById('mobileReadingPanel')
+      if (!panel) return
+      panel.classList.remove('is-active')
+      panel.innerHTML = ''
     }
 
     function showChartDatabase() {
@@ -2461,6 +2595,7 @@
       chartDatabaseVisible = true
       document.getElementById('chartView')?.classList.add('hidden')
       document.getElementById('chartDatabaseView')?.classList.remove('hidden')
+      hideMobileReadingPanel()
       loadSavedCharts(savedChartSearchQuery)
     }
 
@@ -3279,6 +3414,8 @@
         selectedPalaceName = '命宮'
         renderChart(name, a, input)
       })
+
+      renderMobileReadingPanel(name, a)
     }
 
     function run() {
@@ -3302,6 +3439,7 @@
         }
         renderChart(input.name, a, input)
       } catch (err) {
+        hideMobileReadingPanel()
         document.getElementById('chartView').innerHTML =
           `<div class="error-box">排盤失敗：${err.message || err}</div>`
       }
