@@ -145,18 +145,103 @@
 
     @media (min-width: 901px) {
       .mobile-reading.is-active {
-        margin-top: 16px;
+        display: none !important;
       }
 
-      .mobile-reading-body {
-        max-width: 680px;
+      .natal-reading-open-btn.is-visible {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: 14px;
+        width: auto;
+        min-width: 180px;
+        padding: 10px 22px;
+        font-family: inherit;
+        font-size: 16px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        color: #fff;
+        background: var(--brand-brown);
+        border: 1px solid var(--brand-brown);
+        border-radius: var(--radius-sm);
+        cursor: pointer;
       }
 
-      .mobile-reading-tab {
-        flex: 0 1 auto;
-        min-width: 120px;
-        padding: 10px 20px;
+      .natal-reading-open-btn.is-visible:hover {
+        background: #5d4037;
+        border-color: #5d4037;
       }
+    }
+
+    @media (max-width: 900px) {
+      .natal-reading-open-btn {
+        display: none !important;
+      }
+    }
+
+    .natal-reading-open-btn {
+      display: none;
+    }
+
+    .reading-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      z-index: 120;
+    }
+
+    .reading-modal.is-open {
+      display: flex;
+    }
+
+    .reading-modal-card {
+      position: relative;
+      width: min(100%, 560px);
+      max-height: min(90vh, 760px);
+      overflow: auto;
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 20px 18px 18px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .reading-modal-close {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 36px;
+      height: 36px;
+      border: none;
+      border-radius: 999px;
+      background: var(--paper-muted);
+      color: var(--ink-muted);
+      font-size: 24px;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .reading-modal-close:hover {
+      background: #eee;
+      color: #333;
+    }
+
+    .reading-modal-card .mobile-reading-inner {
+      padding-top: 8px;
+    }
+
+    .reading-modal-card .mobile-reading-body {
+      max-width: none;
+    }
+
+    .reading-modal-card .mobile-reading-tab {
+      flex: 0 1 auto;
+      min-width: 100px;
+      padding: 10px 18px;
     }
 
     .mobile-reading-header {
@@ -1709,7 +1794,9 @@
       .form-panel,
       .password-modal,
       .chart-database,
-      #mobileReadingPanel {
+      #mobileReadingPanel,
+      #natalReadingOpenBtn,
+      #natalReadingModal {
         display: none !important;
       }
 
@@ -2056,6 +2143,7 @@
         <div class="chart-placeholder">請輸入資料後按「開始排盤」</div>
       </div>
       <div id="mobileReadingPanel" class="mobile-reading" aria-live="polite"></div>
+      <button type="button" id="natalReadingOpenBtn" class="natal-reading-open-btn">本命簡易解盤</button>
       <div id="chartDatabaseView" class="chart-database hidden">
         <div class="chart-db-header">
           <h2>命盤資料庫</h2>
@@ -2070,6 +2158,13 @@
           <div class="chart-db-empty">請按左側「命盤資料庫」載入</div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <div id="natalReadingModal" class="reading-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-label="本命簡易解盤">
+    <div class="reading-modal-card">
+      <button type="button" class="reading-modal-close" id="natalReadingCloseBtn" aria-label="關閉">×</button>
+      <div id="natalReadingModalBody"></div>
     </div>
   </div>
 
@@ -2170,26 +2265,78 @@
       return initialChartType === 'natal' && resolveEffectiveChartMode() === 'origin'
     }
 
-    function renderMobileReadingPanel(name, a) {
-      const panel = document.getElementById('mobileReadingPanel')
-      if (!panel) return
+    function prefersDesktopReadingDialog() {
+      return window.matchMedia('(min-width: 901px)').matches
+    }
 
-      if (!shouldShowMobileReading() || !a || !window.NatalReading) {
-        panel.classList.remove('is-active')
-        panel.innerHTML = ''
-        return
-      }
-
-      const reading = window.NatalReading.buildNatalReading(a, name)
-      panel.innerHTML = window.NatalReading.renderReadingPanel(reading, mobileReadingTab, name)
-      panel.classList.add('is-active')
-
-      panel.querySelectorAll('.mobile-reading-tab').forEach(function (btn) {
+    function bindReadingPanelEvents(container, name, a) {
+      if (!container) return
+      container.querySelectorAll('.mobile-reading-tab').forEach(function (btn) {
         btn.addEventListener('click', function () {
           mobileReadingTab = btn.dataset.tab || 'career'
           renderMobileReadingPanel(name, a)
         })
       })
+    }
+
+    function buildReadingPanelHtml(name, a) {
+      const reading = window.NatalReading.buildNatalReading(a, name)
+      return window.NatalReading.renderReadingPanel(reading, mobileReadingTab, name)
+    }
+
+    function openNatalReadingModal() {
+      if (!currentAstrolabe || !currentInput || !window.NatalReading) return
+      const modal = document.getElementById('natalReadingModal')
+      const body = document.getElementById('natalReadingModalBody')
+      if (!modal || !body) return
+      body.innerHTML = buildReadingPanelHtml(currentInput.name, currentAstrolabe)
+      bindReadingPanelEvents(body, currentInput.name, currentAstrolabe)
+      modal.classList.add('is-open')
+      modal.setAttribute('aria-hidden', 'false')
+      document.body.style.overflow = 'hidden'
+    }
+
+    function closeNatalReadingModal() {
+      const modal = document.getElementById('natalReadingModal')
+      if (!modal) return
+      modal.classList.remove('is-open')
+      modal.setAttribute('aria-hidden', 'true')
+      document.body.style.overflow = ''
+      const body = document.getElementById('natalReadingModalBody')
+      if (body) body.innerHTML = ''
+    }
+
+    function renderMobileReadingPanel(name, a) {
+      const panel = document.getElementById('mobileReadingPanel')
+      const openBtn = document.getElementById('natalReadingOpenBtn')
+      if (!panel) return
+
+      if (!shouldShowMobileReading() || !a || !window.NatalReading) {
+        hideMobileReadingPanel()
+        return
+      }
+
+      const html = buildReadingPanelHtml(name, a)
+
+      if (prefersDesktopReadingDialog()) {
+        panel.classList.remove('is-active')
+        panel.innerHTML = ''
+        openBtn?.classList.add('is-visible')
+
+        const modal = document.getElementById('natalReadingModal')
+        const modalBody = document.getElementById('natalReadingModalBody')
+        if (modal?.classList.contains('is-open') && modalBody) {
+          modalBody.innerHTML = html
+          bindReadingPanelEvents(modalBody, name, a)
+        }
+        return
+      }
+
+      closeNatalReadingModal()
+      openBtn?.classList.remove('is-visible')
+      panel.innerHTML = html
+      panel.classList.add('is-active')
+      bindReadingPanelEvents(panel, name, a)
     }
 
     function resolveEffectiveChartMode() {
@@ -2599,9 +2746,12 @@
 
     function hideMobileReadingPanel() {
       const panel = document.getElementById('mobileReadingPanel')
-      if (!panel) return
-      panel.classList.remove('is-active')
-      panel.innerHTML = ''
+      if (panel) {
+        panel.classList.remove('is-active')
+        panel.innerHTML = ''
+      }
+      document.getElementById('natalReadingOpenBtn')?.classList.remove('is-visible')
+      closeNatalReadingModal()
     }
 
     function showChartDatabase() {
@@ -3463,6 +3613,20 @@
     }
 
     document.getElementById('submitBtn').addEventListener('click', run)
+
+    document.getElementById('natalReadingOpenBtn')?.addEventListener('click', openNatalReadingModal)
+    document.getElementById('natalReadingCloseBtn')?.addEventListener('click', closeNatalReadingModal)
+    document.getElementById('natalReadingModal')?.addEventListener('click', function (e) {
+      if (e.target === e.currentTarget) closeNatalReadingModal()
+    })
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') closeNatalReadingModal()
+    })
+    window.addEventListener('resize', function () {
+      if (currentAstrolabe && currentInput) {
+        renderMobileReadingPanel(currentInput.name, currentAstrolabe)
+      }
+    })
 
     document.getElementById('printChartBtn')?.addEventListener('click', function () {
       if (!isPremiumMember()) {
