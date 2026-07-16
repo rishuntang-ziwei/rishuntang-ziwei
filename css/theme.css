@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@400;600;700&display=swap');
-
 :root {
   /* 淡宣紙 · 深褐朱紅 */
   --paper-bg: #faf6ef;
@@ -37,9 +35,9 @@
   --purple: #6a1b9a;
   --line-red: #d32f2f;
 
-  --font-body: 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
-  --font-brand: 'Noto Serif TC', 'Noto Sans TC', serif;
-  --font-chart: 'Noto Serif TC', 'KaiTi', 'BiauKai', 'DFKai-SB', serif;
+  --font-body: 'DFKai-SB', 'BiauKai', '標楷體', 'KaiTi', '楷体', serif;
+  --font-brand: 'DFKai-SB', 'BiauKai', '標楷體', 'KaiTi', '楷体', serif;
+  --font-chart: 'DFKai-SB', 'BiauKai', '標楷體', 'KaiTi', '楷体', serif;
 
   --page-bg-image: url('../assets/bg-calligraphy.png');
   --page-bg-overlay: rgba(250, 246, 239, 0.92);

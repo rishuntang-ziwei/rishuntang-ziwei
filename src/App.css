@@ -1,6 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@400;600;700&display=swap');
-
 :root {
+  --font-kai: 'DFKai-SB', 'BiauKai', '標楷體', 'KaiTi', '楷体', serif;
   --bg: #faf6ef;
   --paper: #fffdf9;
   --ink: #2c1810;
@@ -20,7 +19,7 @@
 
 body {
   margin: 0;
-  font-family: 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+  font-family: var(--font-kai);
   background-color: #faf6ef;
   background-image:
     linear-gradient(rgba(250, 246, 239, 0.92), rgba(250, 246, 239, 0.92)),
@@ -36,7 +35,7 @@ body {
 .chart-wrapper,
 .chart-grid,
 .chart-section .chart-wrapper {
-  font-family: 'Noto Serif TC', 'KaiTi', 'BiauKai', 'DFKai-SB', serif;
+  font-family: var(--font-kai);
 }
 
 #root {

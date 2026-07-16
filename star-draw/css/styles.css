@@ -1,4 +1,5 @@
 :root {
+  --font-kai: 'DFKai-SB', 'BiauKai', '標楷體', 'KaiTi', '楷体', serif;
   --card-w: clamp(88px, 18vw, 132px);
   --card-h: calc(var(--card-w) * 1.55);
   --ink: #1a1a1a;
@@ -18,7 +19,7 @@ body {
   margin: 0;
   min-height: 100%;
   height: 100%;
-  font-family: "Noto Serif TC", "PingFang TC", "Microsoft JhengHei", serif;
+  font-family: var(--font-kai);
   color: var(--ink);
   overflow-x: hidden;
 }
@@ -301,13 +302,13 @@ body::before {
 .wuxing-node-name {
   font-size: 26px;
   font-weight: 700;
-  font-family: "Noto Serif TC", "PingFang TC", "Microsoft JhengHei", serif;
+  font-family: var(--font-kai);
 }
 
 .wuxing-node-count {
   font-size: 18px;
   font-weight: 700;
-  font-family: "Noto Serif TC", "PingFang TC", "Microsoft JhengHei", serif;
+  font-family: var(--font-kai);
 }
 
 .wuxing-summary {
