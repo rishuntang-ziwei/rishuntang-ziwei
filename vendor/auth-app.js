@@ -587,27 +587,6 @@
     const printChartBtn = document.getElementById('printChartBtn')
     const chartDbBtn = document.getElementById('chartDbBtn')
 
-    ;[saveChartBtn, printChartBtn, chartDbBtn, starDrawBtn].forEach(function (btn) {
-      if (!btn) return
-      btn.disabled = false
-      btn.classList.toggle('member-feature-locked', !premium)
-      btn.title = premium ? '' : '付費會員專屬功能，請升級訂閱'
-    })
-
-    if (starDrawBtn) {
-      starDrawBtn.onclick = function () {
-        if (!premium) {
-          alert('神牌功能需訂閱付費會員，請在左側選擇方案升級')
-          return
-        }
-        if (canUseStarDraw(user)) {
-          location.href = 'star-draw/index.html'
-        } else {
-          alert('神牌功能尚未開通，請聯絡管理員')
-        }
-      }
-    }
-
     window.ZiweiMember = {
       currentUser: user,
       isPremium: function () {
@@ -618,6 +597,66 @@
         alert((featureName || '此功能') + '需訂閱付費會員，請在左側選擇方案升級')
         return false
       },
+    }
+
+    function requireUpgrade(featureName) {
+      return window.ZiweiMember.requirePremium(featureName)
+    }
+
+    ;[saveChartBtn, printChartBtn, chartDbBtn, starDrawBtn].forEach(function (btn) {
+      if (!btn) return
+      btn.disabled = false
+      btn.classList.toggle('member-feature-locked', !premium)
+      btn.title = premium ? '' : '付費會員專屬功能，請升級訂閱'
+    })
+
+    if (printChartBtn) {
+      printChartBtn.onclick = function () {
+        if (!requireUpgrade('列印功能')) return
+        const view = document.getElementById('chartView')
+        if (!view || view.querySelector('.chart-placeholder') || view.querySelector('.error-box')) {
+          alert('請先完成排盤後再列印')
+          return
+        }
+        window.print()
+      }
+    }
+
+    if (saveChartBtn) {
+      saveChartBtn.onclick = async function () {
+        if (!requireUpgrade('儲存命盤')) return
+        if (typeof window.saveCurrentChartAction !== 'function') {
+          alert('排盤程式尚未就緒，請重新整理頁面')
+          return
+        }
+        try {
+          await window.saveCurrentChartAction()
+        } catch (err) {
+          alert(err.message || '儲存失敗')
+        }
+      }
+    }
+
+    if (chartDbBtn) {
+      chartDbBtn.onclick = function () {
+        if (!requireUpgrade('命盤資料庫')) return
+        if (typeof window.showChartDatabaseAction !== 'function') {
+          alert('排盤程式尚未就緒，請重新整理頁面')
+          return
+        }
+        window.showChartDatabaseAction()
+      }
+    }
+
+    if (starDrawBtn) {
+      starDrawBtn.onclick = function () {
+        if (!requireUpgrade('神牌功能')) return
+        if (canUseStarDraw(user)) {
+          location.href = 'star-draw/index.html'
+        } else {
+          alert('神牌功能尚未開通，請聯絡管理員')
+        }
+      }
     }
 
     if (typeof window.applyMemberTierUI === 'function') {
@@ -663,6 +702,8 @@
     }
 
     if (typeof window.initChartApp === 'function') window.initChartApp()
+    updateMemberFeatures(user)
+
     if (typeof window.loadRegistrationBirthChart === 'function') {
       await window.loadRegistrationBirthChart()
     }

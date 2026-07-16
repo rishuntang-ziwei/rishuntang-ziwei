@@ -6,7 +6,7 @@
   <title>紫微斗數線上排盤｜國際日舜堂</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="./css/theme.css" />
+  <link rel="stylesheet" href="./css/theme.css?v=20260717" />
   <style>
     :root {
       --paper: #fffdf9;
@@ -804,7 +804,7 @@
       padding-right: 8px;
       display: flex;
       flex-direction: row;
-      justify-content: space-between;
+      justify-content: flex-end;
       align-items: flex-start;
       max-height: calc(100% - 60px);
       overflow: visible;
@@ -814,6 +814,34 @@
       flex-direction: column;
       align-items: stretch;
       gap: 2px;
+    }
+
+    .stars-cluster {
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+      justify-content: flex-end;
+      gap: 2px;
+      margin-left: auto;
+      max-width: 100%;
+    }
+
+    .stars-minors {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 2px;
+      flex-shrink: 1;
+      min-width: 0;
+    }
+
+    .stars-majors {
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+      gap: 2px;
+      flex-shrink: 0;
+      padding-right: 2px;
     }
 
     .stars-major-row {
@@ -847,7 +875,7 @@
     .stars-left {
       display: flex;
       flex-direction: column;
-      align-items: flex-start;
+      align-items: flex-end;
       gap: 2px;
       flex-shrink: 0;
     }
@@ -2381,6 +2409,9 @@
     }
 
     function initChartApp() {
+    if (window.__chartAppInitialized) return
+    window.__chartAppInitialized = true
+
     const { astro } = iztro
     const { Lunar, LunarMonth, LunarYear, Solar } = LunarLib
 
@@ -3345,6 +3376,9 @@
       }
     }
 
+    window.saveCurrentChartAction = saveCurrentChart
+    window.showChartDatabaseAction = showChartDatabase
+
     window.loadSavedChartPayload = function (payload, options) {
       applyInputToForm(payload)
       const skipQuotaCheck = !options || options.skipQuotaCheck !== false
@@ -3466,24 +3500,27 @@
         ? renderStarsVertical(majors, 'major', chartMode)
         : '<span class="major-star-placeholder" aria-hidden="true"></span>'
 
-      const minorLeftHtml =
-        '<div class="stars-left">' +
-          '<div class="stars-row stars-row-1">' + renderStarsVertical(leftPurpleM, 'left-purple', chartMode) + '</div>' +
-          '<div class="stars-row stars-row-2">' + renderStarsVertical(leftGreenM, 'left-green', chartMode) + '</div>' +
+      const minorRowsHtml =
+        '<div class="stars-minors">' +
+          '<div class="stars-row stars-row-1">' +
+            renderStarsVertical(leftPurpleM, 'left-purple', chartMode) +
+            renderStarsVertical(rightGreenM, 'right-green', chartMode) +
+          '</div>' +
+          '<div class="stars-row stars-row-2">' +
+            renderStarsVertical(leftGreenM, 'left-green', chartMode) +
+          '</div>' +
         '</div>'
-      const minorRightHtml = renderStarsVertical(rightGreenM, 'right-green', chartMode)
 
       const starsHtml = majors.length
         ? '<div class="palace-stars">' +
-            minorLeftHtml +
-            '<div class="stars-right">' + minorRightHtml + majorRowHtml + '</div>' +
+            '<div class="stars-cluster">' +
+              minorRowsHtml +
+              '<div class="stars-majors">' + majorRowHtml + '</div>' +
+            '</div>' +
           '</div>'
         : '<div class="palace-stars palace-stars-no-major">' +
             '<div class="stars-major-row">' + majorRowHtml + '</div>' +
-            '<div class="stars-minor-rows">' +
-              minorLeftHtml +
-              '<div class="stars-right">' + minorRightHtml + '</div>' +
-            '</div>' +
+            '<div class="stars-minor-rows">' + minorRowsHtml + '</div>' +
           '</div>'
 
       const showDecadalAge = chartMode === 'origin' || chartMode === 'decadal'
@@ -3882,30 +3919,6 @@
       }
     })
 
-    document.getElementById('printChartBtn')?.addEventListener('click', function () {
-      if (window.ZiweiMember && window.ZiweiMember.requirePremium && !window.ZiweiMember.requirePremium('列印功能')) {
-        return
-      }
-      const view = document.getElementById('chartView')
-      if (!view || view.querySelector('.chart-placeholder') || view.querySelector('.error-box')) {
-        alert('請先完成排盤後再列印')
-        return
-      }
-      window.print()
-    })
-
-    document.getElementById('saveChartBtn')?.addEventListener('click', async function () {
-      if (window.ZiweiMember && window.ZiweiMember.requirePremium && !window.ZiweiMember.requirePremium('儲存命盤')) {
-        return
-      }
-      try {
-        await saveCurrentChart()
-      } catch (err) {
-        alert(err.message || '儲存失敗')
-      }
-    })
-
-    document.getElementById('chartDbBtn')?.addEventListener('click', showChartDatabase)
     document.getElementById('chartDbBackBtn')?.addEventListener('click', showChartView)
 
     document.getElementById('savedChartSearchBtn')?.addEventListener('click', function () {
@@ -3943,9 +3956,11 @@
       el.addEventListener('change', updateChartTypeUI)
     })
     }
+
+    window.initChartApp = initChartApp
   </script>
-  <script src="./vendor/auth-common.js"></script>
-  <script src="./vendor/payment-ui.js"></script>
-  <script src="./vendor/auth-app.js"></script>
+  <script src="./vendor/auth-common.js?v=20260717"></script>
+  <script src="./vendor/payment-ui.js?v=20260717"></script>
+  <script src="./vendor/auth-app.js?v=20260717"></script>
   </body>
 </html>

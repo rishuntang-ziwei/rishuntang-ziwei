@@ -435,6 +435,7 @@ body {
   opacity: 0.88;
   border-style: dashed;
   cursor: pointer;
+  pointer-events: auto;
 }
 
 .app-toolbar .member-actions button.member-feature-locked:hover {
