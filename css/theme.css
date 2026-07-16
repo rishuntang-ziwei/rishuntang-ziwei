@@ -390,26 +390,34 @@ body {
   line-height: 1.5;
 }
 
-/* ── 頂部使用者列 ── */
-#userBar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  justify-content: flex-end;
-  margin-bottom: 10px;
-  padding: 8px 12px;
-  font-size: 14px;
+/* ── 右側功能欄（帳號 + 會員功能） ── */
+.app-toolbar {
   background: var(--paper-surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-soft);
-  color: var(--ink-muted);
 }
 
-#userBar button {
+.app-toolbar-account {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.app-toolbar-account .user-bar-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--brand-brown);
+  text-align: center;
+  line-height: 1.4;
+  word-break: break-all;
+}
+
+#userBar button,
+.app-toolbar .member-actions button {
   border: 1px solid var(--border);
   background: var(--paper-surface);
-  padding: 5px 12px;
+  padding: 8px 6px;
   border-radius: var(--radius-sm);
   cursor: pointer;
   font-family: inherit;
@@ -417,7 +425,8 @@ body {
   transition: background 0.2s, border-color 0.2s;
 }
 
-#userBar button:hover {
+#userBar button:hover,
+.app-toolbar .member-actions button:hover {
   background: var(--paper-muted);
   border-color: var(--border-strong);
 }

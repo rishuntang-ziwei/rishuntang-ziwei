@@ -5,18 +5,18 @@
   function setView(view) {
     const adminPanel = document.getElementById('adminPanel')
     const appRoot = document.getElementById('appRoot')
-    const bar = document.getElementById('userBar')
+    const toolbar = document.getElementById('appToolbar')
 
     if (view === 'admin') {
       if (adminPanel) adminPanel.hidden = false
       if (appRoot) appRoot.hidden = true
-      if (bar) bar.hidden = true
+      if (toolbar) toolbar.hidden = true
       return
     }
 
     if (adminPanel) adminPanel.hidden = true
     if (appRoot) appRoot.hidden = false
-    if (bar) bar.hidden = false
+    if (toolbar) toolbar.hidden = false
   }
 
   function renderUserActions(user) {
@@ -637,9 +637,11 @@
     }
 
     const bar = document.getElementById('userBar')
+    const toolbar = document.getElementById('appToolbar')
+    if (toolbar) toolbar.hidden = false
     if (bar) {
       bar.innerHTML =
-        '<span>' + user.name + '</span>' +
+        '<span class="user-bar-name">' + user.name + '</span>' +
         '<button type="button" id="changePasswordBtn">修改密碼</button>' +
         (user.role === 'admin'
           ? '<button type="button" id="openAdminBtn">會員資料庫</button>'

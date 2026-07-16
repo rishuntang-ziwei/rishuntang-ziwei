@@ -77,24 +77,27 @@
     }
 
     .member-section {
-      margin-top: 16px;
-      padding-top: 14px;
+      margin-top: 0;
+      padding-top: 0;
     }
 
     .member-section h3 {
-      font-size: 17px;
+      font-size: 15px;
       margin-bottom: 8px;
       letter-spacing: 0.08em;
+      text-align: center;
+      color: var(--brand-brown);
     }
 
     .member-actions {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
+      display: flex;
+      flex-direction: column;
       gap: 8px;
     }
 
     .member-actions button {
       margin-top: 0;
+      width: 100%;
     }
 
     .member-actions .member-link-btn {
@@ -114,7 +117,52 @@
     }
 
     .chart-db-open-btn {
-      margin-top: 10px;
+      margin-top: 0;
+    }
+
+    .app-toolbar {
+      width: 140px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 12px 10px;
+      background: var(--paper-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-soft);
+      position: sticky;
+      top: 12px;
+      align-self: flex-start;
+      max-height: calc(100vh - 24px);
+      overflow-y: auto;
+    }
+
+    .app-toolbar-account {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--brand-gold-light);
+    }
+
+    .app-toolbar-account .user-bar-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--brand-brown);
+      text-align: center;
+      line-height: 1.4;
+      word-break: break-all;
+    }
+
+    .app-toolbar-account button,
+    .app-toolbar .member-actions button {
+      width: 100%;
+      margin-top: 0;
+      padding: 8px 6px;
+      font-size: 13px;
+      line-height: 1.35;
+      white-space: normal;
     }
 
     .chart-panel {
@@ -584,7 +632,7 @@
 
     @media (min-width: 901px) {
       .chart-outer {
-        max-width: min(1280px, calc(100vw - 360px), calc((100vh - 80px) * 1.5));
+        max-width: min(1280px, calc(100vw - 360px - 164px), calc((100vh - 48px) * 1.5));
       }
     }
 
@@ -1429,6 +1477,33 @@
         gap: 12px;
       }
 
+      .app-toolbar {
+        width: 100%;
+        position: static;
+        max-height: none;
+        flex-direction: column;
+      }
+
+      .app-toolbar-account {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-end;
+        border-bottom: none;
+        padding-bottom: 0;
+      }
+
+      .app-toolbar-account .user-bar-name {
+        width: 100%;
+        text-align: left;
+        margin-bottom: 4px;
+      }
+
+      .member-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+      }
+
       .form-panel {
         width: 100%;
       }
@@ -1844,6 +1919,7 @@
       }
 
       #userBar,
+      #appToolbar,
       #adminPanel,
       .form-panel,
       .password-modal,
@@ -2101,7 +2177,6 @@
   </head>
   <body>
   <div id="adminPanel" hidden></div>
-  <div id="userBar" hidden></div>
   <div class="layout" id="appRoot">
     <div class="form-panel" autocomplete="off">
       <div class="site-brand">
@@ -2178,19 +2253,7 @@
         </select>
       </div>
       <button type="button" id="submitBtn">開始排盤</button>
-
-      <div class="member-section">
-        <div id="membershipPanel" class="membership-panel" hidden></div>
-
-        <h3>會員功能</h3>
-        <div class="member-actions">
-          <button type="button" id="printChartBtn" class="secondary">列印命盤</button>
-          <button type="button" id="saveChartBtn" class="secondary">儲存命盤</button>
-          <button type="button" id="starDrawBtn" class="secondary">先知斗數神牌</button>
-        </div>
-
-        <button type="button" id="chartDbBtn" class="secondary chart-db-open-btn">命盤資料庫</button>
-      </div>
+      <div id="membershipPanel" class="membership-panel" hidden></div>
     </div>
 
     <div class="chart-panel" id="chartPanel">
@@ -2210,10 +2273,23 @@
         </div>
         <div class="chart-db-status" id="savedChartSearchStatus"></div>
         <div class="chart-db-table-wrap" id="savedChartList">
-          <div class="chart-db-empty">請按左側「命盤資料庫」載入</div>
+          <div class="chart-db-empty">請按「命盤資料庫」載入</div>
         </div>
       </div>
     </div>
+
+    <aside id="appToolbar" class="app-toolbar" hidden>
+      <div id="userBar" class="app-toolbar-account"></div>
+      <div class="member-section">
+        <h3>會員功能</h3>
+        <div class="member-actions">
+          <button type="button" id="printChartBtn" class="secondary">列印命盤</button>
+          <button type="button" id="saveChartBtn" class="secondary">儲存命盤</button>
+          <button type="button" id="starDrawBtn" class="secondary">先知斗數神牌</button>
+          <button type="button" id="chartDbBtn" class="secondary">命盤資料庫</button>
+        </div>
+      </div>
+    </aside>
   </div>
 
   <div id="natalReadingModal" class="reading-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-label="本命簡易解盤">
