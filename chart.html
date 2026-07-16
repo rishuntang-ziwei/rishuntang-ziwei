@@ -803,11 +803,39 @@
       right: 0;
       padding-right: 8px;
       display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 2px;
+      max-height: calc(100% - 60px);
+      overflow: visible;
+    }
+
+    .stars-major-row {
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+      justify-content: flex-end;
+      width: 100%;
+      flex-shrink: 0;
+      min-height: 1.2em;
+      padding-right: 2px;
+    }
+
+    .major-star-placeholder {
+      display: inline-block;
+      width: clamp(28px, 3.5vh, 40px);
+      min-height: clamp(36px, 4.5vh, 52px);
+      flex-shrink: 0;
+    }
+
+    .stars-minor-rows {
+      display: flex;
       flex-direction: row;
       justify-content: space-between;
       align-items: flex-start;
-      max-height: calc(100% - 60px);
-      overflow: visible;
+      width: 100%;
+      flex: 1 1 auto;
+      min-height: 0;
     }
 
     .stars-left {
@@ -2301,6 +2329,7 @@
 
   <script src="./vendor/lunar.min.js"></script>
   <script src="./vendor/iztro.min.js"></script>
+  <script src="./vendor/rishuntang-brightness.js"></script>
   <script type="module">
     import * as WuxingPanel from './vendor/wuxing-panel.mjs'
     import * as NatalReading from './vendor/natal-reading.mjs'
@@ -2720,8 +2749,27 @@
 
     function formatBrightness(b) {
       if (!b) return ''
-      if (b === '得' || b === '不') return '平'
       return b
+    }
+
+    function getZiweiBranch(a) {
+      const palace = a.palaces.find(p => p.majorStars.some(s => s.name === '紫微'))
+      return palace ? palace.earthlyBranch : null
+    }
+
+    function lookupRishuntangBrightness(ziweiBranch, palaceBranch, starName) {
+      const table = window.RishuntangBrightness
+      if (!table || !ziweiBranch || !palaceBranch) return null
+      const stars = table[ziweiBranch]?.[palaceBranch]
+      if (!stars) return null
+      const hit = stars.find(s => s.name === starName)
+      return hit ? hit.brightness : null
+    }
+
+    function majorBrightnessForDisplay(a, chartMode, palaceBranch, starName, iztroBrightness) {
+      if (chartMode !== 'origin') return iztroBrightness
+      const ziweiBranch = getZiweiBranch(a)
+      return lookupRishuntangBrightness(ziweiBranch, palaceBranch, starName) ?? iztroBrightness
     }
 
     function mutagenClass(m) {
@@ -3406,8 +3454,12 @@
       const rightGreenM = rightGreen.map(mapStar)
       const majors = sortMajorStars(p.majorStars.map(s => mapStarForDisplay({
         name: s.name,
-        brightness: s.brightness,
+        brightness: majorBrightnessForDisplay(a, chartMode, p.earthlyBranch, s.name, s.brightness),
       }, chartMode, h, a)))
+
+      const majorRowHtml = majors.length
+        ? renderStarsVertical(majors, 'major', chartMode)
+        : '<span class="major-star-placeholder" aria-hidden="true"></span>'
 
       const showDecadalAge = chartMode === 'origin' || chartMode === 'decadal'
       const daxian = showDecadalAge && p.decadal && shouldShowDecadal(p.decadal.range)
@@ -3444,11 +3496,14 @@
         ${shen}
         ${dailyDaysHtml}
         <div class="palace-stars">
-          <div class="stars-left">
-            <div class="stars-row stars-row-1">${renderStarsVertical(leftPurpleM, 'left-purple', chartMode)}</div>
-            <div class="stars-row stars-row-2">${renderStarsVertical(leftGreenM, 'left-green', chartMode)}</div>
+          <div class="stars-major-row">${majorRowHtml}</div>
+          <div class="stars-minor-rows">
+            <div class="stars-left">
+              <div class="stars-row stars-row-1">${renderStarsVertical(leftPurpleM, 'left-purple', chartMode)}</div>
+              <div class="stars-row stars-row-2">${renderStarsVertical(leftGreenM, 'left-green', chartMode)}</div>
+            </div>
+            <div class="stars-right">${renderStarsVertical(rightGreenM, 'right-green', chartMode)}</div>
           </div>
-          <div class="stars-right">${renderStarsVertical(rightGreenM, 'right-green', chartMode)}${renderStarsVertical(majors, 'major', chartMode)}</div>
         </div>
         <div class="palace-bottom ${footerDim ? 'palace-footer-dimmed' : ''}">
           <div class="palace-footer-grid">
