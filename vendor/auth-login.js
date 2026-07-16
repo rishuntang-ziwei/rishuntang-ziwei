@@ -34,7 +34,8 @@
     return (
       '<form id="registerForm" class="auth-form">' +
         '<h2>申請會員帳號</h2>' +
-        '<p class="auth-note">註冊即開通免費會員（本命命盤）；付費訂閱可解鎖完整功能</p>' +
+        '<p class="auth-note">註冊即開通免費會員（本命命盤）</p>' +
+        '<p class="auth-note auth-note-follow">付費訂閱可解鎖完整功能</p>' +
         '<label>姓名<input type="text" name="name" required></label>' +
         '<label>電話<input type="tel" name="phone" placeholder="例如 0912345678" required></label>' +
         birthHtml +

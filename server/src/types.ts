@@ -13,6 +13,8 @@ export interface UserRow {
   membership_plan: string | null
   membership_expires_at: string | null
   birth_payload: string | null
+  daily_chart_gen_date: string | null
+  daily_chart_gen_count: number
   created_at: string
   approved_at: string | null
 }
@@ -30,6 +32,7 @@ export interface PublicUser {
   membershipActive: boolean
   membershipTier: 'free' | 'paid'
   birthDateTime: string | null
+  dailyChartQuota: { used: number; limit: number; remaining: number } | null
   createdAt: string
   approvedAt: string | null
 }

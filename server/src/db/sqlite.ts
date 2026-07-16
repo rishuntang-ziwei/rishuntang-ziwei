@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url'
 import type { PublicUser, SavedChartDetail, SavedChartPayload, SavedChartRow, SavedChartSummary, UserRow, PaymentOrderRow } from '../types.js'
 import { mapPaymentOrderRow, mapSavedChartRow, mapUserRow, parseSavedChartPayload, toPublicUser, toSavedChartDetail, toSavedChartSummary } from './shared.js'
 import { getPaymentPlan } from '../paymentPlans.js'
+import { canGenerateChartToday, dailyChartQuotaForUser, taipeiDateString } from '../chartQuota.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const dataDir = process.env.DB_PATH
@@ -63,6 +64,12 @@ export async function initDb() {
   }
   if (!userColumns.some((col) => col.name === 'birth_payload')) {
     db.exec(`ALTER TABLE users ADD COLUMN birth_payload TEXT`)
+  }
+  if (!userColumns.some((col) => col.name === 'daily_chart_gen_date')) {
+    db.exec(`ALTER TABLE users ADD COLUMN daily_chart_gen_date TEXT`)
+  }
+  if (!userColumns.some((col) => col.name === 'daily_chart_gen_count')) {
+    db.exec(`ALTER TABLE users ADD COLUMN daily_chart_gen_count INTEGER NOT NULL DEFAULT 0`)
   }
 
   db.exec(`
@@ -335,6 +342,32 @@ export async function fulfillPaymentOrder(order: PaymentOrderRow): Promise<Publi
 
   const row = await findUserById(order.user_id)
   return row ? toPublicUser(row) : undefined
+}
+
+export async function consumeDailyChartGeneration(userId: number) {
+  const row = await findUserById(userId)
+  if (!row) throw new Error('找不到使用者')
+
+  if (dailyChartQuotaForUser(row) === null) {
+    return { allowed: true as const, quota: null }
+  }
+
+  if (!canGenerateChartToday(row)) {
+    return { allowed: false as const, quota: dailyChartQuotaForUser(row)! }
+  }
+
+  const today = taipeiDateString()
+  const nextCount = row.daily_chart_gen_date === today ? row.daily_chart_gen_count + 1 : 1
+
+  db.prepare(`UPDATE users SET daily_chart_gen_date = ?, daily_chart_gen_count = ? WHERE id = ?`).run(
+    today,
+    nextCount,
+    userId,
+  )
+
+  const updated = await findUserById(userId)
+  if (!updated) throw new Error('找不到使用者')
+  return { allowed: true as const, quota: dailyChartQuotaForUser(updated)! }
 }
 
 export async function ensureAdminUser() {

@@ -660,6 +660,9 @@
     }
 
     if (typeof window.initChartApp === 'function') window.initChartApp()
+    if (typeof window.loadRegistrationBirthChart === 'function') {
+      await window.loadRegistrationBirthChart()
+    }
     if (typeof window.applyMemberTierUI === 'function') window.applyMemberTierUI()
   }
 

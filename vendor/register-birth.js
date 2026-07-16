@@ -34,7 +34,6 @@
     return (
       '<fieldset class="register-birth-fieldset">' +
         '<legend>出生資料（必填）</legend>' +
-        '<p class="auth-note auth-note-muted">用於排本命命盤，註冊後管理員可查看</p>' +
         '<div class="register-birth-row inline">' +
           '<label>性別</label>' +
           '<label><input type="radio" name="regGender" value="男" required /> 男</label>' +

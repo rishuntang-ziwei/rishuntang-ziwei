@@ -1,9 +1,11 @@
 import { Router } from 'express'
 import bcrypt from 'bcryptjs'
-import { createUser, findUserByEmail, updateUserPassword } from '../db.js'
+import { createUser, findUserByEmail, findUserById, updateUserPassword, consumeDailyChartGeneration } from '../db.js'
 import { requireAuth, requireActiveMember, signToken } from '../middleware.js'
 import { toPublicUser } from '../db.js'
 import { validateChartPayload } from '../chartPayload.js'
+import { formatBirthDateTime } from '../chartFormat.js'
+import { parseSavedChartPayload } from '../db/shared.js'
 import type { SavedChartPayload } from '../types.js'
 
 const router = Router()
@@ -100,6 +102,43 @@ router.post('/login', async (req, res) => {
 
 router.get('/me', requireAuth, (req, res) => {
   res.json({ user: req.authUser })
+})
+
+router.get('/birth-chart', requireAuth, requireActiveMember, async (req, res) => {
+  const user = await findUserById(req.authUser!.id)
+  if (!user?.birth_payload) {
+    res.status(404).json({ error: '尚未登記出生資料' })
+    return
+  }
+
+  let payload: SavedChartPayload
+  try {
+    payload = parseSavedChartPayload(user.birth_payload)
+  } catch {
+    res.status(500).json({ error: '出生資料格式錯誤' })
+    return
+  }
+
+  res.json({
+    chart: {
+      subjectName: payload.name,
+      gender: payload.gender,
+      birthDateTime: formatBirthDateTime(payload),
+      payload,
+    },
+  })
+})
+
+router.post('/chart-generate', requireAuth, requireActiveMember, async (req, res) => {
+  const result = await consumeDailyChartGeneration(req.authUser!.id)
+  if (!result.allowed) {
+    res.status(429).json({
+      error: '免費會員每日最多排盤 3 次，請明天再試或升級付費訂閱',
+      quota: result.quota,
+    })
+    return
+  }
+  res.json({ quota: result.quota })
 })
 
 router.post('/change-password', requireAuth, async (req, res) => {

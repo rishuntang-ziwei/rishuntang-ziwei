@@ -88,7 +88,7 @@
   function renderFreeUpgrade(status) {
     let html =
       '<div class="membership-free">' +
-        '<p class="membership-alert">您目前是 <strong>免費會員</strong>，可排本命命盤。</p>' +
+        '<p class="membership-alert">您目前是 <strong>免費會員</strong>，登入後自動顯示本命命盤，每日最多排盤 3 次。</p>' +
         '<p class="membership-note">升級付費訂閱後，可解鎖大限流年命盤、列印、儲存命盤、神牌等完整功能。</p>'
 
     if (!status.paymentEnabled) {

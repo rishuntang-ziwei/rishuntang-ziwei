@@ -16,6 +16,7 @@ export interface AuthUser {
   membershipActive: boolean
   membershipTier: MembershipTier
   birthDateTime: string | null
+  dailyChartQuota: { used: number; limit: number; remaining: number } | null
   createdAt: string
   approvedAt: string | null
 }

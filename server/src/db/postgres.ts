@@ -3,6 +3,7 @@ import pg from 'pg'
 import type { PublicUser, SavedChartDetail, SavedChartPayload, SavedChartRow, SavedChartSummary, UserRow, PaymentOrderRow } from '../types.js'
 import { mapPaymentOrderRow, mapSavedChartRow, mapUserRow, parseSavedChartPayload, toPublicUser, toSavedChartDetail, toSavedChartSummary } from './shared.js'
 import { getPaymentPlan } from '../paymentPlans.js'
+import { canGenerateChartToday, dailyChartQuotaForUser, taipeiDateString } from '../chartQuota.js'
 
 const { Pool } = pg
 
@@ -83,6 +84,16 @@ export async function initDb() {
   await pool.query(`
     ALTER TABLE users
     ADD COLUMN IF NOT EXISTS birth_payload TEXT
+  `)
+
+  await pool.query(`
+    ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS daily_chart_gen_date TEXT
+  `)
+
+  await pool.query(`
+    ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS daily_chart_gen_count INTEGER NOT NULL DEFAULT 0
   `)
 
   await pool.query(`
@@ -350,6 +361,32 @@ export async function fulfillPaymentOrder(order: PaymentOrderRow): Promise<Publi
   )
   const row = result.rows[0]
   return row ? toPublicUser(mapUserRow(row)) : undefined
+}
+
+export async function consumeDailyChartGeneration(userId: number) {
+  const row = await findUserById(userId)
+  if (!row) throw new Error('找不到使用者')
+
+  const unlimited = dailyChartQuotaForUser(row) === null
+  if (unlimited) {
+    return { allowed: true as const, quota: null }
+  }
+
+  if (!canGenerateChartToday(row)) {
+    return { allowed: false as const, quota: dailyChartQuotaForUser(row)! }
+  }
+
+  const today = taipeiDateString()
+  const nextCount = row.daily_chart_gen_date === today ? row.daily_chart_gen_count + 1 : 1
+
+  await pool.query(
+    `UPDATE users SET daily_chart_gen_date = $1, daily_chart_gen_count = $2 WHERE id = $3`,
+    [today, nextCount, userId],
+  )
+
+  const updated = await findUserById(userId)
+  if (!updated) throw new Error('找不到使用者')
+  return { allowed: true as const, quota: dailyChartQuotaForUser(updated)! }
 }
 
 export async function ensureAdminUser() {

@@ -2098,7 +2098,8 @@
         <label><input type="radio" name="chartType" value="natal" checked /> 本命命盤</label>
         <label class="chart-type-premium"><input type="radio" name="chartType" value="yearly" /> 流年命盤</label>
       </div>
-      <p class="membership-note chart-type-note hidden" id="chartTypeNote">免費會員僅可使用本命命盤；升級付費訂閱可解鎖流年、大限等功能</p>
+      <p class="membership-note chart-type-note hidden" id="chartTypeNote">免費會員每日最多排盤 3 次；升級付費訂閱可解鎖流年、大限等功能</p>
+      <p class="membership-note hidden" id="freeChartQuotaNote"></p>
       <div class="row hidden" id="yearlyYearRow">
         <label for="yearlyYear">流年年份（西元）</label>
         <input id="yearlyYear" type="number" min="1900" max="2100" />
@@ -2185,6 +2186,20 @@
       const premium = isPremiumMember()
       const note = document.getElementById('chartTypeNote')
       if (note) note.classList.toggle('hidden', premium)
+
+      const quotaNote = document.getElementById('freeChartQuotaNote')
+      const quota = window.ZiweiMember && window.ZiweiMember.currentUser
+        ? window.ZiweiMember.currentUser.dailyChartQuota
+        : null
+      if (quotaNote) {
+        if (!premium && quota) {
+          quotaNote.classList.remove('hidden')
+          quotaNote.textContent = '免費會員今日剩餘排盤次數：' + quota.remaining + ' / ' + quota.limit
+        } else {
+          quotaNote.classList.add('hidden')
+          quotaNote.textContent = ''
+        }
+      }
 
       document.querySelectorAll('input[name="chartType"]').forEach(function (el) {
         if (el.value === 'yearly') {
@@ -3147,9 +3162,22 @@
       }
     }
 
-    window.loadSavedChartPayload = function (payload) {
+    window.loadSavedChartPayload = function (payload, options) {
       applyInputToForm(payload)
-      run()
+      const skipQuotaCheck = !options || options.skipQuotaCheck !== false
+      run({ skipQuotaCheck: skipQuotaCheck })
+    }
+
+    window.loadRegistrationBirthChart = async function () {
+      try {
+        const data = await window.ZiweiAuth.api('/api/auth/birth-chart')
+        if (data.chart && data.chart.payload) {
+          applyInputToForm(data.chart.payload)
+          run({ skipQuotaCheck: true })
+        }
+      } catch (_err) {
+        // 舊帳號或未填出生資料時略過
+      }
     }
 
     function normalizeDate(date) {
@@ -3585,9 +3613,17 @@
       renderMobileReadingPanel(name, a)
     }
 
-    function run() {
+    async function run(options) {
       showChartView()
       try {
+        const skipQuota = options && options.skipQuotaCheck
+        if (!skipQuota && !isPremiumMember()) {
+          const data = await window.ZiweiAuth.api('/api/auth/chart-generate', { method: 'POST' })
+          if (data.quota && window.ZiweiMember && window.ZiweiMember.currentUser) {
+            window.ZiweiMember.currentUser.dailyChartQuota = data.quota
+          }
+          if (typeof window.applyMemberTierUI === 'function') window.applyMemberTierUI()
+        }
         const input = getInput()
         const a = compute(input)
         initialChartType = input.initialChartType
@@ -3612,7 +3648,9 @@
       }
     }
 
-    document.getElementById('submitBtn').addEventListener('click', run)
+    document.getElementById('submitBtn').addEventListener('click', function () {
+      run({ skipQuotaCheck: false })
+    })
 
     document.getElementById('natalReadingOpenBtn')?.addEventListener('click', openNatalReadingModal)
     document.getElementById('natalReadingCloseBtn')?.addEventListener('click', closeNatalReadingModal)
