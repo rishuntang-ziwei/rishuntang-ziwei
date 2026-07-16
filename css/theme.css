@@ -42,7 +42,7 @@
   --font-chart: 'Noto Serif TC', 'KaiTi', 'BiauKai', 'DFKai-SB', serif;
 
   --page-bg-image: url('../assets/bg-calligraphy.png');
-  --page-bg-overlay: rgba(250, 246, 239, 0.78);
+  --page-bg-overlay: rgba(250, 246, 239, 0.85);
 }
 
 * {
