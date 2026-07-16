@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import bcrypt from 'bcryptjs'
 import { createUser, findUserByEmail, findUserById, updateUserPassword, consumeDailyChartGeneration } from '../db.js'
-import { requireAuth, requireActiveMember, signToken } from '../middleware.js'
+import { requireAuth, requireApprovedMember, signToken } from '../middleware.js'
 import { toPublicUser } from '../db.js'
 import { validateChartPayload } from '../chartPayload.js'
 import { formatBirthDateTime } from '../chartFormat.js'
@@ -104,7 +104,7 @@ router.get('/me', requireAuth, (req, res) => {
   res.json({ user: req.authUser })
 })
 
-router.get('/birth-chart', requireAuth, requireActiveMember, async (req, res) => {
+router.get('/birth-chart', requireAuth, requireApprovedMember, async (req, res) => {
   const user = await findUserById(req.authUser!.id)
   if (!user?.birth_payload) {
     res.status(404).json({ error: '尚未登記出生資料' })
@@ -129,7 +129,7 @@ router.get('/birth-chart', requireAuth, requireActiveMember, async (req, res) =>
   })
 })
 
-router.post('/chart-generate', requireAuth, requireActiveMember, async (req, res) => {
+router.post('/chart-generate', requireAuth, requireApprovedMember, async (req, res) => {
   const result = await consumeDailyChartGeneration(req.authUser!.id)
   if (!result.allowed) {
     res.status(429).json({

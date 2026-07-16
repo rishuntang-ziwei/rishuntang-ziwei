@@ -64,6 +64,28 @@ export function requireActiveMember(req: Request, res: Response, next: NextFunct
   next()
 }
 
+/** 已開通會員（含免費與付費），不含待審核 */
+export function requireApprovedMember(req: Request, res: Response, next: NextFunction) {
+  const user = req.authUser
+  if (!user) {
+    res.status(401).json({ error: '請先登入' })
+    return
+  }
+  if (user.role === 'admin') {
+    next()
+    return
+  }
+  if (user.status === 'rejected') {
+    res.status(403).json({ error: '帳號已被拒絕，請聯絡管理員' })
+    return
+  }
+  if (user.status === 'pending') {
+    res.status(403).json({ error: '帳號審核中，請等待管理員開通' })
+    return
+  }
+  next()
+}
+
 declare global {
   namespace Express {
     interface Request {
