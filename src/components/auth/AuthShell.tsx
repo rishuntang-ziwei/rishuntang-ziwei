@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { LoginForm } from './LoginForm'
 import { RegisterForm } from './RegisterForm'
 
-const ANCESTOR_IMG = '/assets/zushi-jiangziya.png'
+const ANCESTOR_IMG = '/assets/zushi-jiangziya.png?v=20260717'
 const ANCESTOR_CAPTION = '日舜堂傳承中華文化'
 
 export function AuthShell() {

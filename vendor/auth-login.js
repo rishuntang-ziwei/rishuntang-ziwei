@@ -1,6 +1,6 @@
 (function () {
   const auth = window.ZiweiAuth
-  const ANCESTOR_IMG = './assets/zushi-jiangziya.png'
+  const ANCESTOR_IMG = './assets/zushi-jiangziya.png?v=20260717'
   const ANCESTOR_CAPTION = '日舜堂傳承中華文化'
 
   function showError(el, message) {
