@@ -23,7 +23,7 @@ body {
   font-family: 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
   background-color: #faf6ef;
   background-image:
-    linear-gradient(rgba(250, 246, 239, 0.85), rgba(250, 246, 239, 0.85)),
+    linear-gradient(rgba(250, 246, 239, 0.92), rgba(250, 246, 239, 0.92)),
     url('/assets/bg-calligraphy.png');
   background-size: cover;
   background-position: center center;
