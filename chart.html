@@ -578,6 +578,8 @@
       max-width: 100%;
       aspect-ratio: 6 / 4;
       margin: 0 auto;
+      position: relative;
+      overflow: hidden;
     }
 
     @media (min-width: 901px) {
@@ -605,6 +607,58 @@
     }
 
     .chart-lines line { stroke: var(--line-red); stroke-width: 1; }
+
+    .chart-watermark {
+      position: absolute;
+      inset: 0;
+      z-index: 12;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .chart-watermark-track {
+      position: absolute;
+      left: -35%;
+      top: -35%;
+      width: 170%;
+      height: 170%;
+      display: flex;
+      flex-wrap: wrap;
+      align-content: flex-start;
+      gap: 28px 40px;
+      padding: 20px;
+      transform: rotate(-24deg);
+    }
+
+    .chart-watermark-track-a {
+      animation: chart-watermark-drift 80s linear infinite;
+    }
+
+    .chart-watermark-track-b {
+      animation: chart-watermark-drift-reverse 100s linear infinite;
+      opacity: 0.65;
+    }
+
+    .chart-watermark-item {
+      font-family: "Noto Serif TC", "Songti TC", serif;
+      font-size: clamp(11px, 1.15vw, 14px);
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      color: rgba(107, 68, 35, 0.13);
+      white-space: nowrap;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    @keyframes chart-watermark-drift {
+      from { transform: rotate(-24deg) translate(0, 0); }
+      to { transform: rotate(-24deg) translate(-6%, -5%); }
+    }
+
+    @keyframes chart-watermark-drift-reverse {
+      from { transform: rotate(-24deg) translate(-6%, -5%); }
+      to { transform: rotate(-24deg) translate(0, 0); }
+    }
 
     .cell {
       border: 1px solid var(--border);
@@ -3483,6 +3537,21 @@
       return `<svg class="chart-lines" viewBox="0 0 ${CHART_W} ${CHART_H}" preserveAspectRatio="none">${lineEls.join('')}</svg>`
     }
 
+    function renderChartWatermarkHtml() {
+      const label = '國際日舜堂版權'
+      const items = []
+      for (let i = 0; i < 42; i++) {
+        items.push('<span class="chart-watermark-item">' + label + '</span>')
+      }
+      const track = items.join('')
+      return (
+        '<div class="chart-watermark" aria-hidden="true">' +
+          '<div class="chart-watermark-track chart-watermark-track-a">' + track + '</div>' +
+          '<div class="chart-watermark-track chart-watermark-track-b">' + track + '</div>' +
+        '</div>'
+      )
+    }
+
     function renderChart(name, a, input) {
       currentInput = input
       currentAstrolabe = a
@@ -3499,7 +3568,7 @@
       const displayOpts = yearlyDisplayOptions(chartMode)
       const sanFangRoles = getSanFangBranchRoles(a, h, selectedPalaceName, chartMode, displayOpts)
       let centerDone = false
-      let html = '<div class="chart-outer"><div class="chart-grid">'
+      let html = '<div class="chart-outer">' + renderChartWatermarkHtml() + '<div class="chart-grid">'
       html += renderLines(a, h)
 
       GRID.forEach((row, ri) => {
