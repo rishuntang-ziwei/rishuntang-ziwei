@@ -589,14 +589,15 @@
 
     ;[saveChartBtn, printChartBtn, chartDbBtn, starDrawBtn].forEach(function (btn) {
       if (!btn) return
-      btn.disabled = !premium
+      btn.disabled = false
+      btn.classList.toggle('member-feature-locked', !premium)
       btn.title = premium ? '' : '付費會員專屬功能，請升級訂閱'
     })
 
     if (starDrawBtn) {
       starDrawBtn.onclick = function () {
         if (!premium) {
-          alert('神牌功能需訂閱付費會員，請在上方選擇方案升級')
+          alert('神牌功能需訂閱付費會員，請在左側選擇方案升級')
           return
         }
         if (canUseStarDraw(user)) {

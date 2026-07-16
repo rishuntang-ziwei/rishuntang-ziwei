@@ -431,6 +431,17 @@ body {
   border-color: var(--border-strong);
 }
 
+.app-toolbar .member-actions button.member-feature-locked {
+  opacity: 0.88;
+  border-style: dashed;
+  cursor: pointer;
+}
+
+.app-toolbar .member-actions button.member-feature-locked:hover {
+  opacity: 1;
+  border-color: var(--brand-gold);
+}
+
 /* ── 左側表單面板 ── */
 .form-panel {
   background: var(--paper-surface);

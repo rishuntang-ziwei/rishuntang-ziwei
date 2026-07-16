@@ -803,11 +803,17 @@
       right: 0;
       padding-right: 8px;
       display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: flex-start;
+      max-height: calc(100% - 60px);
+      overflow: visible;
+    }
+
+    .palace-stars.palace-stars-no-major {
       flex-direction: column;
       align-items: stretch;
       gap: 2px;
-      max-height: calc(100% - 60px);
-      overflow: visible;
     }
 
     .stars-major-row {
@@ -2948,8 +2954,7 @@
     }
 
     function showChartDatabase() {
-      if (!isPremiumMember()) {
-        alert('命盤資料庫需訂閱付費會員，請在左側選擇方案升級')
+      if (window.ZiweiMember && window.ZiweiMember.requirePremium && !window.ZiweiMember.requirePremium('命盤資料庫')) {
         return
       }
       chartDatabaseVisible = true
@@ -3461,6 +3466,26 @@
         ? renderStarsVertical(majors, 'major', chartMode)
         : '<span class="major-star-placeholder" aria-hidden="true"></span>'
 
+      const minorLeftHtml =
+        '<div class="stars-left">' +
+          '<div class="stars-row stars-row-1">' + renderStarsVertical(leftPurpleM, 'left-purple', chartMode) + '</div>' +
+          '<div class="stars-row stars-row-2">' + renderStarsVertical(leftGreenM, 'left-green', chartMode) + '</div>' +
+        '</div>'
+      const minorRightHtml = renderStarsVertical(rightGreenM, 'right-green', chartMode)
+
+      const starsHtml = majors.length
+        ? '<div class="palace-stars">' +
+            minorLeftHtml +
+            '<div class="stars-right">' + minorRightHtml + majorRowHtml + '</div>' +
+          '</div>'
+        : '<div class="palace-stars palace-stars-no-major">' +
+            '<div class="stars-major-row">' + majorRowHtml + '</div>' +
+            '<div class="stars-minor-rows">' +
+              minorLeftHtml +
+              '<div class="stars-right">' + minorRightHtml + '</div>' +
+            '</div>' +
+          '</div>'
+
       const showDecadalAge = chartMode === 'origin' || chartMode === 'decadal'
       const daxian = showDecadalAge && p.decadal && shouldShowDecadal(p.decadal.range)
         ? `${p.decadal.range[0]} - ${p.decadal.range[1]}`
@@ -3495,16 +3520,7 @@
       return `<div class="palace ${hl} ${focus} ${activeMonthly}" data-scope-palace="${scopeName}" data-flow-month="${monthlyEntry ? monthlyEntry.month : ''}" title="單擊：三方四正；雙擊：流月命宮">
         ${shen}
         ${dailyDaysHtml}
-        <div class="palace-stars">
-          <div class="stars-major-row">${majorRowHtml}</div>
-          <div class="stars-minor-rows">
-            <div class="stars-left">
-              <div class="stars-row stars-row-1">${renderStarsVertical(leftPurpleM, 'left-purple', chartMode)}</div>
-              <div class="stars-row stars-row-2">${renderStarsVertical(leftGreenM, 'left-green', chartMode)}</div>
-            </div>
-            <div class="stars-right">${renderStarsVertical(rightGreenM, 'right-green', chartMode)}</div>
-          </div>
-        </div>
+        ${starsHtml}
         <div class="palace-bottom ${footerDim ? 'palace-footer-dimmed' : ''}">
           <div class="palace-footer-grid">
             ${daxianHtml}
@@ -3867,8 +3883,7 @@
     })
 
     document.getElementById('printChartBtn')?.addEventListener('click', function () {
-      if (!isPremiumMember()) {
-        alert('列印功能需訂閱付費會員，請在左側選擇方案升級')
+      if (window.ZiweiMember && window.ZiweiMember.requirePremium && !window.ZiweiMember.requirePremium('列印功能')) {
         return
       }
       const view = document.getElementById('chartView')
@@ -3880,6 +3895,9 @@
     })
 
     document.getElementById('saveChartBtn')?.addEventListener('click', async function () {
+      if (window.ZiweiMember && window.ZiweiMember.requirePremium && !window.ZiweiMember.requirePremium('儲存命盤')) {
+        return
+      }
       try {
         await saveCurrentChart()
       } catch (err) {
