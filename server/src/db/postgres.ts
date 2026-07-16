@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs'
 import pg from 'pg'
 import type { PublicUser, SavedChartDetail, SavedChartPayload, SavedChartRow, SavedChartSummary, UserRow, PaymentOrderRow } from '../types.js'
 import { mapPaymentOrderRow, mapSavedChartRow, mapUserRow, parseSavedChartPayload, toPublicUser, toSavedChartDetail, toSavedChartSummary } from './shared.js'
-import { getPaymentPlan } from '../paymentPlans.js'
+import { resolveMembershipGrant } from '../membershipGrant.js'
 import { canGenerateChartToday, dailyChartQuotaForUser, taipeiDateString } from '../chartQuota.js'
 
 const { Pool } = pg
@@ -333,20 +333,12 @@ export async function markPaymentOrderPaid(
   return row ? mapPaymentOrderRow(row) : undefined
 }
 
-export async function fulfillPaymentOrder(order: PaymentOrderRow): Promise<PublicUser | undefined> {
-  const plan = getPaymentPlan(order.plan_id)
-  if (!plan) return undefined
+export async function grantUserMembership(userId: number, planId: string): Promise<PublicUser | undefined> {
+  const user = await findUserById(userId)
+  if (!user || user.role !== 'user') return undefined
 
-  const user = await findUserById(order.user_id)
-  if (!user) return undefined
-
-  const now = Date.now()
-  const currentExpiry = user.membership_expires_at
-    ? Math.max(new Date(user.membership_expires_at).getTime(), now)
-    : now
-  const newExpiry = new Date(currentExpiry + plan.days * 24 * 60 * 60 * 1000).toISOString()
-
-  const starDraw = plan.starDraw || user.star_draw_enabled
+  const grant = resolveMembershipGrant(user, planId)
+  if (!grant) return undefined
 
   const result = await pool.query(
     `UPDATE users
@@ -357,10 +349,14 @@ export async function fulfillPaymentOrder(order: PaymentOrderRow): Promise<Publi
          star_draw_enabled = $4
      WHERE id = $1
      RETURNING *`,
-    [order.user_id, plan.id, newExpiry, starDraw],
+    [userId, grant.planId, grant.expiresAt, grant.starDrawEnabled],
   )
   const row = result.rows[0]
   return row ? toPublicUser(mapUserRow(row)) : undefined
+}
+
+export async function fulfillPaymentOrder(order: PaymentOrderRow): Promise<PublicUser | undefined> {
+  return grantUserMembership(order.user_id, order.plan_id)
 }
 
 export async function consumeDailyChartGeneration(userId: number) {

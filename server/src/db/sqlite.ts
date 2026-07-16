@@ -5,7 +5,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { PublicUser, SavedChartDetail, SavedChartPayload, SavedChartRow, SavedChartSummary, UserRow, PaymentOrderRow } from '../types.js'
 import { mapPaymentOrderRow, mapSavedChartRow, mapUserRow, parseSavedChartPayload, toPublicUser, toSavedChartDetail, toSavedChartSummary } from './shared.js'
-import { getPaymentPlan } from '../paymentPlans.js'
+import { resolveMembershipGrant } from '../membershipGrant.js'
 import { canGenerateChartToday, dailyChartQuotaForUser, taipeiDateString } from '../chartQuota.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -315,20 +315,14 @@ export async function markPaymentOrderPaid(
   return findPaymentOrderByMerchantOrderNo(merchantOrderNo)
 }
 
-export async function fulfillPaymentOrder(order: PaymentOrderRow): Promise<PublicUser | undefined> {
-  const plan = getPaymentPlan(order.plan_id)
-  if (!plan) return undefined
+export async function grantUserMembership(userId: number, planId: string): Promise<PublicUser | undefined> {
+  const user = await findUserById(userId)
+  if (!user || user.role !== 'user') return undefined
 
-  const user = await findUserById(order.user_id)
-  if (!user) return undefined
+  const grant = resolveMembershipGrant(user, planId)
+  if (!grant) return undefined
 
-  const now = Date.now()
-  const currentExpiry = user.membership_expires_at
-    ? Math.max(new Date(user.membership_expires_at).getTime(), now)
-    : now
-  const newExpiry = new Date(currentExpiry + plan.days * 24 * 60 * 60 * 1000).toISOString()
-
-  const starDraw = plan.starDraw || user.star_draw_enabled ? 1 : 0
+  const starDraw = grant.starDrawEnabled ? 1 : 0
 
   db.prepare(
     `UPDATE users
@@ -338,10 +332,14 @@ export async function fulfillPaymentOrder(order: PaymentOrderRow): Promise<Publi
          membership_expires_at = ?,
          star_draw_enabled = ?
      WHERE id = ?`,
-  ).run(plan.id, newExpiry, starDraw, order.user_id)
+  ).run(grant.planId, grant.expiresAt, starDraw, userId)
 
-  const row = await findUserById(order.user_id)
+  const row = await findUserById(userId)
   return row ? toPublicUser(row) : undefined
+}
+
+export async function fulfillPaymentOrder(order: PaymentOrderRow): Promise<PublicUser | undefined> {
+  return grantUserMembership(order.user_id, order.plan_id)
 }
 
 export async function consumeDailyChartGeneration(userId: number) {

@@ -233,8 +233,7 @@ export function formatPalaceName(name: string): string {
 /** 星曜亮度顯示（得、不 → 平） */
 export function formatBrightness(brightness?: string): string | undefined {
   if (!brightness) return undefined
-  if (brightness === '得' || brightness === '不') return '平'
-  return brightness
+  return brightness.replace(/庙/g, '廟').replace(/闲/g, '閒')
 }
 
 /** 四化顏色（雙框線用） */

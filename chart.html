@@ -2299,7 +2299,7 @@
 
   <script src="./vendor/lunar.min.js"></script>
   <script src="./vendor/iztro.min.js"></script>
-  <script src="./vendor/rishuntang-brightness.js"></script>
+  <script src="./vendor/rishuntang-brightness.js?v=20260720c"></script>
   <script type="module">
     import * as WuxingPanel from './vendor/wuxing-panel.mjs'
     import * as NatalReading from './vendor/natal-reading.mjs'
@@ -2722,7 +2722,9 @@
 
     function formatBrightness(b) {
       if (!b) return ''
-      return b
+      return String(b)
+        .replace(/庙/g, '廟')
+        .replace(/闲/g, '閒')
     }
 
     function getZiweiBranch(a) {

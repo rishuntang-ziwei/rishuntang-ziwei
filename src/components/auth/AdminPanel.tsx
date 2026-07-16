@@ -5,6 +5,7 @@ import {
   disableUserStarDraw,
   enableUserStarDraw,
   fetchAdminMembers,
+  grantUserMembership,
   makeUserAdmin,
   rejectUser,
   revokeUserAdmin,
@@ -39,10 +40,10 @@ function tabTitle(tab: AdminMemberSegment) {
 
 function tabNote(tab: AdminMemberSegment) {
   if (tab === 'free') {
-    return '註冊即列入免費會員資料庫，可使用本命命盤；付費訂閱後會自動移至付費會員。'
+    return '註冊即列入免費會員資料庫，可使用本命命盤；線上訂閱或管理員手動開通後，會移至付費會員。'
   }
   if (tab === 'paid') {
-    return '付費訂閱中的會員，可完整使用大限流年、列印儲存與神牌等功能。'
+    return '付費訂閱中的會員，可完整使用大限流年、列印儲存與神牌等功能；線下付款可由管理員按「延長付費」加期。'
   }
   if (tab === 'pending') {
     return '尚未審核通過的申請（若仍使用人工審核流程）。'
@@ -64,6 +65,10 @@ export function AdminPanel({
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [viewingCharts, setViewingCharts] = useState<{ id: number; name: string } | null>(null)
+  const [grantTarget, setGrantTarget] = useState<{ id: number; name: string; extend: boolean } | null>(null)
+  const [grantPlanId, setGrantPlanId] = useState('member_monthly')
+  const [grantError, setGrantError] = useState('')
+  const [grantSubmitting, setGrantSubmitting] = useState(false)
 
   const loadMembers = useCallback(async (segment: AdminMemberSegment) => {
     setLoading(true)
@@ -128,6 +133,40 @@ export function AdminPanel({
     await refresh()
   }
 
+  async function submitGrantMembership() {
+    if (!grantTarget) return
+    setGrantSubmitting(true)
+    setGrantError('')
+    try {
+      const data = await grantUserMembership(grantTarget.id, grantPlanId)
+      alert(`已為「${grantTarget.name}」開通 ${data.planLabel}`)
+      setGrantTarget(null)
+      await refresh()
+    } catch (err) {
+      setGrantError(err instanceof Error ? err.message : '開通失敗')
+    } finally {
+      setGrantSubmitting(false)
+    }
+  }
+
+  function grantMembershipButton(item: AuthUser) {
+    if (item.role !== 'user' || item.status === 'rejected') return null
+    if (item.status !== 'pending' && item.status !== 'approved') return null
+    const extend = item.status === 'approved' && item.membershipActive
+    return (
+      <button
+        type="button"
+        onClick={() => {
+          setGrantPlanId('member_monthly')
+          setGrantError('')
+          setGrantTarget({ id: item.id, name: item.name, extend })
+        }}
+      >
+        {extend ? '延長付費' : '開通付費'}
+      </button>
+    )
+  }
+
   function starDrawButton(item: AuthUser) {
     if (item.role !== 'user' || item.status !== 'approved') return null
     return item.starDrawEnabled ? (
@@ -163,6 +202,7 @@ export function AdminPanel({
           <button type="button" onClick={() => handleApprove(item.id)}>
             開通
           </button>
+          {grantMembershipButton(item)}
           <button type="button" className="danger" onClick={() => handleReject(item.id)}>
             拒絕
           </button>
@@ -181,6 +221,7 @@ export function AdminPanel({
         <button type="button" onClick={() => setViewingCharts({ id: item.id, name: item.name })}>
           查看命盤
         </button>
+        {grantMembershipButton(item)}
         {starDrawButton(item)}
         <button type="button" onClick={() => handleMakeAdmin(item.id, item.name)}>
           設為管理員
@@ -200,6 +241,36 @@ export function AdminPanel({
         onBack={() => setViewingCharts(null)}
         onLoadChart={onLoadChart}
       />
+    )
+  }
+
+  if (grantTarget) {
+    return (
+      <div className="password-modal">
+        <div className="password-modal-card">
+          <h3>{grantTarget.extend ? '延長付費會員' : '開通付費會員'}</h3>
+          <p className="auth-note">
+            為「{grantTarget.name}」手動開通（線下付款），效果與線上訂閱相同。
+          </p>
+          <label>
+            訂閱方案
+            <select value={grantPlanId} onChange={(e) => setGrantPlanId(e.target.value)}>
+              <option value="member_monthly">付費會員 · 單月（30 天）</option>
+              <option value="member_half_year">付費會員 · 半年（182 天）</option>
+              <option value="member_yearly">付費會員 · 一年（365 天）</option>
+            </select>
+          </label>
+          {grantError && <div className="auth-error">{grantError}</div>}
+          <div className="password-modal-actions">
+            <button type="button" className="secondary" onClick={() => setGrantTarget(null)} disabled={grantSubmitting}>
+              取消
+            </button>
+            <button type="button" className="primary" onClick={submitGrantMembership} disabled={grantSubmitting}>
+              {grantSubmitting ? '處理中…' : '確認開通'}
+            </button>
+          </div>
+        </div>
+      </div>
     )
   }
 

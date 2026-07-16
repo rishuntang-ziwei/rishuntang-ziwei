@@ -48,6 +48,8 @@ export const markPaymentOrderPaid = (merchantOrderNo: string, newebpayTradeNo: s
   driver.markPaymentOrderPaid(merchantOrderNo, newebpayTradeNo)
 export const fulfillPaymentOrder = (order: import('../types.js').PaymentOrderRow) =>
   driver.fulfillPaymentOrder(order)
+export const grantUserMembership = (userId: number, planId: string) =>
+  driver.grantUserMembership(userId, planId)
 export const consumeDailyChartGeneration = (userId: number) => driver.consumeDailyChartGeneration(userId)
 export const ensureAdminUser = () => driver.ensureAdminUser()
 

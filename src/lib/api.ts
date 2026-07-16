@@ -125,6 +125,16 @@ export function disableUserStarDraw(id: number) {
   )
 }
 
+export function grantUserMembership(id: number, planId: string) {
+  return request<{ message: string; planLabel: string; user: UsersResponse['users'][number] }>(
+    `/api/admin/users/${id}/grant-membership`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ planId }),
+    },
+  )
+}
+
 export function deleteUserAccount(id: number) {
   return request<{ message: string }>(`/api/admin/users/${id}`, { method: 'DELETE' })
 }

@@ -37,12 +37,16 @@
       actions.push(
         '<button type="button" data-view-charts="' + user.id + '" data-name="' + user.name + '">查看命盤</button>',
         '<button type="button" data-approve="' + user.id + '">開通</button>',
+        '<button type="button" data-grant-membership="' + user.id + '" data-name="' + user.name + '">開通付費</button>',
         '<button type="button" class="danger" data-reject="' + user.id + '">拒絕</button>',
         '<button type="button" data-make-admin="' + user.id + '" data-name="' + user.name + '">設為管理員</button>',
       )
     } else if (user.status === 'approved') {
       actions.push(
         '<button type="button" data-view-charts="' + user.id + '" data-name="' + user.name + '">查看命盤</button>',
+        user.membershipActive
+          ? '<button type="button" data-grant-membership="' + user.id + '" data-name="' + user.name + '" data-extend="1">延長付費</button>'
+          : '<button type="button" data-grant-membership="' + user.id + '" data-name="' + user.name + '">開通付費</button>',
         user.starDrawEnabled
           ? '<button type="button" class="danger" data-disable-star-draw="' + user.id + '" data-name="' + user.name + '">取消神牌</button>'
           : '<button type="button" data-enable-star-draw="' + user.id + '" data-name="' + user.name + '">開通神牌</button>',
@@ -93,6 +97,72 @@
       body: JSON.stringify({ password }),
     })
     alert('密碼已重設，請通知會員使用新密碼登入')
+  }
+
+  const MEMBERSHIP_PLAN_OPTIONS = [
+    { id: 'member_monthly', label: '付費會員 · 單月（30 天）' },
+    { id: 'member_half_year', label: '付費會員 · 半年（182 天）' },
+    { id: 'member_yearly', label: '付費會員 · 一年（365 天）' },
+  ]
+
+  function showGrantMembershipModal(userId, userName, isExtend) {
+    const existing = document.getElementById('grantMembershipModal')
+    if (existing) existing.remove()
+
+    const options = MEMBERSHIP_PLAN_OPTIONS.map(function (plan) {
+      return '<option value="' + plan.id + '">' + plan.label + '</option>'
+    }).join('')
+
+    const modal = document.createElement('div')
+    modal.id = 'grantMembershipModal'
+    modal.className = 'password-modal'
+    modal.innerHTML =
+      '<div class="password-modal-card">' +
+        '<h3>' + (isExtend ? '延長付費會員' : '開通付費會員') + '</h3>' +
+        '<p class="auth-note">為「' + escapeAdminHtml(userName) + '」手動開通（線下付款），效果與線上訂閱相同。</p>' +
+        '<form id="grantMembershipForm">' +
+          '<label>訂閱方案<select name="planId" required>' + options + '</select></label>' +
+          '<div class="auth-error" id="grantMembershipError" hidden></div>' +
+          '<div class="password-modal-actions">' +
+            '<button type="button" class="secondary" id="cancelGrantMembership">取消</button>' +
+            '<button type="submit" class="primary">確認開通</button>' +
+          '</div>' +
+        '</form>' +
+      '</div>'
+
+    document.body.appendChild(modal)
+
+    document.getElementById('cancelGrantMembership').addEventListener('click', function () {
+      modal.remove()
+    })
+
+    document.getElementById('grantMembershipForm').addEventListener('submit', async function (e) {
+      e.preventDefault()
+      const planId = modal.querySelector('[name=planId]').value
+      const errorEl = document.getElementById('grantMembershipError')
+      try {
+        const data = await auth.api('/api/admin/users/' + userId + '/grant-membership', {
+          method: 'POST',
+          body: JSON.stringify({ planId: planId }),
+        })
+        modal.remove()
+        alert('已為「' + userName + '」開通 ' + (data.planLabel || '付費會員'))
+        await renderAdminPanel()
+      } catch (err) {
+        if (errorEl) {
+          errorEl.textContent = err.message
+          errorEl.hidden = false
+        }
+      }
+    })
+  }
+
+  function escapeAdminHtml(value) {
+    return String(value || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
   }
 
   function showChangePasswordDialog() {
@@ -260,6 +330,16 @@
         }
       })
     })
+
+    panel.querySelectorAll('[data-grant-membership]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        showGrantMembershipModal(
+          btn.dataset.grantMembership,
+          btn.dataset.name,
+          btn.dataset.extend === '1',
+        )
+      })
+    })
   }
 
   function renderAdminMemberTabs(summary, activeTab) {
@@ -370,10 +450,10 @@
 
   function adminTabDescription(tab) {
     if (tab === 'free') {
-      return '註冊即列入免費會員資料庫，可使用本命命盤；付費訂閱後會自動移至付費會員。'
+      return '註冊即列入免費會員資料庫，可使用本命命盤；線上訂閱或管理員手動開通後，會移至付費會員。'
     }
     if (tab === 'paid') {
-      return '付費訂閱中的會員，可完整使用大限流年、列印儲存與神牌等功能。'
+      return '付費訂閱中的會員，可完整使用大限流年、列印儲存與神牌等功能；線下付款可由管理員按「延長付費」加期。'
     }
     if (tab === 'pending') {
       return '尚未審核通過的申請（若仍使用人工審核流程）。'

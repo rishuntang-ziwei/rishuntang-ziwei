@@ -7,6 +7,7 @@ import {
   deleteUser,
   findUserById,
   getSavedChartDetailForUser,
+  grantUserMembership,
   listSavedChartsByUser,
   listUsers,
   updateUserPassword,
@@ -16,6 +17,7 @@ import {
 } from '../db.js'
 import { parseSavedChartPayload } from '../db/shared.js'
 import { requireAdmin, requireAuth } from '../middleware.js'
+import { getPaymentPlan, getPlanLabel } from '../paymentPlans.js'
 
 const router = Router()
 
@@ -289,6 +291,42 @@ router.post('/users/:id/disable-star-draw', async (req, res) => {
     return
   }
   res.json({ message: '已取消神牌功能', user })
+})
+
+router.post('/users/:id/grant-membership', async (req, res) => {
+  const id = Number(req.params.id)
+  const planId = String(req.body?.planId ?? '').trim()
+
+  if (!Number.isFinite(id)) {
+    res.status(400).json({ error: '無效的使用者 ID' })
+    return
+  }
+  if (!planId || !getPaymentPlan(planId)) {
+    res.status(400).json({ error: '請選擇有效的訂閱方案' })
+    return
+  }
+
+  const target = await findUserById(id)
+  if (!target || target.role !== 'user') {
+    res.status(404).json({ error: '找不到會員帳號' })
+    return
+  }
+  if (target.status === 'rejected') {
+    res.status(400).json({ error: '已拒絕的帳號無法開通付費會員' })
+    return
+  }
+
+  const user = await grantUserMembership(id, planId)
+  if (!user) {
+    res.status(400).json({ error: '開通付費會員失敗' })
+    return
+  }
+
+  res.json({
+    message: '已開通付費會員',
+    planLabel: getPlanLabel(planId),
+    user,
+  })
 })
 
 router.delete('/users/:id', async (req, res) => {
