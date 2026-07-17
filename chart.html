@@ -1246,7 +1246,7 @@
       flex-shrink: 0;
       position: relative;
       z-index: 10;
-      min-height: 42px;
+      min-height: 44px;
     }
 
     .center-top-left {
@@ -1333,7 +1333,7 @@
     .center-body {
       flex: 1;
       display: grid;
-      grid-template-columns: minmax(130px, 1.25fr) minmax(0, 1.05fr) minmax(0, 0.95fr);
+      grid-template-columns: minmax(130px, 1.25fr) minmax(0, 1.05fr);
       align-items: center;
       gap: 6px;
       min-height: 0;
@@ -1368,13 +1368,21 @@
     .center-person {
       display: flex;
       flex-direction: row;
-      align-items: flex-end;
+      align-items: flex-start;
       justify-content: flex-end;
-      gap: 6px;
+      gap: 12px;
       min-width: 0;
       overflow: hidden;
-      position: relative;
+      position: absolute;
+      right: 8px;
+      top: 44px;
       z-index: 8;
+      pointer-events: none;
+    }
+
+    .center-person input,
+    .center-person button {
+      pointer-events: auto;
     }
 
     .center-person-namecol {
@@ -1384,6 +1392,12 @@
       justify-content: flex-end;
       gap: 2px;
       flex-shrink: 0;
+      margin-top: 10px;
+    }
+
+    .center-person .center-chart-title {
+      flex-shrink: 0;
+      align-self: flex-start;
     }
 
     .center-person-meta {
@@ -1437,11 +1451,6 @@
       flex-shrink: 0;
       font-size: 28px;
       letter-spacing: 8px;
-    }
-
-    .center-person .center-chart-title {
-      flex-shrink: 0;
-      align-self: flex-end;
     }
 
     .center-person .center-person-namecol .center-age {
@@ -1743,7 +1752,7 @@
 
       .center-body {
         gap: 3px;
-        grid-template-columns: minmax(90px, 1.15fr) minmax(72px, 1fr) minmax(0, 0.9fr);
+        grid-template-columns: minmax(90px, 1.15fr) minmax(0, 1fr);
       }
 
       .center-wuxing-cross {
@@ -2149,6 +2158,10 @@
         margin-top: 2mm !important;
       }
 
+      .center-body {
+        grid-template-columns: minmax(90px, 1.15fr) minmax(0, 1fr) !important;
+      }
+
       .center-person {
         position: absolute !important;
         right: 1.5mm !important;
@@ -2156,19 +2169,28 @@
         left: auto !important;
         bottom: auto !important;
         width: auto !important;
-        max-width: calc(38% - 2mm) !important;
+        max-width: calc(42% - 2mm) !important;
         transform: none !important;
         z-index: 3 !important;
         flex-shrink: 0 !important;
         overflow: hidden !important;
-        gap: 2mm !important;
+        gap: 3.5mm !important;
         padding: 0 !important;
         margin: 0 !important;
         display: flex !important;
         flex-direction: row !important;
-        align-items: flex-end !important;
+        align-items: flex-start !important;
         justify-content: flex-end !important;
         flex-wrap: nowrap !important;
+        pointer-events: none !important;
+      }
+
+      .center-person-namecol {
+        margin-top: 2.5mm !important;
+      }
+
+      .center-person .center-chart-title {
+        align-self: flex-start !important;
       }
 
       .center-person-namecol .vtext.name {
@@ -2502,7 +2524,7 @@
 
   <script src="./vendor/lunar.min.js"></script>
   <script src="./vendor/iztro.min.js"></script>
-  <script src="./vendor/rishuntang-brightness.js?v=20260720c"></script>
+  <script src="./vendor/rishuntang-brightness.js?v=20260720d"></script>
   <script type="module">
     import * as WuxingPanel from './vendor/wuxing-panel.mjs'
     import * as NatalReading from './vendor/natal-reading.mjs'
@@ -2925,9 +2947,20 @@
 
     function formatBrightness(b) {
       if (!b) return ''
-      return String(b)
-        .replace(/庙/g, '廟')
-        .replace(/闲/g, '閒')
+      const raw = String(b).trim()
+      const canonical = new Set(['廟', '旺', '平', '陷', '閒', '地'])
+      if (canonical.has(raw)) return raw
+      const s = raw.replace(/廟/g, '庙').replace(/閒/g, '闲')
+      if (/不得/.test(s) || s === '不') return '平'
+      if (/得地/.test(s) || s === '得') return '地'
+      if (/利益/.test(s) || s === '利') return '平'
+      if (/庙|米/.test(s)) return '廟'
+      if (/旺/.test(s)) return '旺'
+      if (/陷|落/.test(s)) return '陷'
+      if (/闲/.test(s)) return '閒'
+      if (/地/.test(s)) return '地'
+      if (/平/.test(s)) return '平'
+      return '平'
     }
 
     function getZiweiBranch(a) {
@@ -3799,13 +3832,13 @@
           <div class="center-birth">
             ${renderCenterInfoVertical(b, a)}
           </div>
-          <div class="center-person">
-            <div class="center-person-namecol">
-              <div class="vtext name">${name || '匿名'}</div>
-              <div class="center-age"><span class="center-num">${new Date(horoscopeDate).getFullYear()}</span><span class="center-num">${age}</span> 歲</div>
-            </div>
-            <div class="vtext title center-chart-title">${MODE_TITLE[chartMode]}</div>
+        </div>
+        <div class="center-person">
+          <div class="center-person-namecol">
+            <div class="vtext name">${name || '匿名'}</div>
+            <div class="center-age"><span class="center-num">${new Date(horoscopeDate).getFullYear()}</span><span class="center-num">${age}</span> 歲</div>
           </div>
+          <div class="vtext title center-chart-title">${MODE_TITLE[chartMode]}</div>
         </div>
         <div class="center-footer">
           <div class="center-brand">國際日舜堂</div>

@@ -55,7 +55,7 @@ window.RishuntangBrightness = {
       },
       {
         "name": "天梁",
-        "brightness": "得"
+        "brightness": "地"
       }
     ],
     "戌": [
@@ -81,7 +81,7 @@ window.RishuntangBrightness = {
     "卯": [
       {
         "name": "天府",
-        "brightness": "得"
+        "brightness": "地"
       }
     ],
     "辰": [
@@ -109,7 +109,7 @@ window.RishuntangBrightness = {
     "未": [
       {
         "name": "天相",
-        "brightness": "得"
+        "brightness": "地"
       }
     ],
     "申": [
@@ -255,7 +255,7 @@ window.RishuntangBrightness = {
       },
       {
         "name": "貪狼",
-        "brightness": "得"
+        "brightness": "地"
       }
     ],
     "辰": [
@@ -471,7 +471,7 @@ window.RishuntangBrightness = {
     "寅": [
       {
         "name": "武曲",
-        "brightness": "得"
+        "brightness": "地"
       },
       {
         "name": "天相",

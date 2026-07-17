@@ -1,5 +1,7 @@
 import type { IFunctionalPalace } from 'iztro/lib/astro/FunctionalPalace'
 import type { IFunctionalHoroscope } from 'iztro/lib/astro/FunctionalHoroscope'
+import type FunctionalAstrolabe from 'iztro/lib/astro/FunctionalAstrolabe'
+import { majorBrightnessForDisplay } from '../lib/brightness'
 import { formatPalaceName, shouldShowDecadal, sortMajorStars, splitPalaceMinors } from '../lib/constants'
 import {
   type ChartMode,
@@ -12,6 +14,7 @@ import { StarDisplay } from './StarDisplay'
 
 interface PalaceCellProps {
   palace: IFunctionalPalace
+  astrolabe: FunctionalAstrolabe
   highlight?: boolean
   focused?: boolean
   footerDimmed?: boolean
@@ -50,6 +53,7 @@ function mapStarForDisplay(
 
 export function PalaceCell({
   palace,
+  astrolabe,
   highlight,
   focused,
   footerDimmed,
@@ -108,7 +112,20 @@ export function PalaceCell({
         </div>
         <div className="stars-right">
           <StarDisplay variant="right-green" stars={rightGreen.map(mapStar)} chartMode={chartMode} />
-          <StarDisplay variant="major" stars={sortMajorStars(palace.majorStars).map(mapStar)} chartMode={chartMode} />
+          <StarDisplay
+            variant="major"
+            stars={sortMajorStars(palace.majorStars).map((s) => ({
+              ...mapStar(s),
+              brightness: majorBrightnessForDisplay(
+                astrolabe,
+                chartMode,
+                palace.earthlyBranch,
+                s.name,
+                s.brightness,
+              ),
+            }))}
+            chartMode={chartMode}
+          />
         </div>
       </div>
 

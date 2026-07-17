@@ -230,11 +230,7 @@ export function formatPalaceName(name: string): string {
   return display.split('').join(' ')
 }
 
-/** 星曜亮度顯示（得、不 → 平） */
-export function formatBrightness(brightness?: string): string | undefined {
-  if (!brightness) return undefined
-  return brightness.replace(/庙/g, '廟').replace(/闲/g, '閒')
-}
+export { formatBrightness } from './brightness'
 
 /** 四化顏色（雙框線用） */
 export const MUTAGEN_COLORS: Record<string, string> = {

@@ -343,6 +343,7 @@ export function AstrolabeChart({
               >
                 <PalaceCell
                   palace={palace}
+                  astrolabe={astrolabe}
                   highlight={sanFangRoles.all.has(cell)}
                   focused={sanFangRoles.target === cell}
                   footerDimmed={dimRelatedFooter && sanFangRoles.related.has(cell)}
