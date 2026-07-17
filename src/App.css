@@ -426,17 +426,18 @@ body {
     letter-spacing: 1px;
   }
 
-  .center-vtext .vtext.name {
+  .center-person .vtext.name {
     font-size: 1rem;
     letter-spacing: 3px;
   }
 
-  .center-vtext .vtext.title {
+  .center-chart-title,
+  .vtext.title {
     font-size: 1.1rem;
     letter-spacing: 2px;
   }
 
-  .center-info {
+  .center-person-meta {
     font-size: 0.72rem;
   }
 }
@@ -1159,6 +1160,34 @@ body {
   box-sizing: border-box;
 }
 
+.center-header {
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+}
+
+.center-top-left {
+  text-align: left;
+  align-self: flex-start;
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.center-top-left .center-control-row {
+  align-items: flex-start;
+}
+
+.center-chart-title {
+  margin-top: 1em;
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  display: inline-block;
+  font-size: 2.25rem;
+  font-weight: 800;
+  letter-spacing: 9px;
+  line-height: 1;
+}
+
 .center-wuxing-cross {
   flex: 0 1 auto;
   display: flex;
@@ -1166,12 +1195,12 @@ body {
   justify-content: center;
   align-self: center;
   width: 100%;
-  max-width: 200px;
+  max-width: 240px;
   min-width: 0;
   aspect-ratio: 1;
   overflow: hidden;
   position: relative;
-  z-index: 6;
+  z-index: 1;
   pointer-events: none;
   justify-self: center;
 }
@@ -1205,12 +1234,50 @@ body {
 }
 
 .center-top-right {
+  display: none;
+}
+
+.center-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(130px, 1.12fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.center-person {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 5px;
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
+  z-index: 8;
+}
+
+.center-person-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.center-footer {
+  position: absolute;
+  left: 8px;
+  bottom: 4px;
+  z-index: 9;
+  writing-mode: horizontal-tb;
+}
+
+.center-person .vtext.name {
   flex-shrink: 0;
-  align-self: flex-end;
-  text-align: right;
-  font-size: 0.82rem;
-  line-height: 1.35;
-  margin-bottom: 4px;
 }
 
 .center-control-row {
@@ -1278,30 +1345,8 @@ body {
   white-space: nowrap;
 }
 
-.center-body {
-  flex: 1;
-  display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(150px, 210px) minmax(88px, 0.78fr);
-  align-items: center;
-  gap: 4px;
-  min-height: 0;
-  min-width: 0;
-  overflow: hidden;
-}
-
-.center-info {
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  font-size: 1.08rem;
-  line-height: 1.45;
-  writing-mode: horizontal-tb;
-  overflow: hidden;
-  padding-left: 6px;
-  box-sizing: border-box;
+.center-top-left .center-control-row {
+  align-items: flex-start;
 }
 
 .center-info label {
@@ -1309,37 +1354,6 @@ body {
   align-items: center;
   gap: 3px;
   cursor: pointer;
-}
-
-.center-vtext {
-  min-width: 0;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 6px;
-  padding-left: 4px;
-  padding-right: 2px;
-  overflow: hidden;
-  justify-self: end;
-  position: relative;
-  z-index: 8;
-}
-
-.center-vtext .vtext {
-  flex-shrink: 0;
-}
-
-.center-info-footer {
-  writing-mode: horizontal-tb;
-  flex-shrink: 0;
-}
-
-.center-info-upper {
-  flex: 1 1 auto;
-  min-height: 0;
-  min-width: 0;
-  overflow: hidden;
 }
 
 .center-info-detail {
@@ -1455,9 +1469,13 @@ body {
 }
 
 .center-age {
-  margin-top: 4px;
-  font-size: 1.38rem;
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  margin-top: 0;
+  font-size: 1.25rem;
   line-height: 1.35;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .center-brand {
@@ -1478,6 +1496,7 @@ body {
   letter-spacing: 8px;
 }
 
+.center-chart-title,
 .vtext.title {
   font-size: 2.25rem;
   letter-spacing: 10px;
@@ -1659,10 +1678,29 @@ body {
     opacity: 1 !important;
   }
 
-  .center-top-right,
+  .center-top-left .center-control-row,
+  .center-top-left .center-toggle-btn,
   .back-to-natal,
-  .center-toggle-btn {
+  .center-scope,
+  .center-flow-scope {
     display: none !important;
+  }
+
+  .center-header {
+    height: 0 !important;
+    overflow: visible !important;
+    position: static !important;
+  }
+
+  .center-chart-title {
+    display: inline-block !important;
+    margin-top: 0 !important;
+    position: absolute !important;
+    top: 2mm !important;
+    left: 2mm !important;
+    z-index: 5 !important;
+    writing-mode: vertical-rl !important;
+    text-orientation: upright !important;
   }
 
   .chart-lines line {
@@ -1685,26 +1723,48 @@ body {
   .center-body {
     display: block !important;
     position: absolute !important;
-    inset: 0 !important;
+    top: 44mm !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 11mm !important;
     overflow: hidden !important;
   }
 
   .center-info,
-  .center-info-upper {
+  .center-info-upper,
+  .center-person-meta {
     overflow: hidden !important;
     max-width: 100% !important;
     min-width: 0 !important;
   }
 
-  .center-info {
+  .center-person {
     position: absolute !important;
-    left: 0 !important;
-    top: 0 !important;
-    bottom: 0 !important;
-    width: 52mm !important;
-    max-width: 52mm !important;
-    padding-left: 2mm !important;
-    z-index: 2 !important;
+    right: 1.5mm !important;
+    top: 50% !important;
+    left: 40mm !important;
+    bottom: auto !important;
+    width: auto !important;
+    max-width: calc(100% - 42mm) !important;
+    transform: translateY(-50%) !important;
+    z-index: 3 !important;
+    flex-shrink: 0 !important;
+    overflow: hidden !important;
+    gap: 2mm !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: flex !important;
+    flex-direction: row-reverse !important;
+    align-items: flex-end !important;
+    justify-content: flex-end !important;
+    flex-wrap: nowrap !important;
+  }
+
+  .center-footer {
+    position: absolute !important;
+    left: 2mm !important;
+    bottom: 1.5mm !important;
+    z-index: 4 !important;
   }
 
   .center-info-detail {
@@ -1718,46 +1778,24 @@ body {
 
   .center-wuxing-cross {
     position: absolute !important;
-    left: 50% !important;
+    left: 2mm !important;
     top: 50% !important;
-    transform: translate(-50%, -50%) !important;
-    width: 38mm !important;
-    height: 38mm !important;
-    max-width: 38mm !important;
-    min-width: 38mm !important;
+    transform: translateY(-50%) !important;
+    width: 34mm !important;
+    height: 34mm !important;
+    max-width: 34mm !important;
+    min-width: 34mm !important;
     aspect-ratio: auto !important;
     z-index: 1 !important;
     margin: 0 !important;
   }
 
   .center-wuxing-cross .wuxing-svg {
-    width: 38mm !important;
-    height: 38mm !important;
+    width: 34mm !important;
+    height: 34mm !important;
   }
 
-  .center-vtext {
-    position: absolute !important;
-    right: 1.5mm !important;
-    top: 50% !important;
-    left: auto !important;
-    bottom: auto !important;
-    transform: translateY(-50%) !important;
-    width: 28mm !important;
-    min-width: 28mm !important;
-    max-width: 28mm !important;
-    z-index: 3 !important;
-    flex-shrink: 0 !important;
-    overflow: hidden !important;
-    gap: 3mm !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    justify-content: flex-end !important;
-  }
-
-  .center-vtext .vtext {
+  .center-person .vtext.name {
     flex-shrink: 0 !important;
     position: relative !important;
     z-index: 1 !important;
@@ -1843,7 +1881,7 @@ body {
     font-size: 18px !important;
   }
 
-  .center-info {
+  .center-person-meta {
     font-size: 22px !important;
   }
 
@@ -1879,6 +1917,7 @@ body {
     font-size: 28px !important;
   }
 
+  .center-chart-title,
   .vtext.title {
     font-size: 42px !important;
   }

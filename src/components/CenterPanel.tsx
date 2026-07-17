@@ -77,79 +77,89 @@ export function CenterPanel({
 
   return (
     <div className="center">
-      <div className="center-top-right">
-        {initialChartType === 'yearly' ? (
-          <>
+      <div className="center-header">
+        <div className="center-top-left">
+          {initialChartType === 'yearly' ? (
+            <>
+              <label className="center-control-row">
+                <span>流年年份</span>
+                <input
+                  type="number"
+                  min={1900}
+                  max={2100}
+                  value={yearlyYear}
+                  onChange={(e) => {
+                    const year = Number(e.target.value)
+                    if (year >= 1900 && year <= 2100) {
+                      onYearlyYearChange(year)
+                    }
+                  }}
+                />
+              </label>
+              <button
+                type="button"
+                className={`center-toggle-btn ${showYearlyDaily ? 'active' : ''}`}
+                disabled={!yearlyMonthSelected}
+                title={yearlyMonthSelected ? undefined : '請先雙擊宮位選擇流月'}
+                onClick={() => onShowYearlyDailyChange(!showYearlyDaily)}
+              >
+                {showYearlyDaily ? '隱藏流日' : '顯示流日'}
+              </button>
+            </>
+          ) : (
             <label className="center-control-row">
-              <span>流年年份</span>
+              <span>論命日期</span>
               <input
-                type="number"
-                min={1900}
-                max={2100}
-                value={yearlyYear}
-                onChange={(e) => {
-                  const year = Number(e.target.value)
-                  if (year >= 1900 && year <= 2100) {
-                    onYearlyYearChange(year)
-                  }
-                }}
+                type="date"
+                value={horoscopeDate}
+                onChange={(e) => onHoroscopeDateChange(e.target.value)}
               />
             </label>
-            <button
-              type="button"
-              className={`center-toggle-btn ${showYearlyDaily ? 'active' : ''}`}
-              disabled={!yearlyMonthSelected}
-              title={yearlyMonthSelected ? undefined : '請先雙擊宮位選擇流月'}
-              onClick={() => onShowYearlyDailyChange(!showYearlyDaily)}
-            >
-              {showYearlyDaily ? '隱藏流日' : '顯示流日'}
+          )}
+
+          {onBackToNatal && (
+            <button type="button" className="back-to-natal" onClick={onBackToNatal}>
+              回到本命盤
             </button>
-          </>
-        ) : (
-          <label className="center-control-row">
-            <span>論命日期</span>
-            <input
-              type="date"
-              value={horoscopeDate}
-              onChange={(e) => onHoroscopeDateChange(e.target.value)}
-            />
-          </label>
-        )}
+          )}
+
+          {scopeGz && (
+            <div className="center-scope">
+              {chartModeTag(chartMode)}：{scopeGz}
+              {decadalRange && (
+                <span className="scope-range">
+                  {' '}
+                  ({decadalRange[0]}–{decadalRange[1]} 歲)
+                </span>
+              )}
+            </div>
+          )}
+          {chartMode === 'yearly' && yearlyMonthSelected && selectedFlowMonth != null && (
+            <div className="center-scope center-flow-scope">
+              <div>
+                流月：{horoscope.monthly.heavenlyStem}
+                {horoscope.monthly.earthlyBranch}（農曆 {selectedFlowMonth} 月）
+              </div>
+              {showYearlyDaily && flowDaysInMonth > 0 && (
+                <div className="center-control-meta">
+                  流日：農曆 {selectedFlowMonth} 月 1–{flowDaysInMonth} 日分布
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="vtext title center-chart-title">{chartModeTitle(chartMode)}</div>
+        </div>
       </div>
 
       <div className="center-body">
-        <div className="center-info">
-          <div className="center-info-upper">
-            {onBackToNatal && (
-              <button type="button" className="back-to-natal" onClick={onBackToNatal}>
-                回到本命盤
-              </button>
-            )}
+        <div
+          className="center-wuxing-cross"
+          dangerouslySetInnerHTML={{ __html: wuxingHtml }}
+        />
 
-            {scopeGz && (
-              <div className="center-scope">
-                {chartModeTag(chartMode)}：{scopeGz}
-                {decadalRange && (
-                  <span className="scope-range">
-                    {' '}
-                    ({decadalRange[0]}–{decadalRange[1]} 歲)
-                  </span>
-                )}
-              </div>
-            )}
-            {chartMode === 'yearly' && yearlyMonthSelected && selectedFlowMonth != null && (
-              <div className="center-scope center-flow-scope">
-                <div>
-                  流月：{horoscope.monthly.heavenlyStem}
-                  {horoscope.monthly.earthlyBranch}（農曆 {selectedFlowMonth} 月）
-                </div>
-                {showYearlyDaily && flowDaysInMonth > 0 && (
-                  <div className="center-control-meta">
-                    流日：農曆 {selectedFlowMonth} 月 1–{flowDaysInMonth} 日分布
-                  </div>
-                )}
-              </div>
-            )}
+        <div className="center-person">
+          <div className="center-person-meta">
             <div className="center-info-meta">
               <div className="center-info-detail">
                 <div className="center-vcol center-vcol-year">
@@ -172,27 +182,20 @@ export function CenterPanel({
               </div>
             </div>
           </div>
-          <div className="center-info-footer">
-            <div className="center-age">
-              <span className="center-num">
-                {new Date(horoscopeDate + 'T12:00:00').getFullYear()}
-              </span>
-              <br />
-              <span className="center-num">{age}</span> 歲
-            </div>
-            <div className="center-brand">國際日舜堂</div>
+
+          <div className="center-age">
+            <span className="center-num">
+              {new Date(horoscopeDate + 'T12:00:00').getFullYear()}
+            </span>
+            <span className="center-num">{age}</span> 歲
           </div>
-        </div>
 
-        <div
-          className="center-wuxing-cross"
-          dangerouslySetInnerHTML={{ __html: wuxingHtml }}
-        />
-
-        <div className="center-vtext">
           <div className="vtext name">{name || '匿名'}</div>
-          <div className="vtext title">{chartModeTitle(chartMode)}</div>
         </div>
+      </div>
+
+      <div className="center-footer">
+        <div className="center-brand">國際日舜堂</div>
       </div>
     </div>
   )
