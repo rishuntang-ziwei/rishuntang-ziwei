@@ -1676,14 +1676,17 @@ body {
 
   .center {
     overflow: hidden !important;
-    padding: 4px 6px 3px !important;
+    padding: 2mm 2mm 1.5mm !important;
+    position: relative !important;
+    height: 100% !important;
   }
 
+  /* 列印用 mm 絕對定位，不受螢幕 DPI / 瀏覽器縮放影響 */
   .center-body {
-    grid-template-columns: minmax(0, 1fr) minmax(110px, 150px) minmax(104px, max-content) !important;
-    gap: 4px !important;
+    display: block !important;
+    position: absolute !important;
+    inset: 0 !important;
     overflow: hidden !important;
-    min-width: 0 !important;
   }
 
   .center-info,
@@ -1694,7 +1697,14 @@ body {
   }
 
   .center-info {
-    padding-left: 4px !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    width: 52mm !important;
+    max-width: 52mm !important;
+    padding-left: 2mm !important;
+    z-index: 2 !important;
   }
 
   .center-info-detail {
@@ -1706,18 +1716,44 @@ body {
     justify-content: flex-end !important;
   }
 
+  .center-wuxing-cross {
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: 38mm !important;
+    height: 38mm !important;
+    max-width: 38mm !important;
+    min-width: 38mm !important;
+    aspect-ratio: auto !important;
+    z-index: 1 !important;
+    margin: 0 !important;
+  }
+
+  .center-wuxing-cross .wuxing-svg {
+    width: 38mm !important;
+    height: 38mm !important;
+  }
+
   .center-vtext {
-    position: relative !important;
-    z-index: 10 !important;
-    min-width: max-content !important;
-    max-width: none !important;
+    position: absolute !important;
+    right: 1.5mm !important;
+    top: 50% !important;
+    left: auto !important;
+    bottom: auto !important;
+    transform: translateY(-50%) !important;
+    width: 28mm !important;
+    min-width: 28mm !important;
+    max-width: 28mm !important;
+    z-index: 3 !important;
     flex-shrink: 0 !important;
-    overflow: visible !important;
-    gap: 6px !important;
-    padding-left: 2px !important;
-    padding-right: 6px !important;
-    justify-self: end !important;
-    align-self: center !important;
+    overflow: hidden !important;
+    gap: 3mm !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
     justify-content: flex-end !important;
   }
 
@@ -1725,15 +1761,6 @@ body {
     flex-shrink: 0 !important;
     position: relative !important;
     z-index: 1 !important;
-  }
-
-  .center-wuxing-cross {
-    z-index: 1 !important;
-    width: auto !important;
-    max-width: min(100%, 148px) !important;
-    min-width: 0 !important;
-    justify-self: center !important;
-    align-self: center !important;
   }
 
   .center-wuxing-cross .wuxing-arc,
