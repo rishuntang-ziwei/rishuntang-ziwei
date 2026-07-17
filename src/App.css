@@ -1178,7 +1178,6 @@ body {
 }
 
 .center-chart-title {
-  margin-top: 1em;
   writing-mode: vertical-rl;
   text-orientation: upright;
   display: inline-block;
@@ -1240,7 +1239,7 @@ body {
 .center-body {
   flex: 1;
   display: grid;
-  grid-template-columns: minmax(130px, 1.12fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.05fr) minmax(130px, 1.2fr) minmax(0, 1fr);
   align-items: center;
   gap: 6px;
   min-height: 0;
@@ -1248,10 +1247,33 @@ body {
   overflow: hidden;
 }
 
+.center-birth {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  min-width: 0;
+  overflow: hidden;
+  z-index: 2;
+}
+
+.center-birth .center-info-meta {
+  align-items: flex-start;
+  margin-top: 0;
+}
+
+.center-birth .center-info-detail {
+  justify-content: flex-start;
+}
+
+.center-birth .center-bazi-grid {
+  justify-content: start;
+}
+
 .center-person {
   display: flex;
   flex-direction: row-reverse;
-  align-items: flex-end;
+  align-items: flex-start;
   justify-content: flex-end;
   gap: 5px;
   min-width: 0;
@@ -1278,6 +1300,16 @@ body {
 
 .center-person .vtext.name {
   flex-shrink: 0;
+  align-self: flex-end;
+}
+
+.center-person .center-chart-title {
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+
+.center-person .center-age {
+  align-self: flex-end;
 }
 
 .center-control-row {
@@ -1448,18 +1480,6 @@ body {
 
 .center-age .center-num {
   font-weight: 700;
-}
-
-.center-birth {
-  margin-top: 6px;
-  font-size: 1.38rem;
-  line-height: 1.5;
-}
-
-.center-birth .lunar-note {
-  font-size: 1.06rem;
-  color: #666;
-  margin-top: 2px;
 }
 
 .center-bazi-text {
@@ -1686,23 +1706,6 @@ body {
     display: none !important;
   }
 
-  .center-header {
-    height: 0 !important;
-    overflow: visible !important;
-    position: static !important;
-  }
-
-  .center-chart-title {
-    display: inline-block !important;
-    margin-top: 0 !important;
-    position: absolute !important;
-    top: 2mm !important;
-    left: 2mm !important;
-    z-index: 5 !important;
-    writing-mode: vertical-rl !important;
-    text-orientation: upright !important;
-  }
-
   .chart-lines line {
     stroke: rgba(211, 47, 47, 0.38) !important;
     stroke-width: 0.9 !important;
@@ -1723,7 +1726,7 @@ body {
   .center-body {
     display: block !important;
     position: absolute !important;
-    top: 44mm !important;
+    top: 20mm !important;
     left: 0 !important;
     right: 0 !important;
     bottom: 11mm !important;
@@ -1732,21 +1735,39 @@ body {
 
   .center-info,
   .center-info-upper,
+  .center-birth,
   .center-person-meta {
     overflow: hidden !important;
     max-width: 100% !important;
     min-width: 0 !important;
   }
 
+  .center-birth {
+    position: absolute !important;
+    left: 2mm !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    max-width: 42mm !important;
+    z-index: 2 !important;
+  }
+
+  .center-birth .center-info-detail {
+    justify-content: flex-start !important;
+  }
+
+  .center-birth .center-bazi-grid {
+    justify-content: start !important;
+  }
+
   .center-person {
     position: absolute !important;
     right: 1.5mm !important;
-    top: 50% !important;
-    left: 40mm !important;
+    top: 2mm !important;
+    left: auto !important;
     bottom: auto !important;
     width: auto !important;
-    max-width: calc(100% - 42mm) !important;
-    transform: translateY(-50%) !important;
+    max-width: calc(50% - 2mm) !important;
+    transform: none !important;
     z-index: 3 !important;
     flex-shrink: 0 !important;
     overflow: hidden !important;
@@ -1755,7 +1776,7 @@ body {
     margin: 0 !important;
     display: flex !important;
     flex-direction: row-reverse !important;
-    align-items: flex-end !important;
+    align-items: flex-start !important;
     justify-content: flex-end !important;
     flex-wrap: nowrap !important;
   }
@@ -1778,21 +1799,21 @@ body {
 
   .center-wuxing-cross {
     position: absolute !important;
-    left: 2mm !important;
+    left: 50% !important;
     top: 50% !important;
-    transform: translateY(-50%) !important;
-    width: 34mm !important;
-    height: 34mm !important;
-    max-width: 34mm !important;
-    min-width: 34mm !important;
+    transform: translate(-50%, -50%) !important;
+    width: 44mm !important;
+    height: 44mm !important;
+    max-width: 44mm !important;
+    min-width: 44mm !important;
     aspect-ratio: auto !important;
     z-index: 1 !important;
     margin: 0 !important;
   }
 
   .center-wuxing-cross .wuxing-svg {
-    width: 34mm !important;
-    height: 34mm !important;
+    width: 44mm !important;
+    height: 44mm !important;
   }
 
   .center-person .vtext.name {
