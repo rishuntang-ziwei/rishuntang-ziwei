@@ -1289,16 +1289,17 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      align-self: center;
+      align-self: start;
+      justify-self: center;
       width: 100%;
-      max-width: 280px;
+      max-width: 300px;
       min-width: 0;
       aspect-ratio: 1;
       overflow: hidden;
       position: relative;
       z-index: 1;
       pointer-events: none;
-      justify-self: center;
+      margin-top: 2px;
     }
 
     .center-wuxing-cross .wuxing-svg {
@@ -1351,16 +1352,22 @@
     }
 
     .center-birth .center-info-meta {
-      align-items: center;
+      flex-direction: row;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 12px;
       margin-top: 0;
     }
 
     .center-birth .center-info-detail {
       justify-content: center;
+      flex-shrink: 0;
     }
 
     .center-birth .center-bazi-grid {
       justify-content: center;
+      margin-top: 0;
+      flex-shrink: 0;
     }
 
     .center-person {
@@ -1733,7 +1740,7 @@
       }
 
       .center-wuxing-cross {
-        width: min(100%, 180px);
+        width: min(100%, 200px);
         max-width: 100%;
         min-width: 0;
       }
@@ -2130,8 +2137,15 @@
         justify-content: center !important;
       }
 
+      .center-birth .center-info-meta {
+        flex-direction: row !important;
+        align-items: flex-end !important;
+        gap: 3mm !important;
+      }
+
       .center-birth .center-bazi-grid {
         justify-content: center !important;
+        margin-top: 0 !important;
       }
 
       .center-person {
@@ -2180,20 +2194,20 @@
       .center-wuxing-cross {
         position: absolute !important;
         left: 2mm !important;
-        top: 50% !important;
+        top: 44% !important;
         transform: translateY(-50%) !important;
-        width: 48mm !important;
-        height: 48mm !important;
-        max-width: 48mm !important;
-        min-width: 48mm !important;
+        width: 50mm !important;
+        height: 50mm !important;
+        max-width: 50mm !important;
+        min-width: 50mm !important;
         aspect-ratio: auto !important;
         z-index: 1 !important;
         margin: 0 !important;
       }
 
       .center-wuxing-cross .wuxing-svg {
-        width: 48mm !important;
-        height: 48mm !important;
+        width: 50mm !important;
+        height: 50mm !important;
       }
 
       .center-person .vtext.name {
@@ -3776,9 +3790,9 @@
             ${renderCenterInfoVertical(b, a)}
           </div>
           <div class="center-person">
-            <div class="center-age"><span class="center-num">${new Date(horoscopeDate).getFullYear()}</span><span class="center-num">${age}</span> 歲</div>
-            <div class="vtext name">${name || '匿名'}</div>
             <div class="vtext title center-chart-title">${MODE_TITLE[chartMode]}</div>
+            <div class="vtext name">${name || '匿名'}</div>
+            <div class="center-age"><span class="center-num">${new Date(horoscopeDate).getFullYear()}</span><span class="center-num">${age}</span> 歲</div>
           </div>
         </div>
         <div class="center-footer">

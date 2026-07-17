@@ -183,16 +183,16 @@ export function CenterPanel({
         </div>
 
         <div className="center-person">
+          <div className="vtext title center-chart-title">{chartModeTitle(chartMode)}</div>
+
+          <div className="vtext name">{name || '匿名'}</div>
+
           <div className="center-age">
             <span className="center-num">
               {new Date(horoscopeDate + 'T12:00:00').getFullYear()}
             </span>
             <span className="center-num">{age}</span> 歲
           </div>
-
-          <div className="vtext name">{name || '匿名'}</div>
-
-          <div className="vtext title center-chart-title">{chartModeTitle(chartMode)}</div>
         </div>
       </div>
 
