@@ -79,6 +79,39 @@ export function CenterPanel({
     <div className="center">
       <div className="center-header">
         <div className="center-top-left">
+          {onBackToNatal && (
+            <button type="button" className="back-to-natal" onClick={onBackToNatal}>
+              回到本命盤
+            </button>
+          )}
+
+          {scopeGz && (
+            <div className="center-scope">
+              {chartModeTag(chartMode)}：{scopeGz}
+              {decadalRange && (
+                <span className="scope-range">
+                  {' '}
+                  ({decadalRange[0]}–{decadalRange[1]} 歲)
+                </span>
+              )}
+            </div>
+          )}
+          {chartMode === 'yearly' && yearlyMonthSelected && selectedFlowMonth != null && (
+            <div className="center-scope center-flow-scope">
+              <div>
+                流月：{horoscope.monthly.heavenlyStem}
+                {horoscope.monthly.earthlyBranch}（農曆 {selectedFlowMonth} 月）
+              </div>
+              {showYearlyDaily && flowDaysInMonth > 0 && (
+                <div className="center-control-meta">
+                  流日：農曆 {selectedFlowMonth} 月 1–{flowDaysInMonth} 日分布
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="center-top-right">
           {initialChartType === 'yearly' ? (
             <>
               <label className="center-control-row">
@@ -116,42 +149,15 @@ export function CenterPanel({
               />
             </label>
           )}
-
-          {onBackToNatal && (
-            <button type="button" className="back-to-natal" onClick={onBackToNatal}>
-              回到本命盤
-            </button>
-          )}
-
-          {scopeGz && (
-            <div className="center-scope">
-              {chartModeTag(chartMode)}：{scopeGz}
-              {decadalRange && (
-                <span className="scope-range">
-                  {' '}
-                  ({decadalRange[0]}–{decadalRange[1]} 歲)
-                </span>
-              )}
-            </div>
-          )}
-          {chartMode === 'yearly' && yearlyMonthSelected && selectedFlowMonth != null && (
-            <div className="center-scope center-flow-scope">
-              <div>
-                流月：{horoscope.monthly.heavenlyStem}
-                {horoscope.monthly.earthlyBranch}（農曆 {selectedFlowMonth} 月）
-              </div>
-              {showYearlyDaily && flowDaysInMonth > 0 && (
-                <div className="center-control-meta">
-                  流日：農曆 {selectedFlowMonth} 月 1–{flowDaysInMonth} 日分布
-                </div>
-              )}
-            </div>
-          )}
-
         </div>
       </div>
 
       <div className="center-body">
+        <div
+          className="center-wuxing-cross"
+          dangerouslySetInnerHTML={{ __html: wuxingHtml }}
+        />
+
         <div className="center-birth">
           <div className="center-info-meta">
             <div className="center-info-detail">
@@ -175,11 +181,6 @@ export function CenterPanel({
             </div>
           </div>
         </div>
-
-        <div
-          className="center-wuxing-cross"
-          dangerouslySetInnerHTML={{ __html: wuxingHtml }}
-        />
 
         <div className="center-person">
           <div className="center-age">

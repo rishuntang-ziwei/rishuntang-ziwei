@@ -1164,6 +1164,7 @@ body {
   flex-shrink: 0;
   position: relative;
   z-index: 10;
+  min-height: 42px;
 }
 
 .center-top-left {
@@ -1194,7 +1195,7 @@ body {
   justify-content: center;
   align-self: center;
   width: 100%;
-  max-width: 240px;
+  max-width: 280px;
   min-width: 0;
   aspect-ratio: 1;
   overflow: hidden;
@@ -1233,13 +1234,23 @@ body {
 }
 
 .center-top-right {
-  display: none;
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  z-index: 11;
+  text-align: right;
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.center-top-right .center-control-row {
+  align-items: flex-end;
 }
 
 .center-body {
   flex: 1;
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(130px, 1.2fr) minmax(0, 1fr);
+  grid-template-columns: minmax(130px, 1.25fr) minmax(0, 1.05fr) minmax(0, 0.95fr);
   align-items: center;
   gap: 6px;
   min-height: 0;
@@ -1250,7 +1261,7 @@ body {
 .center-birth {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   min-width: 0;
   overflow: hidden;
@@ -1258,16 +1269,16 @@ body {
 }
 
 .center-birth .center-info-meta {
-  align-items: flex-start;
+  align-items: center;
   margin-top: 0;
 }
 
 .center-birth .center-info-detail {
-  justify-content: flex-start;
+  justify-content: center;
 }
 
 .center-birth .center-bazi-grid {
-  justify-content: start;
+  justify-content: center;
 }
 
 .center-person {
@@ -1700,6 +1711,8 @@ body {
 
   .center-top-left .center-control-row,
   .center-top-left .center-toggle-btn,
+  .center-top-right .center-control-row,
+  .center-top-right .center-toggle-btn,
   .back-to-natal,
   .center-scope,
   .center-flow-scope {
@@ -1744,19 +1757,19 @@ body {
 
   .center-birth {
     position: absolute !important;
-    left: 2mm !important;
+    left: 50% !important;
     top: 50% !important;
-    transform: translateY(-50%) !important;
-    max-width: 42mm !important;
+    transform: translate(-50%, -50%) !important;
+    max-width: 44mm !important;
     z-index: 2 !important;
   }
 
   .center-birth .center-info-detail {
-    justify-content: flex-start !important;
+    justify-content: center !important;
   }
 
   .center-birth .center-bazi-grid {
-    justify-content: start !important;
+    justify-content: center !important;
   }
 
   .center-person {
@@ -1766,7 +1779,7 @@ body {
     left: auto !important;
     bottom: auto !important;
     width: auto !important;
-    max-width: calc(50% - 2mm) !important;
+    max-width: calc(38% - 2mm) !important;
     transform: none !important;
     z-index: 3 !important;
     flex-shrink: 0 !important;
@@ -1799,21 +1812,21 @@ body {
 
   .center-wuxing-cross {
     position: absolute !important;
-    left: 50% !important;
+    left: 2mm !important;
     top: 50% !important;
-    transform: translate(-50%, -50%) !important;
-    width: 44mm !important;
-    height: 44mm !important;
-    max-width: 44mm !important;
-    min-width: 44mm !important;
+    transform: translateY(-50%) !important;
+    width: 48mm !important;
+    height: 48mm !important;
+    max-width: 48mm !important;
+    min-width: 48mm !important;
     aspect-ratio: auto !important;
     z-index: 1 !important;
     margin: 0 !important;
   }
 
   .center-wuxing-cross .wuxing-svg {
-    width: 44mm !important;
-    height: 44mm !important;
+    width: 48mm !important;
+    height: 48mm !important;
   }
 
   .center-person .vtext.name {
