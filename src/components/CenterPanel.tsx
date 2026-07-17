@@ -150,21 +150,24 @@ export function CenterPanel({
                 )}
               </div>
             )}
-            <div className="center-info-detail">
-              <div className="center-vcol center-vcol-year">
-                <span className="center-num">{birth.yearNum}</span>
-                <span>{birth.gzYear}</span>
+            <div className="center-info-meta">
+              <div className="center-info-detail">
+                <div className="center-vcol center-vcol-year">
+                  <span className="center-num">{birth.yearNum}</span>
+                  <span>{birth.gzYear}</span>
+                </div>
+                <div className="center-vcol">{wrapCenterNums(birth.solarDate)}</div>
+                <div className="center-vcol">{birth.hour}</div>
+                {birth.lunarNote && (
+                  <div className="center-vcol center-vcol-lunar">{birth.lunarNote}</div>
+                )}
               </div>
-              <div className="center-vcol">{wrapCenterNums(birth.solarDate)}</div>
-              <div className="center-vcol">{birth.hour}</div>
-              {birth.lunarNote && (
-                <div className="center-vcol center-vcol-lunar">{birth.lunarNote}</div>
-              )}
-              <div className="center-vcol-group center-vcol-group-bazi">
-                {formatBazi(astrolabe).split(' ').map((pillar) => (
-                  <div key={pillar} className="center-vcol center-vcol-bazi">
+              <div className="center-bazi-grid">
+                {formatBazi(astrolabe).split(' ').map((pillar, index) => (
+                  <span key={`${pillar}-${index}`} className="center-bazi-pillar">
+                    <span className="center-bazi-label">{['年', '月', '日', '時'][index]}</span>
                     {pillar}
-                  </div>
+                  </span>
                 ))}
               </div>
             </div>

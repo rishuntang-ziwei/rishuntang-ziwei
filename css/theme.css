@@ -403,7 +403,7 @@ body {
 }
 
 .app-toolbar-account .user-bar-name {
-  font-size: 13px;
+  font-size: 17px;
   font-weight: 600;
   color: var(--brand-brown);
   text-align: center;
@@ -415,10 +415,12 @@ body {
 .app-toolbar .member-actions button {
   border: 1px solid var(--border);
   background: var(--paper-surface);
-  padding: 8px 6px;
+  padding: 10px 8px;
   border-radius: var(--radius-sm);
   cursor: pointer;
   font-family: inherit;
+  font-size: 17px;
+  line-height: 1.35;
   color: var(--ink-muted);
   transition: background 0.2s, border-color 0.2s;
 }
@@ -447,15 +449,18 @@ body {
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-card);
+  font-size: 20px;
 }
 
 .form-panel h2 {
   color: var(--brand-brown);
   letter-spacing: 0.1em;
+  font-size: 22px;
 }
 
 .form-panel label {
   color: var(--ink-muted);
+  font-size: 20px;
 }
 
 .form-panel input[type="text"],
@@ -466,6 +471,7 @@ body {
   border-radius: var(--radius-sm);
   background: var(--paper-surface);
   transition: border-color 0.2s;
+  font-size: 20px;
 }
 
 .form-panel input:focus,
@@ -478,6 +484,7 @@ body {
   border-radius: var(--radius-sm);
   background: var(--ui-primary);
   transition: background 0.2s;
+  font-size: 20px;
 }
 
 .form-panel button:hover {
@@ -501,6 +508,7 @@ body {
 
 .member-section h3 {
   color: var(--brand-brown);
+  font-size: 18px;
 }
 
 .membership-panel {
@@ -509,6 +517,7 @@ body {
   background: var(--paper-muted);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
+  font-size: 17px;
 }
 
 .membership-alert {
@@ -520,7 +529,8 @@ body {
 .membership-note {
   color: var(--ink-muted);
   margin: 0;
-  font-size: 0.9rem;
+  font-size: 16px;
+  line-height: 1.5;
 }
 
 .membership-plans {
@@ -563,13 +573,16 @@ body {
 }
 
 .membership-active p {
-  margin: 0.25rem 0;
+  margin: 0.35rem 0;
   color: var(--ink);
+  font-size: 17px;
+  line-height: 1.5;
 }
 
 .chart-type-note {
   margin: 0.35rem 0 0.75rem;
-  font-size: 0.85rem;
+  font-size: 16px;
+  line-height: 1.5;
 }
 
 .chart-type-premium input:disabled + *,
@@ -579,6 +592,7 @@ body {
 
 .calendar-note {
   color: var(--green);
+  font-size: 16px;
 }
 
 /* ── 命盤資料庫 ── */
