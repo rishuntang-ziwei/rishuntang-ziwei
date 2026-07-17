@@ -1349,37 +1349,41 @@
       min-width: 0;
       overflow: hidden;
       z-index: 2;
-    }
-
-    .center-birth .center-info-meta {
-      flex-direction: row;
-      align-items: flex-end;
-      justify-content: center;
-      gap: 12px;
-      margin-top: 0;
+      gap: 10px;
     }
 
     .center-birth .center-info-detail {
       justify-content: center;
       flex-shrink: 0;
+      width: auto;
     }
 
     .center-birth .center-bazi-grid {
       justify-content: center;
       margin-top: 0;
       flex-shrink: 0;
+      align-self: center;
     }
 
     .center-person {
       display: flex;
-      flex-direction: row-reverse;
-      align-items: flex-start;
+      flex-direction: row;
+      align-items: flex-end;
       justify-content: flex-end;
-      gap: 5px;
+      gap: 6px;
       min-width: 0;
       overflow: hidden;
       position: relative;
       z-index: 8;
+    }
+
+    .center-person-namecol {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 2px;
+      flex-shrink: 0;
     }
 
     .center-person-meta {
@@ -1429,18 +1433,21 @@
 
     .center-control-meta { color: #444; white-space: nowrap; }
 
-    .center-person .vtext.name {
+    .center-person .center-person-namecol .vtext.name {
       flex-shrink: 0;
-      align-self: flex-end;
+      font-size: 28px;
+      letter-spacing: 8px;
     }
 
     .center-person .center-chart-title {
       flex-shrink: 0;
-      align-self: flex-start;
+      align-self: flex-end;
     }
 
-    .center-person .center-age {
-      align-self: flex-end;
+    .center-person .center-person-namecol .center-age {
+      font-size: 14px;
+      letter-spacing: 1px;
+      line-height: 1.2;
     }
 
     .center-info-detail {
@@ -2137,15 +2144,9 @@
         justify-content: center !important;
       }
 
-      .center-birth .center-info-meta {
-        flex-direction: row !important;
-        align-items: flex-end !important;
-        gap: 3mm !important;
-      }
-
       .center-birth .center-bazi-grid {
         justify-content: center !important;
-        margin-top: 0 !important;
+        margin-top: 2mm !important;
       }
 
       .center-person {
@@ -2164,10 +2165,18 @@
         padding: 0 !important;
         margin: 0 !important;
         display: flex !important;
-        flex-direction: row-reverse !important;
-        align-items: flex-start !important;
+        flex-direction: row !important;
+        align-items: flex-end !important;
         justify-content: flex-end !important;
         flex-wrap: nowrap !important;
+      }
+
+      .center-person-namecol .vtext.name {
+        font-size: 32px !important;
+      }
+
+      .center-person-namecol .center-age {
+        font-size: 16px !important;
       }
 
       .center-footer {
@@ -3715,24 +3724,25 @@
       )
     }
 
-    function renderCenterInfoVertical(b, a) {
+    function renderCenterBirthDetail(b) {
       const lunarCol = b.lunarNote
         ? '<div class="center-vcol center-vcol-lunar">' + b.lunarNote + '</div>'
         : ''
       return (
-        '<div class="center-info-meta">' +
-          '<div class="center-info-detail">' +
-            '<div class="center-vcol center-vcol-year">' +
-              '<span class="center-num">' + b.yearNum + '</span>' +
-              '<span>' + b.gzYear + '</span>' +
-            '</div>' +
-            '<div class="center-vcol">' + wrapCenterNums(b.solarDate) + '</div>' +
-            '<div class="center-vcol">' + b.hour + '</div>' +
-            lunarCol +
+        '<div class="center-info-detail">' +
+          '<div class="center-vcol center-vcol-year">' +
+            '<span class="center-num">' + b.yearNum + '</span>' +
+            '<span>' + b.gzYear + '</span>' +
           '</div>' +
-          renderCenterBaziGrid(a) +
+          '<div class="center-vcol">' + wrapCenterNums(b.solarDate) + '</div>' +
+          '<div class="center-vcol">' + b.hour + '</div>' +
+          lunarCol +
         '</div>'
       )
+    }
+
+    function renderCenterInfoVertical(b, a) {
+      return renderCenterBirthDetail(b) + renderCenterBaziGrid(a)
     }
 
     function renderCenterBaziBlock(a) {
@@ -3790,9 +3800,11 @@
             ${renderCenterInfoVertical(b, a)}
           </div>
           <div class="center-person">
+            <div class="center-person-namecol">
+              <div class="vtext name">${name || '匿名'}</div>
+              <div class="center-age"><span class="center-num">${new Date(horoscopeDate).getFullYear()}</span><span class="center-num">${age}</span> 歲</div>
+            </div>
             <div class="vtext title center-chart-title">${MODE_TITLE[chartMode]}</div>
-            <div class="vtext name">${name || '匿名'}</div>
-            <div class="center-age"><span class="center-num">${new Date(horoscopeDate).getFullYear()}</span><span class="center-num">${age}</span> 歲</div>
           </div>
         </div>
         <div class="center-footer">

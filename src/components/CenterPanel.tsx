@@ -159,40 +159,39 @@ export function CenterPanel({
         />
 
         <div className="center-birth">
-          <div className="center-info-meta">
-            <div className="center-info-detail">
-              <div className="center-vcol center-vcol-year">
-                <span className="center-num">{birth.yearNum}</span>
-                <span>{birth.gzYear}</span>
-              </div>
-              <div className="center-vcol">{wrapCenterNums(birth.solarDate)}</div>
-              <div className="center-vcol">{birth.hour}</div>
-              {birth.lunarNote && (
-                <div className="center-vcol center-vcol-lunar">{birth.lunarNote}</div>
-              )}
+          <div className="center-info-detail">
+            <div className="center-vcol center-vcol-year">
+              <span className="center-num">{birth.yearNum}</span>
+              <span>{birth.gzYear}</span>
             </div>
-            <div className="center-bazi-grid">
-              {formatBazi(astrolabe).split(' ').map((pillar, index) => (
-                <span key={`${pillar}-${index}`} className="center-bazi-pillar">
-                  <span className="center-bazi-label">{['年', '月', '日', '時'][index]}</span>
-                  {pillar}
-                </span>
-              ))}
-            </div>
+            <div className="center-vcol">{wrapCenterNums(birth.solarDate)}</div>
+            <div className="center-vcol">{birth.hour}</div>
+            {birth.lunarNote && (
+              <div className="center-vcol center-vcol-lunar">{birth.lunarNote}</div>
+            )}
+          </div>
+          <div className="center-bazi-grid">
+            {formatBazi(astrolabe).split(' ').map((pillar, index) => (
+              <span key={`${pillar}-${index}`} className="center-bazi-pillar">
+                <span className="center-bazi-label">{['年', '月', '日', '時'][index]}</span>
+                {pillar}
+              </span>
+            ))}
           </div>
         </div>
 
         <div className="center-person">
-          <div className="vtext title center-chart-title">{chartModeTitle(chartMode)}</div>
-
-          <div className="vtext name">{name || '匿名'}</div>
-
-          <div className="center-age">
-            <span className="center-num">
-              {new Date(horoscopeDate + 'T12:00:00').getFullYear()}
-            </span>
-            <span className="center-num">{age}</span> 歲
+          <div className="center-person-namecol">
+            <div className="vtext name">{name || '匿名'}</div>
+            <div className="center-age">
+              <span className="center-num">
+                {new Date(horoscopeDate + 'T12:00:00').getFullYear()}
+              </span>
+              <span className="center-num">{age}</span> 歲
+            </div>
           </div>
+
+          <div className="vtext title center-chart-title">{chartModeTitle(chartMode)}</div>
         </div>
       </div>
 
