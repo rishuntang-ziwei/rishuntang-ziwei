@@ -1766,7 +1766,7 @@ body {
   }
 
   .chart-lines {
-    z-index: 1 !important;
+    z-index: 5 !important;
   }
 
   .chart-lines line {
