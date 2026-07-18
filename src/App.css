@@ -1197,7 +1197,7 @@ body {
   align-self: center;
   justify-self: start;
   width: 100%;
-  max-width: 120px;
+  max-width: 140px;
   min-width: 0;
   aspect-ratio: 1;
   overflow: hidden;
@@ -1252,9 +1252,9 @@ body {
 .center-main {
   flex: 1;
   display: grid;
-  grid-template-columns: minmax(88px, 0.34fr) minmax(0, 1fr);
+  grid-template-columns: minmax(100px, 0.36fr) minmax(0, 1fr);
   align-items: center;
-  gap: 6px;
+  gap: 12px;
   min-height: 0;
   min-width: 0;
   overflow: hidden;
@@ -1264,12 +1264,12 @@ body {
   display: flex;
   flex-direction: row;
   justify-content: flex-end;
-  align-items: flex-start;
-  gap: 18px;
+  align-items: center;
+  gap: 28px;
   min-width: 0;
   overflow: hidden;
   position: relative;
-  padding-top: 4px;
+  padding: 0 2px 0 8px;
 }
 
 .center-body {
@@ -1285,27 +1285,27 @@ body {
 
 .center-birth {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: flex-end;
   min-width: 0;
   overflow: hidden;
   z-index: 2;
-  gap: 10px;
+  gap: 14px;
   flex-shrink: 0;
 }
 
 .center-birth .center-info-detail {
-  justify-content: center;
+  justify-content: flex-end;
   flex-shrink: 0;
   width: auto;
 }
 
 .center-birth .center-bazi-grid {
-  justify-content: center;
+  justify-content: flex-end;
   margin-top: 0;
   flex-shrink: 0;
-  align-self: center;
+  align-self: flex-end;
 }
 
 .center-person {
@@ -1313,7 +1313,7 @@ body {
   flex-direction: row;
   align-items: flex-start;
   justify-content: flex-end;
-  gap: 12px;
+  gap: 14px;
   flex-shrink: 0;
   min-width: 0;
   z-index: 5;
@@ -1353,8 +1353,8 @@ body {
 
 .center-person .center-person-namecol .vtext.name {
   flex-shrink: 0;
-  font-size: 2rem;
-  letter-spacing: 7px;
+  font-size: 2.1rem;
+  letter-spacing: 8px;
 }
 
 .center-person .center-person-namecol .center-age {
@@ -1820,19 +1820,10 @@ body {
     display: flex !important;
     flex-direction: row !important;
     justify-content: flex-end !important;
-    align-items: flex-start !important;
-    gap: 3.5mm !important;
-    padding-top: 0 !important;
+    align-items: center !important;
+    gap: 5mm !important;
+    padding: 0 1.5mm 0 4mm !important;
     overflow: hidden !important;
-  }
-
-  .center-info,
-  .center-info-upper,
-  .center-birth,
-  .center-person-meta {
-    overflow: hidden !important;
-    max-width: 100% !important;
-    min-width: 0 !important;
   }
 
   .center-birth {
@@ -1840,8 +1831,11 @@ body {
     left: auto !important;
     top: auto !important;
     transform: none !important;
-    max-width: 36mm !important;
+    max-width: none !important;
     z-index: 2 !important;
+    flex-direction: row !important;
+    align-items: flex-end !important;
+    gap: 3mm !important;
   }
 
   .center-birth .center-info-detail {
@@ -1851,6 +1845,15 @@ body {
   .center-birth .center-bazi-grid {
     justify-content: center !important;
     margin-top: 2mm !important;
+  }
+
+  .center-info,
+  .center-info-upper,
+  .center-birth,
+  .center-person-meta {
+    overflow: hidden !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
   }
 
   .center-person {
