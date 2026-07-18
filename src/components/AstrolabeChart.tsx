@@ -377,7 +377,8 @@ export function AstrolabeChart({
               x2={line.x2}
               y2={line.y2}
               stroke="#c62828"
-              strokeWidth={1}
+              strokeWidth={2}
+              vectorEffect="nonScalingStroke"
             />
           ))}
         </svg>

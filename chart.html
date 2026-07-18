@@ -654,58 +654,6 @@
 
     .chart-lines line { stroke: var(--line-red); stroke-width: 1; }
 
-    .chart-watermark {
-      position: absolute;
-      inset: 0;
-      z-index: 12;
-      pointer-events: none;
-      overflow: hidden;
-    }
-
-    .chart-watermark-track {
-      position: absolute;
-      left: -35%;
-      top: -35%;
-      width: 170%;
-      height: 170%;
-      display: flex;
-      flex-wrap: wrap;
-      align-content: flex-start;
-      gap: 28px 40px;
-      padding: 20px;
-      transform: rotate(-24deg);
-    }
-
-    .chart-watermark-track-a {
-      animation: chart-watermark-drift 80s linear infinite;
-    }
-
-    .chart-watermark-track-b {
-      animation: chart-watermark-drift-reverse 100s linear infinite;
-      opacity: 0.65;
-    }
-
-    .chart-watermark-item {
-      font-family: 'DFKai-SB', 'BiauKai', '標楷體', 'KaiTi', '楷体', serif;
-      font-size: clamp(11px, 1.15vw, 14px);
-      font-weight: 600;
-      letter-spacing: 0.14em;
-      color: rgba(107, 68, 35, 0.13);
-      white-space: nowrap;
-      user-select: none;
-      -webkit-user-select: none;
-    }
-
-    @keyframes chart-watermark-drift {
-      from { transform: rotate(-24deg) translate(0, 0); }
-      to { transform: rotate(-24deg) translate(-6%, -5%); }
-    }
-
-    @keyframes chart-watermark-drift-reverse {
-      from { transform: rotate(-24deg) translate(-6%, -5%); }
-      to { transform: rotate(-24deg) translate(0, 0); }
-    }
-
     .cell {
       border: 1px solid var(--border);
       position: relative;
@@ -2117,6 +2065,7 @@
       .chart-grid {
         width: 100% !important;
         height: 100% !important;
+        position: relative !important;
       }
 
       .palace-cell.dimmed {
@@ -2134,26 +2083,27 @@
       }
 
       .chart-lines {
-        z-index: 6 !important;
+        position: absolute !important;
+        inset: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        z-index: 100 !important;
+        overflow: visible !important;
+        pointer-events: none !important;
       }
 
       .chart-lines line {
         stroke: #d32f2f !important;
-        stroke-width: 1.2px !important;
-      }
-
-      .chart-watermark {
-        z-index: 3 !important;
+        stroke-width: 2px !important;
+        vector-effect: non-scaling-stroke !important;
       }
 
       .cell {
-        z-index: 2 !important;
+        z-index: 1 !important;
       }
 
       .cell.center {
-        z-index: 10 !important;
         position: relative !important;
-        background: #fff !important;
         overflow: hidden !important;
       }
 
@@ -2163,22 +2113,17 @@
         position: relative !important;
         height: 100% !important;
         display: block !important;
-        z-index: 10 !important;
-        background: #fff !important;
-        isolation: isolate !important;
       }
 
       .center-header {
         position: relative !important;
         padding-right: 0 !important;
-        z-index: 11 !important;
       }
 
       .center-footer {
         position: absolute !important;
         left: 2mm !important;
         bottom: 1.5mm !important;
-        z-index: 11 !important;
         margin-top: 0 !important;
       }
 
@@ -2192,7 +2137,6 @@
         right: 0 !important;
         bottom: 11mm !important;
         overflow: hidden !important;
-        z-index: 11 !important;
       }
 
       .center-right {
@@ -2203,7 +2147,6 @@
         bottom: 0 !important;
         display: block !important;
         overflow: hidden !important;
-        z-index: 12 !important;
       }
 
       .center-info,
@@ -2223,7 +2166,6 @@
         max-width: none !important;
         min-width: 0 !important;
         width: auto !important;
-        z-index: 11 !important;
         display: flex !important;
         flex-direction: column !important;
         align-items: center !important;
@@ -2257,7 +2199,6 @@
         min-width: 36mm !important;
         max-width: 42mm !important;
         transform: none !important;
-        z-index: 13 !important;
         flex-shrink: 0 !important;
         overflow: visible !important;
         gap: 1mm !important;
@@ -2277,7 +2218,6 @@
         padding-top: 0 !important;
         background: #fff !important;
         position: relative !important;
-        z-index: 14 !important;
         overflow: visible !important;
         min-width: 14mm !important;
         flex-shrink: 0 !important;
@@ -2288,7 +2228,6 @@
         align-self: flex-start !important;
         background: #fff !important;
         position: relative !important;
-        z-index: 14 !important;
         flex-shrink: 0 !important;
         margin-left: 0 !important;
       }
@@ -4005,27 +3944,12 @@
       const careerPt = branchLinePoint(s.career.earthlyBranch)
       const travelPt = branchLinePoint(s.opposite.earthlyBranch)
 
-      if (soulPt && wealthPt) lineEls.push(`<line x1="${soulPt.x}" y1="${soulPt.y}" x2="${wealthPt.x}" y2="${wealthPt.y}" stroke="#d32f2f" stroke-width="1"/>`)
-      if (soulPt && careerPt) lineEls.push(`<line x1="${soulPt.x}" y1="${soulPt.y}" x2="${careerPt.x}" y2="${careerPt.y}" stroke="#d32f2f" stroke-width="1"/>`)
-      if (soulPt && travelPt) lineEls.push(`<line x1="${soulPt.x}" y1="${soulPt.y}" x2="${travelPt.x}" y2="${travelPt.y}" stroke="#d32f2f" stroke-width="1"/>`)
-      if (wealthPt && careerPt) lineEls.push(`<line x1="${wealthPt.x}" y1="${wealthPt.y}" x2="${careerPt.x}" y2="${careerPt.y}" stroke="#d32f2f" stroke-width="1"/>`)
+      if (soulPt && wealthPt) lineEls.push(`<line x1="${soulPt.x}" y1="${soulPt.y}" x2="${wealthPt.x}" y2="${wealthPt.y}" stroke="#d32f2f" stroke-width="2" vector-effect="non-scaling-stroke"/>`)
+      if (soulPt && careerPt) lineEls.push(`<line x1="${soulPt.x}" y1="${soulPt.y}" x2="${careerPt.x}" y2="${careerPt.y}" stroke="#d32f2f" stroke-width="2" vector-effect="non-scaling-stroke"/>`)
+      if (soulPt && travelPt) lineEls.push(`<line x1="${soulPt.x}" y1="${soulPt.y}" x2="${travelPt.x}" y2="${travelPt.y}" stroke="#d32f2f" stroke-width="2" vector-effect="non-scaling-stroke"/>`)
+      if (wealthPt && careerPt) lineEls.push(`<line x1="${wealthPt.x}" y1="${wealthPt.y}" x2="${careerPt.x}" y2="${careerPt.y}" stroke="#d32f2f" stroke-width="2" vector-effect="non-scaling-stroke"/>`)
 
       return `<svg class="chart-lines" viewBox="0 0 ${CHART_W} ${CHART_H}" preserveAspectRatio="none">${lineEls.join('')}</svg>`
-    }
-
-    function renderChartWatermarkHtml() {
-      const label = '國際日舜堂版權'
-      const items = []
-      for (let i = 0; i < 42; i++) {
-        items.push('<span class="chart-watermark-item">' + label + '</span>')
-      }
-      const track = items.join('')
-      return (
-        '<div class="chart-watermark" aria-hidden="true">' +
-          '<div class="chart-watermark-track chart-watermark-track-a">' + track + '</div>' +
-          '<div class="chart-watermark-track chart-watermark-track-b">' + track + '</div>' +
-        '</div>'
-      )
     }
 
     function renderChart(name, a, input) {
@@ -4044,7 +3968,7 @@
       const displayOpts = yearlyDisplayOptions(chartMode)
       const sanFangRoles = getSanFangBranchRoles(a, h, selectedPalaceName, chartMode, displayOpts)
       let centerDone = false
-      let html = '<div class="chart-outer">' + renderChartWatermarkHtml() + '<div class="chart-grid">'
+      let html = '<div class="chart-outer"><div class="chart-grid">'
 
       GRID.forEach((row, ri) => {
         row.forEach((cell, ci) => {
