@@ -30,6 +30,15 @@ export interface RegisterResponse {
   message: string
 }
 
+export interface ForgotPasswordResponse {
+  message: string
+  resetToken: string
+}
+
+export interface ResetPasswordResponse {
+  message: string
+}
+
 export interface MeResponse {
   user: AuthUser
 }

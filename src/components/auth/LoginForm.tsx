@@ -1,7 +1,13 @@
 import { useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 
-export function LoginForm({ onSwitchRegister }: { onSwitchRegister: () => void }) {
+export function LoginForm({
+  onSwitchRegister,
+  onSwitchForgot,
+}: {
+  onSwitchRegister: () => void
+  onSwitchForgot: () => void
+}) {
   const { login } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -46,6 +52,10 @@ export function LoginForm({ onSwitchRegister }: { onSwitchRegister: () => void }
 
       <button type="submit" disabled={submitting}>
         {submitting ? '登入中…' : '登入'}
+      </button>
+
+      <button type="button" className="auth-link-btn" onClick={onSwitchForgot}>
+        忘記密碼？
       </button>
 
       <button type="button" className="auth-link-btn" onClick={onSwitchRegister}>

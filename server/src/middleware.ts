@@ -9,6 +9,22 @@ export function signToken(userId: number, role: JwtPayload['role']) {
   return jwt.sign({ sub: userId, role }, JWT_SECRET, { expiresIn: '7d' })
 }
 
+export function signPasswordResetToken(userId: number) {
+  return jwt.sign({ sub: userId, purpose: 'password-reset' }, JWT_SECRET, { expiresIn: '15m' })
+}
+
+export function verifyPasswordResetToken(token: string): number | null {
+  try {
+    const payload = jwt.verify(token, JWT_SECRET) as unknown as JwtPayload
+    if (payload.purpose !== 'password-reset' || typeof payload.sub !== 'number') {
+      return null
+    }
+    return payload.sub
+  } catch {
+    return null
+  }
+}
+
 export async function requireAuth(req: Request, res: Response, next: NextFunction) {
   const header = req.headers.authorization
   const token = header?.startsWith('Bearer ') ? header.slice(7) : null

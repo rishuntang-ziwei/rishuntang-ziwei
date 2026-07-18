@@ -271,12 +271,6 @@ export function AstrolabeChart({
   return (
     <div className="chart-wrapper">
       <div className="chart-grid">
-        <svg className="chart-lines" viewBox={`0 0 ${CHART_VIEW_W} ${CHART_VIEW_H}`} preserveAspectRatio="none">
-          {lines.map((line, i) => (
-            <line key={i} x1={line.x1} y1={line.y1} x2={line.x2} y2={line.y2} />
-          ))}
-        </svg>
-
         {GRID_LAYOUT.map((row, rowIndex) =>
           row.map((cell, colIndex) => {
             if (cell === 'CENTER') {
@@ -373,6 +367,20 @@ export function AstrolabeChart({
             )
           }),
         )}
+
+        <svg className="chart-lines" viewBox={`0 0 ${CHART_VIEW_W} ${CHART_VIEW_H}`} preserveAspectRatio="none">
+          {lines.map((line, i) => (
+            <line
+              key={i}
+              x1={line.x1}
+              y1={line.y1}
+              x2={line.x2}
+              y2={line.y2}
+              stroke="#c62828"
+              strokeWidth={1}
+            />
+          ))}
+        </svg>
       </div>
     </div>
   )

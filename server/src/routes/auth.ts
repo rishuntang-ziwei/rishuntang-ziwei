@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import bcrypt from 'bcryptjs'
 import { createUser, findUserByEmail, findUserById, updateUserPassword, consumeDailyChartGeneration } from '../db.js'
-import { requireAuth, requireApprovedMember, signToken } from '../middleware.js'
+import { requireAuth, requireApprovedMember, signPasswordResetToken, signToken, verifyPasswordResetToken } from '../middleware.js'
 import { toPublicUser } from '../db.js'
 import { validateChartPayload } from '../chartPayload.js'
 import { formatBirthDateTime } from '../chartFormat.js'
@@ -17,6 +17,14 @@ function validateEmail(email: string) {
 function validatePhone(phone: string) {
   const normalized = phone.replace(/\s+/g, '')
   return /^09\d{8}$/.test(normalized) || /^0\d{1,2}-?\d{6,8}$/.test(normalized)
+}
+
+function normalizePhone(phone: string) {
+  return phone.replace(/[\s-]/g, '')
+}
+
+function phonesMatch(stored: string, input: string) {
+  return normalizePhone(stored) === normalizePhone(input)
 }
 
 router.post('/register', async (req, res) => {
@@ -98,6 +106,75 @@ router.post('/login', async (req, res) => {
     token,
     user: toPublicUser(user),
   })
+})
+
+router.post('/forgot-password', async (req, res) => {
+  const email = String(req.body?.email ?? '').trim().toLowerCase()
+  const phone = String(req.body?.phone ?? '').trim()
+
+  if (!email || !phone) {
+    res.status(400).json({ error: '請填寫 Email 與註冊電話' })
+    return
+  }
+  if (!validateEmail(email)) {
+    res.status(400).json({ error: 'Email 格式不正確' })
+    return
+  }
+  if (!validatePhone(phone)) {
+    res.status(400).json({ error: '電話格式不正確' })
+    return
+  }
+
+  const user = await findUserByEmail(email)
+  if (!user || !phonesMatch(user.phone, phone)) {
+    res.status(404).json({ error: 'Email 或電話與註冊資料不符' })
+    return
+  }
+  if (user.status === 'rejected') {
+    res.status(403).json({ error: '帳號已被拒絕，請聯絡管理員' })
+    return
+  }
+
+  const resetToken = signPasswordResetToken(user.id)
+  res.json({
+    message: '身分驗證成功，請設定新密碼',
+    resetToken,
+  })
+})
+
+router.post('/reset-password', async (req, res) => {
+  const resetToken = String(req.body?.resetToken ?? '')
+  const newPassword = String(req.body?.newPassword ?? '')
+  const confirmPassword = String(req.body?.confirmPassword ?? '')
+
+  if (!resetToken || !newPassword) {
+    res.status(400).json({ error: '請填寫新密碼' })
+    return
+  }
+  if (newPassword.length < 8) {
+    res.status(400).json({ error: '新密碼至少 8 個字元' })
+    return
+  }
+  if (newPassword !== confirmPassword) {
+    res.status(400).json({ error: '兩次新密碼不一致' })
+    return
+  }
+
+  const userId = verifyPasswordResetToken(resetToken)
+  if (!userId) {
+    res.status(401).json({ error: '重設時效已過，請重新驗證身分' })
+    return
+  }
+
+  const user = await findUserById(userId)
+  if (!user) {
+    res.status(404).json({ error: '帳號不存在' })
+    return
+  }
+
+  const passwordHash = await bcrypt.hash(newPassword, 10)
+  await updateUserPassword(user.id, passwordHash)
+  res.json({ message: '密碼已重設，請使用新密碼登入' })
 })
 
 router.get('/me', requireAuth, (req, res) => {

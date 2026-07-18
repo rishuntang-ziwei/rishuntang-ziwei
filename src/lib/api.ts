@@ -1,10 +1,12 @@
 import type {
   AdminMemberSegment,
-  AdminMembersResponse,
   AdminMemberSummaryResponse,
+  AdminMembersResponse,
+  ForgotPasswordResponse,
   LoginResponse,
   MeResponse,
   RegisterResponse,
+  ResetPasswordResponse,
   UsersResponse,
 } from '../types/auth'
 import type {
@@ -64,6 +66,24 @@ export function registerUser(body: {
 
 export function loginUser(body: { email: string; password: string }) {
   return request<LoginResponse>('/api/auth/login', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  })
+}
+
+export function requestPasswordReset(body: { email: string; phone: string }) {
+  return request<ForgotPasswordResponse>('/api/auth/forgot-password', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  })
+}
+
+export function resetPassword(body: {
+  resetToken: string
+  newPassword: string
+  confirmPassword: string
+}) {
+  return request<ResetPasswordResponse>('/api/auth/reset-password', {
     method: 'POST',
     body: JSON.stringify(body),
   })

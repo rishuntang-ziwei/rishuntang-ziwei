@@ -2134,12 +2134,20 @@
       }
 
       .chart-lines {
-        z-index: 5 !important;
+        z-index: 6 !important;
       }
 
       .chart-lines line {
-        stroke: var(--line-red) !important;
-        stroke-width: 1 !important;
+        stroke: #d32f2f !important;
+        stroke-width: 1.2px !important;
+      }
+
+      .chart-watermark {
+        z-index: 3 !important;
+      }
+
+      .cell {
+        z-index: 2 !important;
       }
 
       .cell.center {
@@ -3997,10 +4005,10 @@
       const careerPt = branchLinePoint(s.career.earthlyBranch)
       const travelPt = branchLinePoint(s.opposite.earthlyBranch)
 
-      if (soulPt && wealthPt) lineEls.push(`<line x1="${soulPt.x}" y1="${soulPt.y}" x2="${wealthPt.x}" y2="${wealthPt.y}"/>`)
-      if (soulPt && careerPt) lineEls.push(`<line x1="${soulPt.x}" y1="${soulPt.y}" x2="${careerPt.x}" y2="${careerPt.y}"/>`)
-      if (soulPt && travelPt) lineEls.push(`<line x1="${soulPt.x}" y1="${soulPt.y}" x2="${travelPt.x}" y2="${travelPt.y}"/>`)
-      if (wealthPt && careerPt) lineEls.push(`<line x1="${wealthPt.x}" y1="${wealthPt.y}" x2="${careerPt.x}" y2="${careerPt.y}"/>`)
+      if (soulPt && wealthPt) lineEls.push(`<line x1="${soulPt.x}" y1="${soulPt.y}" x2="${wealthPt.x}" y2="${wealthPt.y}" stroke="#d32f2f" stroke-width="1"/>`)
+      if (soulPt && careerPt) lineEls.push(`<line x1="${soulPt.x}" y1="${soulPt.y}" x2="${careerPt.x}" y2="${careerPt.y}" stroke="#d32f2f" stroke-width="1"/>`)
+      if (soulPt && travelPt) lineEls.push(`<line x1="${soulPt.x}" y1="${soulPt.y}" x2="${travelPt.x}" y2="${travelPt.y}" stroke="#d32f2f" stroke-width="1"/>`)
+      if (wealthPt && careerPt) lineEls.push(`<line x1="${wealthPt.x}" y1="${wealthPt.y}" x2="${careerPt.x}" y2="${careerPt.y}" stroke="#d32f2f" stroke-width="1"/>`)
 
       return `<svg class="chart-lines" viewBox="0 0 ${CHART_W} ${CHART_H}" preserveAspectRatio="none">${lineEls.join('')}</svg>`
     }
@@ -4037,7 +4045,6 @@
       const sanFangRoles = getSanFangBranchRoles(a, h, selectedPalaceName, chartMode, displayOpts)
       let centerDone = false
       let html = '<div class="chart-outer">' + renderChartWatermarkHtml() + '<div class="chart-grid">'
-      html += renderLines(a, h)
 
       GRID.forEach((row, ri) => {
         row.forEach((cell, ci) => {
@@ -4054,6 +4061,7 @@
         })
       })
 
+      html += renderLines(a, h)
       html += '</div></div>'
       document.getElementById('chartView').innerHTML = html
 

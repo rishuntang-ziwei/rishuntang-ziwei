@@ -1,19 +1,47 @@
 import { useState } from 'react'
 import { LoginForm } from './LoginForm'
 import { RegisterForm } from './RegisterForm'
+import { ForgotPasswordForm } from './ForgotPasswordForm'
+import { ResetPasswordForm } from './ResetPasswordForm'
 
 const ANCESTOR_IMG = '/assets/zushi-jiangziya.png?v=20260717'
 const ANCESTOR_CAPTION = '日舜堂傳承中華文化'
 
 export function AuthShell() {
-  const [mode, setMode] = useState<'login' | 'register'>('login')
+  const [mode, setMode] = useState<'login' | 'register' | 'forgot' | 'reset'>('login')
+  const [resetToken, setResetToken] = useState('')
 
-  const form =
-    mode === 'login' ? (
-      <LoginForm onSwitchRegister={() => setMode('register')} />
-    ) : (
-      <RegisterForm onSwitchLogin={() => setMode('login')} />
+  let form
+  if (mode === 'register') {
+    form = <RegisterForm onSwitchLogin={() => setMode('login')} />
+  } else if (mode === 'forgot') {
+    form = (
+      <ForgotPasswordForm
+        onSwitchLogin={() => setMode('login')}
+        onVerified={(token) => {
+          setResetToken(token)
+          setMode('reset')
+        }}
+      />
     )
+  } else if (mode === 'reset') {
+    form = (
+      <ResetPasswordForm
+        resetToken={resetToken}
+        onSwitchLogin={() => {
+          setResetToken('')
+          setMode('login')
+        }}
+      />
+    )
+  } else {
+    form = (
+      <LoginForm
+        onSwitchRegister={() => setMode('register')}
+        onSwitchForgot={() => setMode('forgot')}
+      />
+    )
+  }
 
   return (
     <div className="auth-page">

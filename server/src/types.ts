@@ -53,7 +53,8 @@ export interface PaymentOrderRow {
 
 export interface JwtPayload {
   sub: number
-  role: UserRole
+  role?: UserRole
+  purpose?: 'password-reset'
 }
 
 export type ChartGender = '男' | '女'

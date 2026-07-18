@@ -1766,12 +1766,21 @@ body {
   }
 
   .chart-lines {
-    z-index: 5 !important;
+    z-index: 6 !important;
   }
 
   .chart-lines line {
-    stroke: var(--line-soul) !important;
-    stroke-width: 1 !important;
+    stroke: #c62828 !important;
+    stroke-width: 1.2px !important;
+  }
+
+  .chart-watermark {
+    z-index: 3 !important;
+  }
+
+  .grid-cell,
+  .cell {
+    z-index: 2 !important;
   }
 
   .center-cell,
