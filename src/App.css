@@ -1151,9 +1151,8 @@ body {
 /* ── Center Panel ── */
 .center {
   position: relative;
-  display: grid;
-  grid-template-columns: minmax(108px, 1fr) minmax(0, 1.05fr) minmax(72px, 0.78fr);
-  grid-template-rows: auto 1fr auto;
+  display: flex;
+  flex-direction: column;
   height: 100%;
   padding: 6px 8px 4px;
   overflow: hidden;
@@ -1162,12 +1161,11 @@ body {
 }
 
 .center-header {
-  grid-column: 1 / -1;
-  grid-row: 1;
   flex-shrink: 0;
   position: relative;
   z-index: 10;
   min-height: 44px;
+  padding-right: 124px;
 }
 
 .center-top-left {
@@ -1196,17 +1194,17 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  align-self: start;
-  justify-self: center;
+  align-self: center;
+  justify-self: start;
   width: 100%;
-  max-width: 300px;
+  max-width: 120px;
   min-width: 0;
   aspect-ratio: 1;
   overflow: hidden;
   position: relative;
   z-index: 1;
   pointer-events: none;
-  margin-top: 2px;
+  margin: 0;
 }
 
 .center-wuxing-cross .wuxing-svg {
@@ -1251,13 +1249,35 @@ body {
   align-items: flex-end;
 }
 
-.center-body {
-  grid-column: 1 / 3;
-  grid-row: 2;
+.center-main {
+  flex: 1;
   display: grid;
-  grid-template-columns: minmax(108px, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(88px, 0.34fr) minmax(0, 1fr);
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.center-right {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: flex-start;
+  gap: 18px;
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
+  padding-top: 4px;
+}
+
+.center-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(88px, 0.34fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
   min-height: 0;
   min-width: 0;
   overflow: hidden;
@@ -1267,12 +1287,12 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   min-width: 0;
   overflow: hidden;
   z-index: 2;
-  gap: 14px;
-  padding: 0 4px;
+  gap: 10px;
+  flex-shrink: 0;
 }
 
 .center-birth .center-info-detail {
@@ -1289,27 +1309,14 @@ body {
 }
 
 .center-person {
-  grid-column: 3;
-  grid-row: 2;
   display: flex;
   flex-direction: row;
   align-items: flex-start;
   justify-content: flex-end;
-  gap: 14px;
+  gap: 12px;
+  flex-shrink: 0;
   min-width: 0;
-  max-width: 100%;
-  overflow: visible;
-  position: relative;
-  align-self: start;
-  justify-self: end;
-  padding-top: 8px;
-  z-index: 8;
-  pointer-events: none;
-}
-
-.center-person input,
-.center-person button {
-  pointer-events: auto;
+  z-index: 5;
 }
 
 .center-person-namecol {
@@ -1317,9 +1324,9 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  gap: 8px;
+  gap: 6px;
   flex-shrink: 0;
-  margin-top: 0;
+  min-width: 0;
 }
 
 .center-person-meta {
@@ -1331,21 +1338,12 @@ body {
 }
 
 .center-footer {
-  grid-column: 1 / -1;
-  grid-row: 3;
+  flex-shrink: 0;
   position: relative;
-  align-self: end;
-  justify-self: start;
-  left: auto;
-  bottom: auto;
+  align-self: flex-start;
   z-index: 9;
   writing-mode: horizontal-tb;
-}
-
-.center-person .center-person-namecol .vtext.name {
-  flex-shrink: 0;
-  font-size: 1.75rem;
-  letter-spacing: 8px;
+  margin-top: auto;
 }
 
 .center-person .center-chart-title {
@@ -1353,10 +1351,16 @@ body {
   align-self: flex-start;
 }
 
+.center-person .center-person-namecol .vtext.name {
+  flex-shrink: 0;
+  font-size: 2rem;
+  letter-spacing: 7px;
+}
+
 .center-person .center-person-namecol .center-age {
-  font-size: 0.88rem;
-  letter-spacing: 1px;
-  line-height: 1.2;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  line-height: 1.35;
 }
 
 .center-control-row {
@@ -1440,10 +1444,10 @@ body {
   flex-direction: row-reverse;
   align-items: flex-end;
   justify-content: center;
-  gap: 8px;
-  margin-top: 0.25rem;
-  overflow: visible;
-  max-width: 100%;
+  gap: 10px;
+  margin-top: 0;
+  overflow: hidden;
+  max-width: fit-content;
   width: auto;
   flex-wrap: nowrap;
 }
@@ -1463,11 +1467,11 @@ body {
   flex-direction: row-reverse;
   justify-content: center;
   align-items: flex-end;
-  gap: 8px;
+  gap: 10px;
   margin-top: 0;
-  max-width: 100%;
+  max-width: fit-content;
   writing-mode: horizontal-tb;
-  font-size: clamp(0.68rem, 1.05vw, 0.94rem);
+  font-size: clamp(0.66rem, 0.95vw, 0.88rem);
   line-height: 1.35;
   letter-spacing: 0.06em;
   color: #222;
@@ -1784,18 +1788,19 @@ body {
 
   .center-header {
     position: relative !important;
+    padding-right: 0 !important;
   }
 
   .center-footer {
     position: absolute !important;
     left: 2mm !important;
     bottom: 1.5mm !important;
-    grid-column: auto !important;
-    grid-row: auto !important;
     z-index: 4 !important;
+    margin-top: 0 !important;
   }
 
   /* 列印用 mm 絕對定位，不受螢幕 DPI / 瀏覽器縮放影響 */
+  .center-main,
   .center-body {
     display: block !important;
     position: absolute !important;
@@ -1803,6 +1808,21 @@ body {
     left: 0 !important;
     right: 0 !important;
     bottom: 11mm !important;
+    overflow: hidden !important;
+  }
+
+  .center-right {
+    position: absolute !important;
+    top: 0 !important;
+    left: 52mm !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: flex-end !important;
+    align-items: flex-start !important;
+    gap: 3.5mm !important;
+    padding-top: 0 !important;
     overflow: hidden !important;
   }
 
@@ -1816,11 +1836,11 @@ body {
   }
 
   .center-birth {
-    position: absolute !important;
-    left: 50% !important;
-    top: 50% !important;
-    transform: translate(-50%, -50%) !important;
-    max-width: 44mm !important;
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    transform: none !important;
+    max-width: 36mm !important;
     z-index: 2 !important;
   }
 
@@ -1833,21 +1853,10 @@ body {
     margin-top: 2mm !important;
   }
 
-  .center-body {
-    grid-column: auto !important;
-    grid-row: auto !important;
-  }
-
-  .center-person {
-    grid-column: auto !important;
-    grid-row: auto !important;
-    padding-top: 0 !important;
-  }
-
   .center-person {
     position: absolute !important;
     right: 1.5mm !important;
-    top: 2mm !important;
+    top: -18mm !important;
     left: auto !important;
     bottom: auto !important;
     width: auto !important;
@@ -1869,9 +1878,11 @@ body {
 
   .center-person-namecol {
     margin-top: 2.5mm !important;
+    padding-top: 0 !important;
   }
 
   .center-person .center-chart-title {
+    padding-top: 0 !important;
     align-self: flex-start !important;
   }
 
