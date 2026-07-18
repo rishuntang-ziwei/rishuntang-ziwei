@@ -784,10 +784,9 @@
     }
 
     .major-star-slot {
-      display: inline-block;
       flex-shrink: 0;
       align-self: flex-start;
-      width: clamp(30px, 3.6vh, 44px);
+      visibility: hidden;
     }
 
     .star-vcol {
@@ -1636,10 +1635,6 @@
         max-height: calc(100% - 40px);
         padding-right: 2px;
         left: 1px;
-      }
-
-      .major-star-slot {
-        width: 15px;
       }
 
       .palace-bottom {
@@ -3763,7 +3758,7 @@
             <div class="stars-row stars-row-1">${renderStarsVertical(leftPurpleM, 'left-purple', chartMode)}</div>
             <div class="stars-row stars-row-2">${renderStarsVertical(leftGreenM, 'left-green', chartMode)}</div>
           </div>
-          <div class="stars-right">${renderStarsVertical(rightGreenM, 'right-green', chartMode)}${majors.length ? renderStarsVertical(majors, 'major', chartMode) : '<span class="major-star-slot" aria-hidden="true"></span>'}</div>
+          <div class="stars-right">${renderStarsVertical(rightGreenM, 'right-green', chartMode)}${majors.length ? renderStarsVertical(majors, 'major', chartMode) : '<span class="major-star-slot" aria-hidden="true"><span class="star-vcol major"><span class="vcol-inner"><span class="vname">空</span><span class="vbright">空</span></span></span></span>'}</div>
         </div>
         <div class="palace-bottom ${footerDim ? 'palace-footer-dimmed' : ''}">
           <div class="palace-footer-grid">

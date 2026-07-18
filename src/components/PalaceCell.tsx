@@ -112,20 +112,31 @@ export function PalaceCell({
         </div>
         <div className="stars-right">
           <StarDisplay variant="right-green" stars={rightGreen.map(mapStar)} chartMode={chartMode} />
-          <StarDisplay
-            variant="major"
-            stars={sortMajorStars(palace.majorStars).map((s) => ({
-              ...mapStar(s),
-              brightness: majorBrightnessForDisplay(
-                astrolabe,
-                chartMode,
-                palace.earthlyBranch,
-                s.name,
-                s.brightness,
-              ),
-            }))}
-            chartMode={chartMode}
-          />
+          {palace.majorStars.length > 0 ? (
+            <StarDisplay
+              variant="major"
+              stars={sortMajorStars(palace.majorStars).map((s) => ({
+                ...mapStar(s),
+                brightness: majorBrightnessForDisplay(
+                  astrolabe,
+                  chartMode,
+                  palace.earthlyBranch,
+                  s.name,
+                  s.brightness,
+                ),
+              }))}
+              chartMode={chartMode}
+            />
+          ) : (
+            <span className="major-star-slot" aria-hidden="true">
+              <span className="star-vcol major">
+                <span className="vcol-inner">
+                  <span className="vname">空</span>
+                  <span className="vbright">空</span>
+                </span>
+              </span>
+            </span>
+          )}
         </div>
       </div>
 

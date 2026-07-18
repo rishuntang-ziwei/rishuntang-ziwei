@@ -799,6 +799,12 @@ body {
   padding-right: 2px;
 }
 
+.major-star-slot {
+  flex-shrink: 0;
+  align-self: flex-start;
+  visibility: hidden;
+}
+
 .stars-center {
   display: flex;
   flex-direction: row;
