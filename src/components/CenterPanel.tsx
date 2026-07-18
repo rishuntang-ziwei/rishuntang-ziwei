@@ -188,6 +188,7 @@ export function CenterPanel({
             <span className="center-num">
               {new Date(horoscopeDate + 'T12:00:00').getFullYear()}
             </span>
+            <span className="center-age-sep">／</span>
             <span className="center-num">{age}</span> 歲
           </div>
         </div>

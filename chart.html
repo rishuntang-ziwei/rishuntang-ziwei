@@ -1233,8 +1233,9 @@
     .center-brand { font-size: 17px; color: var(--brand-red); font-weight: 700; letter-spacing: 0.12em; line-height: 1.45; }
     .center {
       position: relative;
-      display: flex;
-      flex-direction: column;
+      display: grid;
+      grid-template-columns: minmax(108px, 1fr) minmax(0, 1.05fr) minmax(72px, 0.78fr);
+      grid-template-rows: auto 1fr auto;
       height: 100%;
       padding: 6px 8px 4px;
       overflow: hidden;
@@ -1243,6 +1244,8 @@
     }
 
     .center-header {
+      grid-column: 1 / -1;
+      grid-row: 1;
       flex-shrink: 0;
       position: relative;
       z-index: 10;
@@ -1331,11 +1334,12 @@
     }
 
     .center-body {
-      flex: 1;
+      grid-column: 1 / 3;
+      grid-row: 2;
       display: grid;
-      grid-template-columns: minmax(130px, 1.25fr) minmax(0, 1.05fr);
+      grid-template-columns: minmax(108px, 1fr) minmax(0, 1fr);
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       min-height: 0;
       min-width: 0;
       overflow: hidden;
@@ -1349,7 +1353,8 @@
       min-width: 0;
       overflow: hidden;
       z-index: 2;
-      gap: 10px;
+      gap: 14px;
+      padding: 0 4px;
     }
 
     .center-birth .center-info-detail {
@@ -1366,16 +1371,20 @@
     }
 
     .center-person {
+      grid-column: 3;
+      grid-row: 2;
       display: flex;
       flex-direction: row;
       align-items: flex-start;
       justify-content: flex-end;
-      gap: 12px;
+      gap: 14px;
       min-width: 0;
-      overflow: hidden;
-      position: absolute;
-      right: 8px;
-      top: 44px;
+      max-width: 100%;
+      overflow: visible;
+      position: relative;
+      align-self: start;
+      justify-self: end;
+      padding-top: 8px;
       z-index: 8;
       pointer-events: none;
     }
@@ -1389,10 +1398,10 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-end;
-      gap: 2px;
+      justify-content: flex-start;
+      gap: 8px;
       flex-shrink: 0;
-      margin-top: 10px;
+      margin-top: 0;
     }
 
     .center-person .center-chart-title {
@@ -1409,9 +1418,13 @@
     }
 
     .center-footer {
-      position: absolute;
-      left: 8px;
-      bottom: 4px;
+      grid-column: 1 / -1;
+      grid-row: 3;
+      position: relative;
+      align-self: end;
+      justify-self: start;
+      left: auto;
+      bottom: auto;
       z-index: 9;
       writing-mode: horizontal-tb;
     }
@@ -1463,12 +1476,12 @@
       display: flex;
       flex-direction: row-reverse;
       align-items: flex-end;
-      justify-content: flex-end;
-      gap: 3px;
-      overflow: hidden;
+      justify-content: center;
+      gap: 8px;
+      overflow: visible;
       max-width: 100%;
-      width: 100%;
-      flex-wrap: wrap;
+      width: auto;
+      flex-wrap: nowrap;
     }
 
     .center-info-meta {
@@ -1483,11 +1496,12 @@
     }
 
     .center-bazi-grid {
-      display: grid;
-      grid-template-columns: auto auto;
-      justify-content: end;
-      gap: 2px 8px;
-      margin-top: 4px;
+      display: flex;
+      flex-direction: row-reverse;
+      justify-content: center;
+      align-items: flex-end;
+      gap: 8px;
+      margin-top: 0;
       max-width: 100%;
       writing-mode: horizontal-tb;
       font-size: clamp(11px, 1.05vw, 15px);
@@ -1498,7 +1512,10 @@
 
     .center-bazi-pillar {
       display: inline-flex;
-      align-items: baseline;
+      flex-direction: column;
+      align-items: center;
+      writing-mode: vertical-rl;
+      text-orientation: upright;
       gap: 1px;
       text-align: center;
       white-space: nowrap;
@@ -1520,8 +1537,8 @@
       writing-mode: vertical-rl;
       text-orientation: upright;
       font-size: 14px;
-      line-height: 1.3;
-      letter-spacing: 0.05em;
+      line-height: 1.45;
+      letter-spacing: 0.08em;
       white-space: nowrap;
       flex-shrink: 0;
     }
@@ -1554,13 +1571,19 @@
     }
 
     .center-age {
-      writing-mode: vertical-rl;
-      text-orientation: upright;
+      writing-mode: horizontal-tb;
+      text-orientation: mixed;
       margin-top: 0;
-      font-size: 20px;
-      line-height: 1.35;
+      font-size: 14px;
+      line-height: 1.4;
       flex-shrink: 0;
       white-space: nowrap;
+      letter-spacing: 0.06em;
+    }
+
+    .center-age-sep {
+      margin: 0 2px;
+      opacity: 0.65;
     }
 
     .center-bazi {
@@ -2118,6 +2141,20 @@
         padding: 2mm 2mm 1.5mm !important;
         position: relative !important;
         height: 100% !important;
+        display: block !important;
+      }
+
+      .center-header {
+        position: relative !important;
+      }
+
+      .center-footer {
+        position: absolute !important;
+        left: 2mm !important;
+        bottom: 1.5mm !important;
+        grid-column: auto !important;
+        grid-row: auto !important;
+        z-index: 4 !important;
       }
 
       /* 列印用 mm 絕對定位，不受螢幕 DPI / 瀏覽器縮放影響 */
@@ -2159,7 +2196,14 @@
       }
 
       .center-body {
-        grid-template-columns: minmax(90px, 1.15fr) minmax(0, 1fr) !important;
+        grid-column: auto !important;
+        grid-row: auto !important;
+      }
+
+      .center-person {
+        grid-column: auto !important;
+        grid-row: auto !important;
+        padding-top: 0 !important;
       }
 
       .center-person {
@@ -2199,13 +2243,6 @@
 
       .center-person-namecol .center-age {
         font-size: 16px !important;
-      }
-
-      .center-footer {
-        position: absolute !important;
-        left: 2mm !important;
-        bottom: 1.5mm !important;
-        z-index: 4 !important;
       }
 
       .center-info-detail {
@@ -3836,7 +3873,7 @@
         <div class="center-person">
           <div class="center-person-namecol">
             <div class="vtext name">${name || '匿名'}</div>
-            <div class="center-age"><span class="center-num">${new Date(horoscopeDate).getFullYear()}</span><span class="center-num">${age}</span> 歲</div>
+            <div class="center-age"><span class="center-num">${new Date(horoscopeDate).getFullYear()}</span><span class="center-age-sep">／</span><span class="center-num">${age}</span> 歲</div>
           </div>
           <div class="vtext title center-chart-title">${MODE_TITLE[chartMode]}</div>
         </div>
