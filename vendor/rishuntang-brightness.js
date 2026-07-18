@@ -1,5 +1,11 @@
 window.RishuntangBrightness = {
   "子": {
+    "子": [
+      {
+        "name": "紫微",
+        "brightness": "平"
+      }
+    ],
     "寅": [
       {
         "name": "破軍",
@@ -30,28 +36,28 @@ window.RishuntangBrightness = {
     ],
     "未": [
       {
-        "name": "天同",
+        "name": "巨門",
         "brightness": "陷"
       },
       {
-        "name": "巨門",
+        "name": "天同",
         "brightness": "陷"
       }
     ],
     "申": [
       {
         "name": "武曲",
-        "brightness": "廟"
+        "brightness": "平"
       },
       {
         "name": "天相",
-        "brightness": "平"
+        "brightness": "廟"
       }
     ],
     "酉": [
       {
         "name": "太陽",
-        "brightness": "廟"
+        "brightness": "閒"
       },
       {
         "name": "天梁",
@@ -69,19 +75,29 @@ window.RishuntangBrightness = {
         "name": "天機",
         "brightness": "平"
       }
-    ],
-    "子": [
-      {
-        "name": "紫微",
-        "brightness": "平"
-      }
     ]
   },
   "丑": {
+    "子": [
+      {
+        "name": "天機",
+        "brightness": "廟"
+      }
+    ],
+    "丑": [
+      {
+        "name": "紫微",
+        "brightness": "廟"
+      },
+      {
+        "name": "破軍",
+        "brightness": "旺"
+      }
+    ],
     "卯": [
       {
         "name": "天府",
-        "brightness": "地"
+        "brightness": "平"
       }
     ],
     "辰": [
@@ -109,13 +125,13 @@ window.RishuntangBrightness = {
     "未": [
       {
         "name": "天相",
-        "brightness": "地"
+        "brightness": "閒"
       }
     ],
     "申": [
       {
         "name": "天同",
-        "brightness": "廟"
+        "brightness": "旺"
       },
       {
         "name": "天梁",
@@ -136,22 +152,6 @@ window.RishuntangBrightness = {
       {
         "name": "太陽",
         "brightness": "陷"
-      }
-    ],
-    "子": [
-      {
-        "name": "天機",
-        "brightness": "廟"
-      }
-    ],
-    "丑": [
-      {
-        "name": "紫微",
-        "brightness": "廟"
-      },
-      {
-        "name": "破軍",
-        "brightness": "旺"
       }
     ]
   },
@@ -468,32 +468,6 @@ window.RishuntangBrightness = {
     ]
   },
   "午": {
-    "寅": [
-      {
-        "name": "武曲",
-        "brightness": "地"
-      },
-      {
-        "name": "天相",
-        "brightness": "廟"
-      }
-    ],
-    "卯": [
-      {
-        "name": "太陽",
-        "brightness": "廟"
-      },
-      {
-        "name": "天梁",
-        "brightness": "廟"
-      }
-    ],
-    "辰": [
-      {
-        "name": "七殺",
-        "brightness": "旺"
-      }
-    ],
     "巳": [
       {
         "name": "天機",
@@ -506,10 +480,52 @@ window.RishuntangBrightness = {
         "brightness": "廟"
       }
     ],
-    "申": [
+    "辰": [
       {
-        "name": "破軍",
+        "name": "七殺",
+        "brightness": "旺"
+      }
+    ],
+    "卯": [
+      {
+        "name": "太陽",
+        "brightness": "廟"
+      },
+      {
+        "name": "天梁",
+        "brightness": "廟"
+      }
+    ],
+    "寅": [
+      {
+        "name": "武曲",
+        "brightness": "閒"
+      },
+      {
+        "name": "天相",
+        "brightness": "廟"
+      }
+    ],
+    "丑": [
+      {
+        "name": "天同",
         "brightness": "陷"
+      },
+      {
+        "name": "巨門",
+        "brightness": "廟"
+      }
+    ],
+    "子": [
+      {
+        "name": "貪狼",
+        "brightness": "旺"
+      }
+    ],
+    "亥": [
+      {
+        "name": "太陰",
+        "brightness": "廟"
       }
     ],
     "戌": [
@@ -522,56 +538,14 @@ window.RishuntangBrightness = {
         "brightness": "旺"
       }
     ],
-    "亥": [
+    "申": [
       {
-        "name": "太陰",
-        "brightness": "廟"
-      }
-    ],
-    "子": [
-      {
-        "name": "貪狼",
-        "brightness": "旺"
-      }
-    ],
-    "丑": [
-      {
-        "name": "天同",
+        "name": "破軍",
         "brightness": "陷"
-      },
-      {
-        "name": "巨門",
-        "brightness": "廟"
       }
     ]
   },
   "未": {
-    "寅": [
-      {
-        "name": "天同",
-        "brightness": "廟"
-      },
-      {
-        "name": "天梁",
-        "brightness": "廟"
-      }
-    ],
-    "卯": [
-      {
-        "name": "武曲",
-        "brightness": "陷"
-      },
-      {
-        "name": "七殺",
-        "brightness": "陷"
-      }
-    ],
-    "辰": [
-      {
-        "name": "太陽",
-        "brightness": "旺"
-      }
-    ],
     "午": [
       {
         "name": "天機",
@@ -621,27 +595,35 @@ window.RishuntangBrightness = {
         "name": "天相",
         "brightness": "廟"
       }
-    ]
-  },
-  "申": {
+    ],
     "寅": [
       {
-        "name": "七殺",
+        "name": "天同",
+        "brightness": "閒"
+      },
+      {
+        "name": "天梁",
         "brightness": "廟"
       }
     ],
     "卯": [
       {
-        "name": "天同",
-        "brightness": "廟"
+        "name": "武曲",
+        "brightness": "陷"
+      },
+      {
+        "name": "七殺",
+        "brightness": "陷"
       }
     ],
     "辰": [
       {
-        "name": "武曲",
-        "brightness": "廟"
+        "name": "太陽",
+        "brightness": "旺"
       }
-    ],
+    ]
+  },
+  "申": {
     "巳": [
       {
         "name": "太陽",
@@ -702,6 +684,24 @@ window.RishuntangBrightness = {
       {
         "name": "天梁",
         "brightness": "旺"
+      }
+    ],
+    "寅": [
+      {
+        "name": "七殺",
+        "brightness": "廟"
+      }
+    ],
+    "卯": [
+      {
+        "name": "天同",
+        "brightness": "廟"
+      }
+    ],
+    "辰": [
+      {
+        "name": "武曲",
+        "brightness": "廟"
       }
     ]
   },
@@ -831,11 +831,11 @@ window.RishuntangBrightness = {
     "酉": [
       {
         "name": "天機",
-        "brightness": "廟"
+        "brightness": "旺"
       },
       {
         "name": "巨門",
-        "brightness": "旺"
+        "brightness": "廟"
       }
     ],
     "戌": [
@@ -862,16 +862,6 @@ window.RishuntangBrightness = {
     ]
   },
   "亥": {
-    "卯": [
-      {
-        "name": "廉貞",
-        "brightness": "平"
-      },
-      {
-        "name": "破軍",
-        "brightness": "旺"
-      }
-    ],
     "巳": [
       {
         "name": "天府",
@@ -880,11 +870,11 @@ window.RishuntangBrightness = {
     ],
     "午": [
       {
-        "name": "天同",
+        "name": "太陰",
         "brightness": "陷"
       },
       {
-        "name": "太陰",
+        "name": "天同",
         "brightness": "陷"
       }
     ],
@@ -931,6 +921,16 @@ window.RishuntangBrightness = {
       },
       {
         "name": "七殺",
+        "brightness": "平"
+      }
+    ],
+    "卯": [
+      {
+        "name": "破軍",
+        "brightness": "旺"
+      },
+      {
+        "name": "廉貞",
         "brightness": "平"
       }
     ]
