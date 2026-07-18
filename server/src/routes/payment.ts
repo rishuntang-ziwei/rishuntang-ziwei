@@ -52,7 +52,7 @@ router.post('/newebpay/notify', async (req, res) => {
 
 router.post('/newebpay/return', async (req, res) => {
   const config = getNewebPayConfig()
-  const siteUrl = config?.siteUrl || 'https://rishuntang-ziwei.github.io/rishuntang-ziwei'
+  const siteUrl = config?.siteUrl || 'https://rishuntang.com'
 
   try {
     await handleNewebPayNotify(req.body as Record<string, unknown>)

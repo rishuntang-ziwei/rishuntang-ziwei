@@ -26,3 +26,7 @@ services:
         value: 管理員
       - key: ADMIN_PHONE
         value: "0900000000"
+      - key: PUBLIC_SITE_URL
+        value: https://rishuntang.com
+      - key: PUBLIC_APP_URL
+        value: https://rishuntang-ziwei-api.onrender.com
