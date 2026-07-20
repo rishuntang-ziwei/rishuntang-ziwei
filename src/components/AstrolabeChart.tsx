@@ -4,6 +4,7 @@ import type { IFunctionalPalace } from 'iztro/lib/astro/FunctionalPalace'
 import type FunctionalAstrolabe from 'iztro/lib/astro/FunctionalAstrolabe'
 import type { CalendarType, InitialChartType } from '../lib/astrolabe'
 import {
+  getAgePalaceIndex,
   horoscopeDateForNominalAge,
   horoscopeDateFromLunarYearMonthDay,
 } from '../lib/astrolabe'
@@ -224,6 +225,7 @@ export function AstrolabeChart({
   }
 
   const activeDecadalIndex = chartMode === 'decadal' ? horoscope.decadal.index : -1
+  const agePalaceIndex = getAgePalaceIndex(astrolabe, horoscope)
 
   const handleDecadalSelect = (palace: IFunctionalPalace) => {
     if (initialChartType !== 'natal') return
@@ -361,6 +363,9 @@ export function AstrolabeChart({
                   activeYearlyMonth={yearlyMonthSelected ? selectedFlowMonth ?? undefined : undefined}
                   isActiveMonthlyPalace={
                     chartMode === 'yearly' && activeFlowPalaceIndex === palace.index
+                  }
+                  ageBadge={
+                    palace.index === agePalaceIndex ? horoscope.age.nominalAge : null
                   }
                 />
               </div>

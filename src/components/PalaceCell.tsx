@@ -27,6 +27,7 @@ interface PalaceCellProps {
   activeYearlyMonth?: number
   yearlyDisplayOptions?: YearlyDisplayOptions
   isActiveMonthlyPalace?: boolean
+  ageBadge?: number | null
 }
 
 function mapStarForDisplay(
@@ -66,6 +67,7 @@ export function PalaceCell({
   activeYearlyMonth,
   yearlyDisplayOptions,
   isActiveMonthlyPalace = false,
+  ageBadge = null,
 }: PalaceCellProps) {
   const { leftPurple, leftGreen, rightGreen } = splitPalaceMinors([
     ...palace.minorStars.map((s) => ({ name: s.name, mutagen: s.mutagen })),
@@ -109,6 +111,11 @@ export function PalaceCell({
           <div className="stars-row stars-row-2">
             <StarDisplay variant="left-green" stars={leftGreen.map(mapStar)} chartMode={chartMode} />
           </div>
+          {ageBadge != null && (
+            <div className="palace-age-badge" aria-label={`虛歲 ${ageBadge}`}>
+              {ageBadge}
+            </div>
+          )}
         </div>
         <div className="stars-right">
           <StarDisplay variant="right-green" stars={rightGreen.map(mapStar)} chartMode={chartMode} />

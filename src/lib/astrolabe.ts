@@ -60,6 +60,41 @@ export function formatBazi(astrolabe: FunctionalAstrolabe): string {
   return `${yearly[0]}${yearly[1]} ${monthly[0]}${monthly[1]} ${daily[0]}${daily[1]} ${hourly[0]}${hourly[1]}`
 }
 
+export function formatLunarBirthLine(
+  astrolabe: FunctionalAstrolabe,
+  calendar: CalendarType,
+  birthDate: string,
+): string {
+  const { hourly, yearly } = astrolabe.rawDates.chineseDate
+  const gz = `${yearly[0]}${yearly[1]}`
+  const hour = hourly[1] || '寅'
+  const lm = astrolabe.lunarDate.match(/([正二三四五六七八九十冬臘閏]+)月([初十廿三]*[一二三四五六七八九十]+)/)
+  const lunarMonthDay = lm ? `${lm[1]}月${lm[2]}` : ''
+
+  if (calendar === 'lunar') {
+    const [y] = birthDate.split('-').map(Number)
+    return `${y} ${gz}年 ${lunarMonthDay} ${hour}時`.replace(/\s+/g, ' ').trim()
+  }
+
+  const yearMatch = astrolabe.lunarDate.match(/^(.+?年)/)
+  const lunarYear = yearMatch?.[1] ?? `${gz}年`
+  return `${lunarYear} ${lunarMonthDay} ${hour}時`.replace(/\s+/g, ' ').trim()
+}
+
+export function getAgePalaceIndex(
+  astrolabe: FunctionalAstrolabe,
+  horoscope: { decadal: { index: number }; age: { nominalAge: number } },
+): number {
+  if (horoscope.decadal.index >= 0) return horoscope.decadal.index
+
+  const age = horoscope.age.nominalAge
+  return (
+    astrolabe.palaces.find(
+      (p) => p.decadal && age >= p.decadal.range[0] && age <= p.decadal.range[1],
+    )?.index ?? -1
+  )
+}
+
 export function getSoulPalace(astrolabe: FunctionalAstrolabe): IFunctionalPalace {
   return astrolabe.palace('命宮')!
 }

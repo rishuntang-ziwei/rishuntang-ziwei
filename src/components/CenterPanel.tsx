@@ -4,7 +4,7 @@ import type { CalendarType, InitialChartType } from '../lib/astrolabe'
 import {
   daysInLunarMonth,
   formatBazi,
-  getYearStemBranch,
+  formatLunarBirthLine,
 } from '../lib/astrolabe'
 import { buildWuxingPanel, countBaziElements } from '../../vendor/wuxing-panel.mjs'
 import {
@@ -54,7 +54,8 @@ export function CenterPanel({
   selectedFlowIsLeap = false,
   onBackToNatal,
 }: CenterPanelProps) {
-  const birth = centerBirthText(astrolabe, calendar, birthDate)
+  const birth = formatLunarBirthLine(astrolabe, calendar, birthDate)
+  const baziLine = formatBazi(astrolabe)
   const age = horoscope.age.nominalAge
   const flowDaysInMonth =
     selectedFlowMonth != null && selectedFlowLunarYear != null
@@ -160,36 +161,22 @@ export function CenterPanel({
 
         <div className="center-right">
           <div className="center-birth">
-            <div className="center-info-detail">
-              <div className="center-vcol center-vcol-year">
-                <span className="center-num">{birth.yearNum}</span>
-                <span>{birth.gzYear}</span>
-              </div>
-              <div className="center-vcol">{wrapCenterNums(birth.solarDate)}</div>
-              <div className="center-vcol">{birth.hour}</div>
-              {birth.lunarNote && (
-                <div className="center-vcol center-vcol-lunar">{birth.lunarNote}</div>
-              )}
-            </div>
-            <div className="center-bazi-grid">
-              {formatBazi(astrolabe).split(' ').map((pillar, index) => (
-                <span key={`${pillar}-${index}`} className="center-bazi-pillar">
-                  <span className="center-bazi-label">{['年', '月', '日', '時'][index]}</span>
-                  {pillar}
-                </span>
-              ))}
-            </div>
+            <div className="center-birth-line">{wrapCenterNums(birth)}</div>
+            <div className="center-bazi-line">{baziLine}</div>
           </div>
 
           <div className="center-person">
             <div className="center-person-namecol">
               <div className="vtext name">{name || '匿名'}</div>
               <div className="center-age">
-                <span className="center-num">
-                  {new Date(horoscopeDate + 'T12:00:00').getFullYear()}
-                </span>
-                <span className="center-age-sep">／</span>
-                <span className="center-num">{age}</span> 歲
+                <div className="center-age-year">
+                  <span className="center-num">
+                    {new Date(horoscopeDate + 'T12:00:00').getFullYear()}
+                  </span>
+                </div>
+                <div className="center-age-value">
+                  <span className="center-num">{age}</span> 歲
+                </div>
               </div>
             </div>
 
@@ -215,37 +202,4 @@ function wrapCenterNums(text: string) {
       part
     ),
   )
-}
-
-function centerBirthText(
-  astrolabe: FunctionalAstrolabe,
-  calendar: CalendarType,
-  birthDate: string,
-) {
-  const { hourly } = astrolabe.rawDates.chineseDate
-  const gz = getYearStemBranch(astrolabe)
-  const hour = hourly[1] || '寅'
-
-  const lm = astrolabe.lunarDate.match(/([正二三四五六七八九十冬臘閏]+)月([初十廿三]*[一二三四五六七八九十]+)/)
-  const lunarNote = lm ? `農曆${lm[1]}月${lm[2]}` : ''
-
-  if (calendar === 'lunar') {
-    const [y, m, d] = birthDate.split('-').map(Number)
-    return {
-      yearNum: String(y),
-      gzYear: `${gz}年`,
-      solarDate: `${m}月${d}日`,
-      hour: `${hour}時`,
-      lunarNote: '',
-    }
-  }
-
-  const [sy, sm, sd] = astrolabe.solarDate.split('-').map(Number)
-  return {
-    yearNum: String(sy),
-    gzYear: `${gz}年`,
-    solarDate: `${sm}月${sd}日`,
-    hour: `${hour}時`,
-    lunarNote,
-  }
 }
