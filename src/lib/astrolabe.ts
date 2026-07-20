@@ -60,25 +60,15 @@ export function formatBazi(astrolabe: FunctionalAstrolabe): string {
   return `${yearly[0]}${yearly[1]} ${monthly[0]}${monthly[1]} ${daily[0]}${daily[1]} ${hourly[0]}${hourly[1]}`
 }
 
-export function formatLunarBirthLine(
-  astrolabe: FunctionalAstrolabe,
-  calendar: CalendarType,
-  birthDate: string,
-): string {
-  const { hourly, yearly } = astrolabe.rawDates.chineseDate
-  const gz = `${yearly[0]}${yearly[1]}`
+export function formatLunarBirthLine(astrolabe: FunctionalAstrolabe): string {
+  const { hourly } = astrolabe.rawDates.chineseDate
   const hour = hourly[1] || '寅'
   const lm = astrolabe.lunarDate.match(/([正二三四五六七八九十冬臘閏]+)月([初十廿三]*[一二三四五六七八九十]+)/)
-  const lunarMonthDay = lm ? `${lm[1]}月${lm[2]}` : ''
-
-  if (calendar === 'lunar') {
-    const [y] = birthDate.split('-').map(Number)
-    return `${y} ${gz}年 ${lunarMonthDay} ${hour}時`.replace(/\s+/g, ' ').trim()
-  }
-
+  const monthDay = lm ? `${lm[1]}月${lm[2]}` : ''
   const yearMatch = astrolabe.lunarDate.match(/^(.+?年)/)
-  const lunarYear = yearMatch?.[1] ?? `${gz}年`
-  return `${lunarYear} ${lunarMonthDay} ${hour}時`.replace(/\s+/g, ' ').trim()
+  const lunarYear = yearMatch?.[1] ?? ''
+
+  return `${lunarYear}${monthDay} ${hour}時`.replace(/\s+/g, ' ').trim()
 }
 
 export function getAgePalaceIndex(

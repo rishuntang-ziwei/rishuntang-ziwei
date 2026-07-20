@@ -112,9 +112,9 @@ export function PalaceCell({
             <StarDisplay variant="left-green" stars={leftGreen.map(mapStar)} chartMode={chartMode} />
           </div>
           {ageBadge != null && (
-            <div className="palace-age-badge" aria-label={`虛歲 ${ageBadge}`}>
+            <span className="mutagen-box palace-age-badge" aria-label={`虛歲 ${ageBadge}`}>
               {ageBadge}
-            </div>
+            </span>
           )}
         </div>
         <div className="stars-right">

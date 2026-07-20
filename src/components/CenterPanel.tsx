@@ -54,7 +54,7 @@ export function CenterPanel({
   selectedFlowIsLeap = false,
   onBackToNatal,
 }: CenterPanelProps) {
-  const birth = formatLunarBirthLine(astrolabe, calendar, birthDate)
+  const birth = formatLunarBirthLine(astrolabe)
   const baziLine = formatBazi(astrolabe)
   const age = horoscope.age.nominalAge
   const flowDaysInMonth =
@@ -161,8 +161,10 @@ export function CenterPanel({
 
         <div className="center-right">
           <div className="center-birth">
-            <div className="center-birth-line">{wrapCenterNums(birth)}</div>
-            <div className="center-bazi-line">{baziLine}</div>
+            <div className="center-info-detail">
+              <div className="center-vcol center-birth-line">{wrapCenterNums(birth)}</div>
+              <div className="center-vcol center-bazi-line">{baziLine}</div>
+            </div>
           </div>
 
           <div className="center-person">
