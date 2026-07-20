@@ -139,7 +139,12 @@ export function buildWuxingPanel(counts, options = {}) {
   const cy = 128;
   const scale = options.scale ?? 1;
   const { outerDist, outerR, centerR } = resolveLayout(options);
-  const viewBox = options.size === 'center' ? '-14 -14 288 288' : '0 0 260 260';
+  const viewBox = (() => {
+    if (options.size === 'center') return '-14 -14 288 288';
+    const extent = outerDist + outerR + 8;
+    const size = extent * 2;
+    return `${(cx - extent).toFixed(1)} ${(cy - extent).toFixed(1)} ${size.toFixed(1)} ${size.toFixed(1)}`;
+  })();
 
   const positions = {};
   GENERATING_CYCLE.forEach((name) => {
@@ -177,16 +182,22 @@ export function buildWuxingPanel(counts, options = {}) {
     const r = isCenter ? centerR : outerR;
     const fill = active ? style.fill : style.inactive;
     const textFill = active ? style.text : style.inactiveText;
-    const strokeW = name === '金' ? 2.5 : active ? 2 : 1.5;
+    const strokeW = (name === '金' ? 2.5 : active ? 2 : 1.5) * scale;
+    const nameFont = r * 0.62;
+    const countFont = r * 0.44;
+    const nameOffset = nameFont * 0.42;
+    const countOffset = countFont * 1.05;
 
     return `
       <g class="wuxing-node${active ? ' is-active' : ''}" data-element="${name}">
         <circle cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="${r}"
           fill="${fill}" stroke="${style.stroke}" stroke-width="${strokeW}" />
-        <text x="${point.x.toFixed(1)}" y="${(point.y - (isCenter ? 2 : 4) * scale).toFixed(1)}"
-          text-anchor="middle" class="wuxing-node-name" fill="${textFill}">${name}</text>
-        <text x="${point.x.toFixed(1)}" y="${(point.y + (isCenter ? 16 : 20) * scale).toFixed(1)}"
-          text-anchor="middle" class="wuxing-node-count" fill="${textFill}">${count}</text>
+        <text x="${point.x.toFixed(1)}" y="${(point.y - nameOffset).toFixed(1)}"
+          text-anchor="middle" dominant-baseline="middle" class="wuxing-node-name"
+          font-size="${nameFont.toFixed(1)}" fill="${textFill}">${name}</text>
+        <text x="${point.x.toFixed(1)}" y="${(point.y + countOffset).toFixed(1)}"
+          text-anchor="middle" dominant-baseline="middle" class="wuxing-node-count"
+          font-size="${countFont.toFixed(1)}" fill="${textFill}">${count}</text>
       </g>`;
   }).join('');
 

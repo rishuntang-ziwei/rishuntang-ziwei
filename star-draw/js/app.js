@@ -452,6 +452,7 @@ function showWuxingPanel() {
   panel.innerHTML = buildWuxingPanel(countElements(state.results), {
     markerId: 'star-draw-wuxing-arrow',
     scale: 1.2,
+    showSummary: false,
   });
   panel.classList.remove('hidden');
 }
