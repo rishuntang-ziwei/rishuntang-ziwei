@@ -93,14 +93,35 @@ function edgeLine(from, to, fromR, toR) {
   };
 }
 
+/** 外圍弧線箭頭（水→木→火） */
+function outerArc(cx, cy, radius, startDeg, endDeg) {
+  const toRad = (d) => (d * Math.PI) / 180;
+  const x1 = cx + radius * Math.cos(toRad(startDeg));
+  const y1 = cy + radius * Math.sin(toRad(startDeg));
+  const x2 = cx + radius * Math.cos(toRad(endDeg));
+  const y2 = cy + radius * Math.sin(toRad(endDeg));
+  const large = Math.abs(endDeg - startDeg) > 180 ? 1 : 0;
+  const sweep = endDeg > startDeg ? 1 : 0;
+  return `M ${x1.toFixed(1)} ${y1.toFixed(1)} A ${radius} ${radius} 0 ${large} ${sweep} ${x2.toFixed(1)} ${y2.toFixed(1)}`;
+}
+
 function resolveLayout(options) {
+  const scale = options.scale ?? 1;
+  let base;
+
   if (options.size === 'center') {
-    return { outerDist: 92, outerR: 40, centerR: 36 };
+    base = { outerDist: 92, outerR: 40, centerR: 36 };
+  } else if (options.compact || options.size === 'compact') {
+    base = { outerDist: 68, outerR: 24, centerR: 22 };
+  } else {
+    base = { outerDist: 76, outerR: 30, centerR: 26 };
   }
-  if (options.compact || options.size === 'compact') {
-    return { outerDist: 68, outerR: 24, centerR: 22 };
-  }
-  return { outerDist: 76, outerR: 30, centerR: 26 };
+
+  return {
+    outerDist: base.outerDist * scale,
+    outerR: base.outerR * scale,
+    centerR: base.centerR * scale,
+  };
 }
 
 function nodeRadius(name, outerR, centerR) {
@@ -116,6 +137,7 @@ export function buildWuxingPanel(counts, options = {}) {
 
   const cx = 130;
   const cy = 128;
+  const scale = options.scale ?? 1;
   const { outerDist, outerR, centerR } = resolveLayout(options);
   const viewBox = options.size === 'center' ? '-14 -14 288 288' : '0 0 260 260';
 
@@ -124,15 +146,22 @@ export function buildWuxingPanel(counts, options = {}) {
     positions[name] = getPosition(name, cx, cy, name === '土' ? 0 : outerDist);
   });
 
-  const generatingEdges = GENERATING_CYCLE.map((from, index) => {
-    const to = GENERATING_CYCLE[(index + 1) % GENERATING_CYCLE.length];
-    return edgeLine(
-      positions[from],
-      positions[to],
-      nodeRadius(from, outerR, centerR),
-      nodeRadius(to, outerR, centerR),
-    );
-  })
+  const arcR = outerDist + outerR - 6 * scale;
+  const arcs = [
+    outerArc(cx, cy, arcR, -80, -10),
+    outerArc(cx, cy, arcR, 10, 80),
+  ]
+    .map(
+      (d) =>
+        `<path d="${d}" class="wuxing-arc" fill="none" marker-end="url(#${markerId})" />`,
+    )
+    .join('');
+
+  const innerEdges = [
+    edgeLine(positions.火, positions.土, outerR, centerR),
+    edgeLine(positions.土, positions.金, centerR, outerR),
+    edgeLine(positions.金, positions.水, outerR, outerR),
+  ]
     .map(
       (e) =>
         `<line x1="${e.x1.toFixed(1)}" y1="${e.y1.toFixed(1)}" x2="${e.x2.toFixed(1)}" y2="${e.y2.toFixed(1)}" class="wuxing-edge" marker-end="url(#${markerId})" />`,
@@ -154,9 +183,9 @@ export function buildWuxingPanel(counts, options = {}) {
       <g class="wuxing-node${active ? ' is-active' : ''}" data-element="${name}">
         <circle cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="${r}"
           fill="${fill}" stroke="${style.stroke}" stroke-width="${strokeW}" />
-        <text x="${point.x.toFixed(1)}" y="${(point.y - (isCenter ? 2 : 4)).toFixed(1)}"
+        <text x="${point.x.toFixed(1)}" y="${(point.y - (isCenter ? 2 : 4) * scale).toFixed(1)}"
           text-anchor="middle" class="wuxing-node-name" fill="${textFill}">${name}</text>
-        <text x="${point.x.toFixed(1)}" y="${(point.y + (isCenter ? 16 : 18)).toFixed(1)}"
+        <text x="${point.x.toFixed(1)}" y="${(point.y + (isCenter ? 16 : 20) * scale).toFixed(1)}"
           text-anchor="middle" class="wuxing-node-count" fill="${textFill}">${count}</text>
       </g>`;
   }).join('');
@@ -180,7 +209,8 @@ export function buildWuxingPanel(counts, options = {}) {
           <polygon points="0 0, 7 3.5, 0 7" fill="#333" />
         </marker>
       </defs>
-      ${generatingEdges}
+      ${arcs}
+      ${innerEdges}
       ${nodes}
     </svg>
     ${summary}`;

@@ -168,10 +168,10 @@ function clearControls() {
   $('#controls').innerHTML = '';
 }
 
-function addControl(label, handler) {
+function addControl(label, handler, { primary = false } = {}) {
   const btn = document.createElement('button');
   btn.type = 'button';
-  btn.className = 'pill-btn';
+  btn.className = primary ? 'pill-btn pill-btn-primary' : 'pill-btn';
   btn.textContent = label;
   btn.addEventListener('click', handler);
   $('#controls').appendChild(btn);
@@ -261,6 +261,27 @@ async function showShuffleStack() {
   await sleep(680);
 }
 
+function showRoundConfirmControls() {
+  const isLastRound = state.roundIndex >= ROUND_ORDER.length - 1;
+  addControl('復原', undoLastPick);
+  addControl(
+    isLastRound ? '確認無誤，開始翻牌' : '確認無誤，下一輪',
+    confirmRound,
+    { primary: true },
+  );
+}
+
+async function confirmRound() {
+  if (state.phase !== 'round' || state.busy) return;
+
+  const tier = currentTier();
+  if (state.roundPicks.length !== tier.pickCount) return;
+
+  state.busy = true;
+  await finishRound();
+  state.busy = false;
+}
+
 async function renderRound({ dealIn = false, shuffleFirst = false } = {}) {
   const tierId = currentTierId();
   const tier = currentTier();
@@ -292,13 +313,12 @@ async function renderRound({ dealIn = false, shuffleFirst = false } = {}) {
 
   layoutStack(table, stackEntries, { dealIn: dealIn || isFreshRound });
 
-  if (state.roundPicks.length === tier.pickCount) {
-    state.busy = true;
-    await sleep(850);
-    if (state.phase === 'round' && state.roundPicks.length === tier.pickCount) {
-      await finishRound();
-    }
-    state.busy = false;
+  const tierComplete = state.roundPicks.length === tier.pickCount;
+  table.classList.toggle('round-awaiting-confirm', tierComplete);
+
+  if (tierComplete) {
+    setHint('請確認本輪選牌無誤；若點錯可按「復原」修正');
+    showRoundConfirmControls();
   } else if (state.roundPicks.length > 0) {
     addControl('復原', undoLastPick);
   }
@@ -429,7 +449,10 @@ function renderRevealGrid() {
 function showWuxingPanel() {
   const panel = $('#wuxingPanel');
   if (!panel) return;
-  panel.innerHTML = buildWuxingPanel(countElements(state.results));
+  panel.innerHTML = buildWuxingPanel(countElements(state.results), {
+    markerId: 'star-draw-wuxing-arrow',
+    scale: 1.2,
+  });
   panel.classList.remove('hidden');
 }
 
