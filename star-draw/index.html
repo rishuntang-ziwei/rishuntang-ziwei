@@ -87,6 +87,8 @@
       <main class="viewport">
         <p class="hint" id="hint">點擊卡牌開始</p>
 
+        <div class="stack-toolbar" id="stackToolbar"></div>
+
         <div class="table" id="table"></div>
 
         <div class="picked-row" id="pickedRow"></div>
@@ -97,11 +99,11 @@
       <dialog class="info-dialog" id="infoDialog">
         <h2>抽牌流程</h2>
         <ol>
-          <li>第一輪：14 張主星重疊展開，抽出 2 張</li>
-          <li>第二輪：14 張乙級輔星重疊展開，抽出 2 張</li>
-          <li>第三輪：12 張丙級輔星重疊展開，抽出 2 張</li>
-          <li>第四輪：四化星重疊展開，抽出 1 張</li>
-          <li>每輪選完後請確認無誤再進入下一輪；若點錯可按「復原」修正</li>
+          <li>第一輪：14 張主星橫向堆疊展開，抽出 2 張</li>
+          <li>第二輪：14 張乙級輔星橫向堆疊展開，抽出 2 張</li>
+          <li>第三輪：12 張丙級輔星橫向堆疊展開，抽出 2 張</li>
+          <li>第四輪：四化星橫向堆疊展開，抽出 1 張</li>
+          <li>每輪選完後請確認無誤再進入下一輪；若點錯可按卡牌上方的「復原」修正</li>
           <li>最後三行排列後依序翻開：第一行兩張主星與四化星，第二行乙級，第三行丙級</li>
         </ol>
         <button type="button" class="pill-btn" id="closeInfoBtn">知道了</button>

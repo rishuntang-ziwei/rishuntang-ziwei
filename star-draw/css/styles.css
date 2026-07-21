@@ -147,6 +147,7 @@ body::before {
   display: flex;
   align-items: flex-end;
   justify-content: center;
+  overflow: visible;
   transition: opacity 0.35s ease, transform 0.35s var(--ease-out);
 }
 
@@ -182,24 +183,42 @@ body::before {
   padding: 0 8px;
 }
 
+.stack-toolbar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: min(100%, 980px);
+  min-height: 44px;
+  margin-bottom: 10px;
+}
+
+.stack-toolbar:empty {
+  min-height: 0;
+  margin-bottom: 0;
+}
+
 .table.stack-stage {
   height: clamp(260px, 46svh, 460px);
   align-items: flex-end;
   justify-content: center;
+  overflow: visible;
   --card-w: clamp(100px, 15vw, 138px);
   --card-h: calc(var(--card-w) * 1.55);
 }
 
+.table.stack-stage .card.in-stack {
+  transform-origin: center bottom;
+}
+
 .card.in-stack:not(:disabled):hover {
-  transform: translateX(var(--x)) rotate(var(--angle))
-    translateY(calc(-1 * var(--lift) - 22px)) scale(1.06) !important;
+  transform: translateX(var(--x)) translateY(-22px) scale(1.06) !important;
   z-index: 300 !important;
   filter: drop-shadow(0 16px 24px rgba(0, 0, 0, 0.28));
 }
 
 .card.in-stack.lift {
-  transform: translateX(var(--x)) rotate(var(--angle))
-    translateY(calc(-1 * var(--lift) - 36px)) scale(1.1) !important;
+  transform: translateX(var(--x)) translateY(-36px) scale(1.1) !important;
   z-index: 400 !important;
   filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.32));
   transition-duration: 0.18s;
@@ -219,15 +238,14 @@ body::before {
 @keyframes stackDeal {
   0% {
     opacity: 0;
-    transform: translateX(var(--x)) rotate(0deg) translateY(36px) scale(0.74);
+    transform: translateX(var(--x)) translateY(36px) scale(0.74);
   }
   70% {
     opacity: 1;
   }
   100% {
     opacity: 1;
-    transform: translateX(var(--x)) rotate(var(--angle))
-      translateY(calc(-1 * var(--lift))) scale(1);
+    transform: translateX(var(--x)) translateY(0) scale(1);
   }
 }
 
@@ -263,13 +281,13 @@ body::before {
 
 .wuxing-panel {
   box-sizing: border-box;
-  width: var(--card-w);
-  height: var(--card-h);
+  width: calc(var(--card-w) * 1.5);
+  min-height: calc(var(--card-h) * 1.5);
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 8px 6px 6px;
+  justify-content: space-between;
+  padding: 10px 8px 8px;
   background: #f6eedb;
   border: 2px solid #5c4033;
   border-radius: 10px;
@@ -294,8 +312,8 @@ body::before {
 }
 
 .wuxing-title {
-  margin: 0 0 4px;
-  font-size: clamp(0.82rem, 2.4vw, 0.95rem);
+  margin: 0 0 6px;
+  font-size: clamp(0.95rem, 2.6vw, 1.1rem);
   font-weight: 700;
   letter-spacing: 0.12em;
   color: #333;
@@ -326,14 +344,14 @@ body::before {
 .wuxing-summary {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
+  gap: 6px;
   justify-content: center;
-  margin-top: 2px;
+  margin-top: 6px;
   flex-shrink: 0;
 }
 
 .wuxing-chip {
-  font-size: clamp(0.72rem, 2.2vw, 0.82rem);
+  font-size: clamp(0.78rem, 2.4vw, 0.9rem);
   font-weight: 700;
   padding: 3px 8px;
   border-radius: 999px;
@@ -636,13 +654,19 @@ body::before {
     font-size: clamp(1rem, 4vw, 1.15rem);
   }
 
+  .viewport {
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+
   .table {
+    width: 100%;
     height: clamp(210px, 38svh, 320px);
   }
 
   .table.stack-stage {
     height: clamp(230px, 42svh, 380px);
-    --card-w: clamp(92px, 20vw, 118px);
+    --card-w: clamp(84px, 18vw, 108px);
   }
 
   .card.in-stack.deal-in {

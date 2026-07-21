@@ -71,43 +71,56 @@ function makeCardEl(card, opts = {}) {
   return btn;
 }
 
-function stackLayout(count) {
-  if (count <= 1) return [{ x: 0, angle: 0, lift: 0 }];
-
-  const step = Math.min(48, Math.max(30, 620 / count));
-  const mid = (count - 1) / 2;
-  const spread = Math.min(20 + count * 6.2, 156);
-  const angleStart = -spread / 2;
-  const angleStep = spread / (count - 1);
-
-  return Array.from({ length: count }, (_, i) => {
-    const angle = angleStart + angleStep * i;
-    const x = (i - mid) * step;
-    const lift = Math.abs(angle) * 0.48;
-    return { x, angle, lift };
-  });
+function measureCardWidth(container) {
+  const probe = document.createElement('button');
+  probe.type = 'button';
+  probe.className = 'card in-stack';
+  probe.style.visibility = 'hidden';
+  probe.style.pointerEvents = 'none';
+  probe.innerHTML =
+    '<div class="card-inner"><div class="card-face card-back"></div></div>';
+  container.appendChild(probe);
+  const width = probe.getBoundingClientRect().width;
+  probe.remove();
+  return width || 110;
 }
 
-function stackTransform({ x, angle, lift }) {
-  return `translateX(${x}px) rotate(${angle}deg) translateY(-${lift}px)`;
+function stackLayout(count, { maxWidth = 620, cardWidth = 110 } = {}) {
+  if (count <= 1) return [{ x: 0 }];
+
+  const mid = (count - 1) / 2;
+  const sidePadding = 8;
+  const usable = Math.max(maxWidth - sidePadding * 2, cardWidth);
+  const minStep = Math.max(12, Math.round(cardWidth * 0.2));
+  const maxStep = cardWidth * 0.82;
+  const fitStep = (usable - cardWidth) / (count - 1);
+  const step = Math.min(maxStep, Math.max(minStep, fitStep));
+
+  return Array.from({ length: count }, (_, i) => ({
+    x: (i - mid) * step,
+  }));
+}
+
+function stackTransform({ x }) {
+  return `translateX(${x}px)`;
 }
 
 function layoutStack(container, entries, { dealIn = false } = {}) {
   container.innerHTML = '';
   container.classList.add('stack-stage');
 
-  const layout = stackLayout(entries.length);
+  const cardWidth = measureCardWidth(container);
+  const maxWidth = container.clientWidth || Math.min(window.innerWidth, 980) - 24;
+  const layout = stackLayout(entries.length, { maxWidth, cardWidth });
 
   entries.forEach((entry, index) => {
     const { card, onClick } = entry;
     const el = makeCardEl(card, { inStack: true });
-    const { x, angle, lift } = layout[index];
+    const { x } = layout[index];
 
     el.style.setProperty('--x', `${x}px`);
-    el.style.setProperty('--angle', `${angle}deg`);
-    el.style.setProperty('--lift', `${lift}px`);
     el.style.setProperty('--i', String(index));
-    el.style.transform = stackTransform({ x, angle, lift });
+    el.style.transform = stackTransform({ x });
     el.style.zIndex = String(index + 1);
 
     if (dealIn) el.classList.add('deal-in');
@@ -168,6 +181,19 @@ function clearControls() {
   $('#controls').innerHTML = '';
 }
 
+function clearStackToolbar() {
+  $('#stackToolbar').innerHTML = '';
+}
+
+function addStackControl(label, handler) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'pill-btn';
+  btn.textContent = label;
+  btn.addEventListener('click', handler);
+  $('#stackToolbar').appendChild(btn);
+}
+
 function addControl(label, handler, { primary = false } = {}) {
   const btn = document.createElement('button');
   btn.type = 'button';
@@ -199,6 +225,7 @@ function renderIdle() {
   setHint('點擊卡牌開始');
   $('#pickedRow').innerHTML = '';
   clearControls();
+  clearStackToolbar();
 
   const table = $('#table');
   table.innerHTML = '';
@@ -263,7 +290,7 @@ async function showShuffleStack() {
 
 function showRoundConfirmControls() {
   const isLastRound = state.roundIndex >= ROUND_ORDER.length - 1;
-  addControl('復原', undoLastPick);
+  addStackControl('復原', undoLastPick);
   addControl(
     isLastRound ? '確認無誤，開始翻牌' : '確認無誤，下一輪',
     confirmRound,
@@ -288,6 +315,7 @@ async function renderRound({ dealIn = false, shuffleFirst = false } = {}) {
 
   setHint(roundHint());
   clearControls();
+  clearStackToolbar();
 
   const isFreshRound = ensureDeck(tierId);
   const table = $('#table');
@@ -317,10 +345,10 @@ async function renderRound({ dealIn = false, shuffleFirst = false } = {}) {
   table.classList.toggle('round-awaiting-confirm', tierComplete);
 
   if (tierComplete) {
-    setHint('請確認本輪選牌無誤；若點錯可按「復原」修正');
+    setHint('請確認本輪選牌無誤；若點錯可按卡牌上方的「復原」修正');
     showRoundConfirmControls();
   } else if (state.roundPicks.length > 0) {
-    addControl('復原', undoLastPick);
+    addStackControl('復原', undoLastPick);
   }
 }
 
@@ -451,8 +479,8 @@ function showWuxingPanel() {
   if (!panel) return;
   panel.innerHTML = buildWuxingPanel(countElements(state.results), {
     markerId: 'star-draw-wuxing-arrow',
-    scale: 1.2,
-    showSummary: false,
+    scale: 1.5,
+    showSummary: true,
   });
   panel.classList.remove('hidden');
 }
@@ -468,6 +496,7 @@ async function startReveal() {
   $('#pickedRow').className = 'picked-row';
   $('#table').classList.remove('round-exit', 'round-enter');
   clearControls();
+  clearStackToolbar();
   setHint(`請翻開第 1 張牌（0/${state.results.length}）`);
 
   renderRevealGrid();

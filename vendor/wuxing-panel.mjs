@@ -93,18 +93,6 @@ function edgeLine(from, to, fromR, toR) {
   };
 }
 
-/** 外圍弧線箭頭（水→木→火） */
-function outerArc(cx, cy, radius, startDeg, endDeg) {
-  const toRad = (d) => (d * Math.PI) / 180;
-  const x1 = cx + radius * Math.cos(toRad(startDeg));
-  const y1 = cy + radius * Math.sin(toRad(startDeg));
-  const x2 = cx + radius * Math.cos(toRad(endDeg));
-  const y2 = cy + radius * Math.sin(toRad(endDeg));
-  const large = Math.abs(endDeg - startDeg) > 180 ? 1 : 0;
-  const sweep = endDeg > startDeg ? 1 : 0;
-  return `M ${x1.toFixed(1)} ${y1.toFixed(1)} A ${radius} ${radius} 0 ${large} ${sweep} ${x2.toFixed(1)} ${y2.toFixed(1)}`;
-}
-
 function resolveLayout(options) {
   const scale = options.scale ?? 1;
   let base;
@@ -151,18 +139,9 @@ export function buildWuxingPanel(counts, options = {}) {
     positions[name] = getPosition(name, cx, cy, name === '土' ? 0 : outerDist);
   });
 
-  const arcR = outerDist + outerR - 6 * scale;
-  const arcs = [
-    outerArc(cx, cy, arcR, -80, -10),
-    outerArc(cx, cy, arcR, 10, 80),
-  ]
-    .map(
-      (d) =>
-        `<path d="${d}" class="wuxing-arc" fill="none" marker-end="url(#${markerId})" />`,
-    )
-    .join('');
-
-  const innerEdges = [
+  const generatingEdges = [
+    edgeLine(positions.水, positions.木, outerR, outerR),
+    edgeLine(positions.木, positions.火, outerR, outerR),
     edgeLine(positions.火, positions.土, outerR, centerR),
     edgeLine(positions.土, positions.金, centerR, outerR),
     edgeLine(positions.金, positions.水, outerR, outerR),
@@ -220,8 +199,7 @@ export function buildWuxingPanel(counts, options = {}) {
           <polygon points="0 0, 7 3.5, 0 7" fill="#333" />
         </marker>
       </defs>
-      ${arcs}
-      ${innerEdges}
+      ${generatingEdges}
       ${nodes}
     </svg>
     ${summary}`;
