@@ -185,10 +185,10 @@ function clearStackToolbar() {
   $('#stackToolbar').innerHTML = '';
 }
 
-function addStackControl(label, handler) {
+function addStackControl(label, handler, { primary = false } = {}) {
   const btn = document.createElement('button');
   btn.type = 'button';
-  btn.className = 'pill-btn';
+  btn.className = primary ? 'pill-btn pill-btn-primary' : 'pill-btn';
   btn.textContent = label;
   btn.addEventListener('click', handler);
   $('#stackToolbar').appendChild(btn);
@@ -291,7 +291,7 @@ async function showShuffleStack() {
 function showRoundConfirmControls() {
   const isLastRound = state.roundIndex >= ROUND_ORDER.length - 1;
   addStackControl('復原', undoLastPick);
-  addControl(
+  addStackControl(
     isLastRound ? '確認無誤，開始翻牌' : '確認無誤，下一輪',
     confirmRound,
     { primary: true },
