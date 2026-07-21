@@ -480,7 +480,10 @@ function showWuxingPanel() {
   panel.innerHTML = buildWuxingPanel(countElements(state.results), {
     markerId: 'star-draw-wuxing-arrow',
     scale: 1.5,
+    textScale: 1.1,
     showSummary: true,
+    equalCenterRadius: true,
+    summaryRows: [['木', '火', '土'], ['金', '水']],
   });
   panel.classList.remove('hidden');
 }

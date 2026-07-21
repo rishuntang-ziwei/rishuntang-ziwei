@@ -108,7 +108,7 @@ function resolveLayout(options) {
   return {
     outerDist: base.outerDist * scale,
     outerR: base.outerR * scale,
-    centerR: base.centerR * scale,
+    centerR: options.equalCenterRadius ? base.outerR * scale : base.centerR * scale,
   };
 }
 
@@ -121,11 +121,13 @@ export function buildWuxingPanel(counts, options = {}) {
     title = '五行統計',
     markerId = 'wuxing-arrow',
     showSummary = true,
+    summaryRows = null,
   } = options;
 
   const cx = 130;
   const cy = 128;
   const scale = options.scale ?? 1;
+  const textScale = options.textScale ?? 1;
   const { outerDist, outerR, centerR } = resolveLayout(options);
   const viewBox = (() => {
     if (options.size === 'center') return '-14 -14 288 288';
@@ -162,8 +164,8 @@ export function buildWuxingPanel(counts, options = {}) {
     const fill = active ? style.fill : style.inactive;
     const textFill = active ? style.text : style.inactiveText;
     const strokeW = (name === '金' ? 2.5 : active ? 2 : 1.5) * scale;
-    const nameFont = r * 0.62;
-    const countFont = r * 0.44;
+    const nameFont = r * 0.62 * textScale;
+    const countFont = r * 0.44 * textScale;
     const nameOffset = nameFont * 0.42;
     const countOffset = countFont * 1.05;
 
@@ -180,11 +182,18 @@ export function buildWuxingPanel(counts, options = {}) {
       </g>`;
   }).join('');
 
+  const chipHtml = (name) =>
+    `<span class="wuxing-chip" style="--wx-color:${WUXING_COLORS[name]}">${name} ${counts[name] || 0}</span>`;
+
   const summary = showSummary
-    ? `<div class="wuxing-summary">${WUXING_ORDER.map(
-        (name) =>
-          `<span class="wuxing-chip" style="--wx-color:${WUXING_COLORS[name]}">${name} ${counts[name] || 0}</span>`,
-      ).join('')}</div>`
+    ? summaryRows
+      ? `<div class="wuxing-summary wuxing-summary-rows">${summaryRows
+          .map(
+            (row) =>
+              `<div class="wuxing-summary-row">${row.map(chipHtml).join('')}</div>`,
+          )
+          .join('')}</div>`
+      : `<div class="wuxing-summary">${WUXING_ORDER.map(chipHtml).join('')}</div>`
     : '';
 
   const titleHtml = title
