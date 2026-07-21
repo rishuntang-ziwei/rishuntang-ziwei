@@ -63,7 +63,7 @@ function makeCardEl(card, opts = {}) {
 
   btn.innerHTML = `
     <div class="card-inner">
-      <div class="card-face card-back">${cardBackHtml(card)}</div>
+      <div class="card-face card-back">${cardBackHtml(opts.hideBackNo ? null : card)}</div>
       <div class="card-face card-front">${cardFaceHtml(card)}</div>
     </div>`;
 
@@ -222,6 +222,7 @@ function ensureDeck(tierId) {
 function renderIdle() {
   state.phase = 'idle';
   state.busy = false;
+  document.body.classList.remove('star-draw-reveal');
   setHint('點擊卡牌開始');
   $('#pickedRow').innerHTML = '';
   clearControls();
@@ -413,7 +414,7 @@ async function finishRound() {
 }
 
 function revealCardEl(card, resultIndex, visualIndex) {
-  const el = makeCardEl(card, { inRow: true });
+  const el = makeCardEl(card, { inRow: true, hideBackNo: true });
   el.dataset.resultIndex = String(resultIndex);
   el.style.setProperty('--i', String(visualIndex));
   el.classList.add('reveal-card', 'deal-in');
@@ -477,10 +478,11 @@ function renderRevealGrid() {
 function showWuxingPanel() {
   const panel = $('#wuxingPanel');
   if (!panel) return;
+  const mobile = window.matchMedia('(max-width: 640px)').matches;
   panel.innerHTML = buildWuxingPanel(countElements(state.results), {
     markerId: 'star-draw-wuxing-arrow',
-    scale: 1.5,
-    textScale: 1.1,
+    scale: mobile ? 1.12 : 1.5,
+    textScale: mobile ? 1 : 1.1,
     showSummary: true,
     equalCenterRadius: true,
     summaryRows: [['木', '火', '土'], ['金', '水']],
@@ -498,6 +500,7 @@ async function startReveal() {
   $('#pickedRow').innerHTML = '';
   $('#pickedRow').className = 'picked-row';
   $('#table').classList.remove('round-exit', 'round-enter');
+  document.body.classList.add('star-draw-reveal');
   clearControls();
   clearStackToolbar();
   setHint(`請翻開第 1 張牌（0/${state.results.length}）`);
