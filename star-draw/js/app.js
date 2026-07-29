@@ -1,5 +1,6 @@
 import { DECK, ROUND_ORDER, TIERS, CARD_BACK } from './cards.js';
-import { buildWuxingPanel, countElements } from './wuxing.js';
+import { buildWuxingPanel, countElements, WUXING_COLORS } from './wuxing.js';
+import { buildWuxingCycleCard } from './wuxing-cycle-card.js';
 
 const $ = (sel) => document.querySelector(sel);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -475,18 +476,27 @@ function renderRevealGrid() {
   table.appendChild(grid);
 }
 
+function buildWuxingSummaryHtml(counts) {
+  const chip = (name) =>
+    `<span class="wuxing-chip" style="--wx-color:${WUXING_COLORS[name]}">${name} ${counts[name] || 0}</span>`;
+  const rows = [['木', '火', '土'], ['金', '水']];
+  return `<div class="wuxing-summary wuxing-summary-rows">${rows
+    .map((row) => `<div class="wuxing-summary-row">${row.map(chip).join('')}</div>`)
+    .join('')}</div>`;
+}
+
 function showWuxingPanel() {
   const panel = $('#wuxingPanel');
   if (!panel) return;
-  const mobile = window.matchMedia('(max-width: 640px)').matches;
-  panel.innerHTML = buildWuxingPanel(countElements(state.results), {
-    markerId: 'star-draw-wuxing-arrow',
-    scale: mobile ? 1.05 : 1.38,
-    textScale: mobile ? 1 : 1.05,
-    showSummary: true,
-    equalCenterRadius: true,
-    summaryRows: [['木', '火', '土'], ['金', '水']],
-  });
+  const counts = countElements(state.results);
+  panel.innerHTML =
+    buildWuxingPanel(counts, {
+      markerId: 'star-draw-wuxing-arrow',
+      showSummary: false,
+      equalCenterRadius: true,
+    }) +
+    `<div class="wuxing-cycle-wrap">${buildWuxingCycleCard()}</div>` +
+    buildWuxingSummaryHtml(counts);
   panel.classList.remove('hidden');
 }
 
