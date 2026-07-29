@@ -466,19 +466,22 @@ function renderRevealGrid() {
     visualIndex += 1;
   });
 
+  const sideStack = document.createElement('div');
+  sideStack.className = 'wuxing-side-stack';
+  sideStack.style.gridColumn = '4';
+  sideStack.style.gridRow = '2';
+
   const wuxing = document.createElement('div');
   wuxing.className = 'wuxing-panel hidden';
   wuxing.id = 'wuxingPanel';
-  wuxing.style.gridColumn = '4';
-  wuxing.style.gridRow = '2';
-  grid.appendChild(wuxing);
+  sideStack.appendChild(wuxing);
 
   const wuxingCycle = document.createElement('div');
   wuxingCycle.className = 'wuxing-cycle-panel hidden';
   wuxingCycle.id = 'wuxingCyclePanel';
-  wuxingCycle.style.gridColumn = '4';
-  wuxingCycle.style.gridRow = '3';
-  grid.appendChild(wuxingCycle);
+  sideStack.appendChild(wuxingCycle);
+
+  grid.appendChild(sideStack);
 
   table.appendChild(grid);
 }

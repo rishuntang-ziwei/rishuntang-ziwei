@@ -31,8 +31,8 @@ const ROWS = [
   },
 ];
 
-function rowXs(count, width = 360) {
-  const step = count === 9 ? 35.5 : 92;
+function rowXs(count, width = 480) {
+  const step = count === 9 ? 48 : 92;
   const span = step * (count - 1);
   const start = (width - span) / 2;
   return Array.from({ length: count }, (_, i) => start + step * i);
@@ -70,8 +70,8 @@ export function buildWuxingCycleCard() {
   }).join('');
 
   return `
-    <svg class="wuxing-cycle-card" viewBox="0 0 360 640" aria-hidden="true" preserveAspectRatio="xMidYMid meet">
-      <rect x="6" y="6" width="348" height="628" rx="30" ry="30" fill="#efcc39" stroke="#d8b82f" stroke-width="2.2" />
+    <svg class="wuxing-cycle-card" viewBox="0 0 480 640" aria-hidden="true" preserveAspectRatio="xMidYMid meet">
+      <rect x="6" y="6" width="468" height="628" rx="30" ry="30" fill="#efcc39" stroke="#d8b82f" stroke-width="2.2" />
       ${body}
     </svg>`;
 }
