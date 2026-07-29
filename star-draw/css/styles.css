@@ -33,7 +33,7 @@ body {
   background-image: url("../assets/ui/background.png");
   background-repeat: no-repeat;
   background-position: center center;
-  background-size: contain;
+  background-size: 150% auto;
   background-attachment: fixed;
 }
 
