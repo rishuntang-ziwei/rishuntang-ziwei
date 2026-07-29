@@ -29,12 +29,20 @@ body.star-draw-reveal {
 }
 
 body {
+  position: relative;
   background-color: #dfe6ec;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
   background-image: url("../assets/ui/background.png");
   background-repeat: no-repeat;
   background-position: center center;
-  background-size: 150% auto;
-  background-attachment: fixed;
+  background-size: 150% 100%;
+  pointer-events: none;
 }
 
 body::before {
@@ -269,12 +277,14 @@ body::before {
 }
 
 .reveal-grid {
+  position: relative;
   display: grid;
   grid-template-columns:
     var(--card-w)
     var(--card-w)
     calc(var(--card-w) * 0.5)
     var(--card-w);
+  grid-template-rows: repeat(3, auto);
   column-gap: clamp(12px, 2.8vw, 18px);
   row-gap: clamp(16px, 3.2vh, 26px);
   justify-content: center;
@@ -294,13 +304,16 @@ body::before {
 
 .wuxing-panel {
   box-sizing: border-box;
-  width: calc(var(--card-w) * 1.85);
-  min-height: calc(var(--card-h) * 1.5);
+  position: absolute;
+  grid-column: 4;
+  grid-row: 2;
+  width: calc(var(--card-w) * 1.7);
+  min-height: calc(var(--card-h) * 1.35);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 10px 8px;
+  padding: 8px 8px 6px;
   background: #f6eedb;
   border: 2px solid #5c4033;
   border-radius: 10px;
@@ -325,8 +338,8 @@ body::before {
 }
 
 .wuxing-title {
-  margin: 0 0 6px;
-  font-size: clamp(1.05rem, 2.8vw, 1.2rem);
+  margin: 0 0 4px;
+  font-size: clamp(1rem, 2.6vw, 1.12rem);
   font-weight: 700;
   letter-spacing: 0.12em;
   color: #333;
@@ -375,7 +388,7 @@ body::before {
 }
 
 .wuxing-chip {
-  font-size: clamp(0.88rem, 2.6vw, 1rem);
+  font-size: clamp(0.82rem, 2.4vw, 0.92rem);
   font-weight: 700;
   padding: 3px 8px;
   border-radius: 999px;

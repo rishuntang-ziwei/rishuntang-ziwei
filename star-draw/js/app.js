@@ -481,8 +481,8 @@ function showWuxingPanel() {
   const mobile = window.matchMedia('(max-width: 640px)').matches;
   panel.innerHTML = buildWuxingPanel(countElements(state.results), {
     markerId: 'star-draw-wuxing-arrow',
-    scale: mobile ? 1.12 : 1.5,
-    textScale: mobile ? 1 : 1.1,
+    scale: mobile ? 1.05 : 1.38,
+    textScale: mobile ? 1 : 1.05,
     showSummary: true,
     equalCenterRadius: true,
     summaryRows: [['木', '火', '土'], ['金', '水']],
