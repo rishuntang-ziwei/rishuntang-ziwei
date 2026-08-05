@@ -155,7 +155,7 @@ const CYCLE_LABEL_GROUPS = [
   },
   {
     anchor: '火',
-    corner: 'bottom',
+    corner: 'fireBelow',
     items: [
       { text: '消耗', kind: 'red', role: 'top' },
       { text: '能量', kind: 'green', role: 'bottomLeft' },
@@ -165,29 +165,32 @@ const CYCLE_LABEL_GROUPS = [
 ];
 
 function cycleGroupCenter(anchorPos, corner, outerR, scale) {
-  const pad = outerR + 20 * scale;
-  const spread = 44 * scale;
+  const pad = outerR + 18 * scale;
+  const spread = 40 * scale;
   const rowH = 14.5 * scale;
   const rowW = 18 * scale;
-  const waterGap = outerR + 10 * scale;
+  const sideOffset = outerR + rowW * 1.85 + 14 * scale;
 
   switch (corner) {
     case 'waterLeft':
       return {
-        x: anchorPos.x - waterGap - rowW,
+        x: anchorPos.x - sideOffset,
         y: anchorPos.y - rowH * 0.88,
       };
     case 'waterRight':
       return {
-        x: anchorPos.x + waterGap + rowW,
+        x: anchorPos.x + sideOffset,
         y: anchorPos.y - rowH * 0.88,
       };
+    case 'fireBelow':
+      return {
+        x: anchorPos.x,
+        y: anchorPos.y + outerR + 12 * scale + rowH,
+      };
     case 'bottomLeft':
-      return { x: anchorPos.x - spread * 0.78, y: anchorPos.y + pad + spread * 0.62 };
+      return { x: anchorPos.x - spread * 0.65, y: anchorPos.y + pad + spread * 0.45 };
     case 'bottomRight':
-      return { x: anchorPos.x + spread * 0.78, y: anchorPos.y + pad + spread * 0.62 };
-    case 'bottom':
-      return { x: anchorPos.x, y: anchorPos.y + pad + spread * 0.52 };
+      return { x: anchorPos.x + spread * 0.65, y: anchorPos.y + pad + spread * 0.45 };
     default:
       return anchorPos;
   }
@@ -315,7 +318,7 @@ function resolveViewBox({
     maxY = Math.max(maxY, bounds.maxY);
   }
 
-  const margin = showCycleLabels ? 2 : 8;
+  const margin = showCycleLabels ? 14 : 8;
   minX -= margin;
   minY -= margin;
   maxX += margin;
