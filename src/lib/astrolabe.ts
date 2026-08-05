@@ -1,4 +1,5 @@
 import { astro } from 'iztro'
+import './iztroLeapMonth'
 import type FunctionalAstrolabe from 'iztro/lib/astro/FunctionalAstrolabe'
 import type { IFunctionalPalace } from 'iztro/lib/astro/FunctionalPalace'
 import type { PalaceName } from 'iztro/lib/i18n/types/Palace'
