@@ -10,6 +10,8 @@
 | [server/NEON-SETUP.md](./server/NEON-SETUP.md) | Neon 資料庫 + Render `DATABASE_URL` |
 | [server/NEWEBPAY-SETUP.md](./server/NEWEBPAY-SETUP.md) | 藍新金流 Render 環境變數（手機可照做） |
 
+正式 API 使用 Render 免費版時，GitHub Actions 會每 10 分鐘請求 `/api/health` 以避免休眠（見 [.github/workflows/keep-api-warm.yml](./.github/workflows/keep-api-warm.yml)）。若仍覺得登入偏慢，可考慮升級 Render 或改部署至亞洲節點。
+
 ## 本機開發
 
 ```bash

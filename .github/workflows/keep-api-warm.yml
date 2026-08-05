@@ -1,0 +1,25 @@
+# Render 免費版約 15 分鐘無請求會休眠；每 10 分鐘 ping 一次以保持 API 喚醒。
+name: Keep API warm
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: keep-api-warm
+  cancel-in-progress: false
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Ping production API health
+        run: |
+          set -e
+          URL="https://rishuntang-ziwei-api.onrender.com/api/health"
+          echo "Pinging ${URL} ..."
+          curl -fsS --retry 2 --retry-delay 5 --max-time 120 "${URL}"
+          echo ""
+          echo "Keep-alive ping succeeded."
