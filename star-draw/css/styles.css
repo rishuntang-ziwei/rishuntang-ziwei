@@ -350,7 +350,7 @@ body::before {
 }
 
 .wuxing-title {
-  margin: 0 0 calc(var(--card-w) * 0.015);
+  margin: 0 0 calc(var(--card-w) * 0.008);
   font-size: clamp(0.75rem, calc(var(--card-w) * 0.1), 1rem);
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -366,6 +366,7 @@ body::before {
   min-height: 0;
   max-height: 100%;
   display: block;
+  overflow: visible;
 }
 .wuxing-arc,
 .wuxing-edge {

@@ -165,19 +165,19 @@ const CYCLE_LABEL_GROUPS = [
 ];
 
 function cycleGroupCenter(anchorPos, corner, outerR, scale) {
-  const pad = outerR + 30 * scale;
-  const spread = 62 * scale;
+  const pad = outerR + 22 * scale;
+  const spread = 50 * scale;
   switch (corner) {
     case 'topRight':
-      return { x: anchorPos.x + spread * 1.2, y: anchorPos.y - pad - spread * 0.58 };
+      return { x: anchorPos.x + spread * 1.08, y: anchorPos.y - pad - spread * 0.5 };
     case 'topLeft':
-      return { x: anchorPos.x - spread * 1.2, y: anchorPos.y - pad - spread * 0.58 };
+      return { x: anchorPos.x - spread * 1.08, y: anchorPos.y - pad - spread * 0.5 };
     case 'bottomLeft':
-      return { x: anchorPos.x - spread * 0.88, y: anchorPos.y + pad + spread * 0.72 };
+      return { x: anchorPos.x - spread * 0.78, y: anchorPos.y + pad + spread * 0.62 };
     case 'bottomRight':
-      return { x: anchorPos.x + spread * 0.88, y: anchorPos.y + pad + spread * 0.72 };
+      return { x: anchorPos.x + spread * 0.78, y: anchorPos.y + pad + spread * 0.62 };
     case 'bottom':
-      return { x: anchorPos.x, y: anchorPos.y + pad + spread * 0.95 };
+      return { x: anchorPos.x, y: anchorPos.y + pad + spread * 0.82 };
     default:
       return anchorPos;
   }
@@ -238,6 +238,73 @@ function buildCycleLabels(positions, outerR, scale = 1) {
   }).join('');
 }
 
+function cycleLabelBounds(positions, outerR, scale) {
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  const rx = 11.5 * scale;
+  const ry = 16 * scale;
+  const font = 12.5 * scale;
+  const redFont = 13.5 * scale;
+
+  CYCLE_LABEL_GROUPS.forEach((group) => {
+    const anchorPos = positions[group.anchor];
+    const center = cycleGroupCenter(anchorPos, group.corner, outerR, scale);
+    group.items.forEach((item) => {
+      const point = cycleRolePosition(center, item.role, scale);
+      if (item.kind === 'red') {
+        const top = point.y - 4 * scale;
+        const bottom = top + redFont * 2.2;
+        minX = Math.min(minX, point.x - redFont * 0.9);
+        maxX = Math.max(maxX, point.x + redFont * 0.9);
+        minY = Math.min(minY, top - redFont * 0.4);
+        maxY = Math.max(maxY, bottom);
+        return;
+      }
+
+      minX = Math.min(minX, point.x - rx);
+      maxX = Math.max(maxX, point.x + rx);
+      minY = Math.min(minY, point.y - 4 * scale - font);
+      maxY = Math.max(maxY, point.y + 1.5 * scale + ry + font * 1.1);
+    });
+  });
+
+  return { minX, minY, maxX, maxY };
+}
+
+function resolveViewBox({ cx, cy, outerDist, outerR, centerR, showCycleLabels, cycleLabelScale, positions, size }) {
+  if (size === 'center') return '-14 -14 288 288';
+
+  let minX = cx - outerDist - outerR;
+  let minY = cy - outerDist - outerR;
+  let maxX = cx + outerDist + outerR;
+  let maxY = cy + outerDist + outerR;
+
+  minX = Math.min(minX, cx - centerR);
+  maxX = Math.max(maxX, cx + centerR);
+  minY = Math.min(minY, cy - centerR);
+  maxY = Math.max(maxY, cy + centerR);
+
+  if (showCycleLabels) {
+    const bounds = cycleLabelBounds(positions, outerR, cycleLabelScale);
+    minX = Math.min(minX, bounds.minX);
+    minY = Math.min(minY, bounds.minY);
+    maxX = Math.max(maxX, bounds.maxX);
+    maxY = Math.max(maxY, bounds.maxY);
+  }
+
+  const margin = showCycleLabels ? 6 : 8;
+  minX -= margin;
+  minY -= margin;
+  maxX += margin;
+  maxY += margin;
+
+  const width = maxX - minX;
+  const height = maxY - minY;
+  return `${minX.toFixed(1)} ${minY.toFixed(1)} ${width.toFixed(1)} ${height.toFixed(1)}`;
+}
+
 export function buildWuxingPanel(counts, options = {}) {
   const {
     title = '五行統計',
@@ -253,17 +320,22 @@ export function buildWuxingPanel(counts, options = {}) {
   const scale = options.scale ?? 1;
   const textScale = options.textScale ?? 1;
   const { outerDist, outerR, centerR } = resolveLayout(options);
-  const viewBox = (() => {
-    if (options.size === 'center') return '-14 -14 288 288';
-    const labelPad = showCycleLabels ? 98 * scale * Math.max(1, cycleLabelScale * 0.88) : 8;
-    const extent = outerDist + outerR + labelPad;
-    const size = extent * 2;
-    return `${(cx - extent).toFixed(1)} ${(cy - extent).toFixed(1)} ${size.toFixed(1)} ${size.toFixed(1)}`;
-  })();
 
   const positions = {};
   GENERATING_CYCLE.forEach((name) => {
     positions[name] = getPosition(name, cx, cy, name === '土' ? 0 : outerDist);
+  });
+
+  const viewBox = resolveViewBox({
+    cx,
+    cy,
+    outerDist,
+    outerR,
+    centerR,
+    showCycleLabels,
+    cycleLabelScale,
+    positions,
+    size: options.size,
   });
 
   const generatingEdges = [
