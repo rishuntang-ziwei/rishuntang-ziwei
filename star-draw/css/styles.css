@@ -308,15 +308,15 @@ body::before {
   position: absolute;
   grid-column: 4;
   grid-row: 2;
-  width: calc(var(--card-w) * 2.55);
-  height: calc(var(--card-w) * 2.55);
-  min-height: calc(var(--card-w) * 2.55);
+  width: calc(var(--card-w) * 2.05);
+  height: calc(var(--card-w) * 2.05);
+  min-height: calc(var(--card-w) * 2.05);
   display: flex;
   flex-direction: column;
   align-items: stretch;
   justify-content: flex-start;
-  gap: calc(var(--card-w) * 0.01);
-  padding: calc(var(--card-w) * 0.02);
+  gap: calc(var(--card-w) * 0.008);
+  padding: calc(var(--card-w) * 0.015);
   background: #f6eedb;
   border: 2px solid #5c4033;
   border-radius: 10px;
@@ -767,9 +767,9 @@ body::before {
   }
 
   .wuxing-panel {
-    width: calc(var(--card-w) * 2.2);
-    height: calc(var(--card-w) * 2.2);
-    min-height: calc(var(--card-w) * 2.2);
+    width: calc(var(--card-w) * 1.85);
+    height: calc(var(--card-w) * 1.85);
+    min-height: calc(var(--card-w) * 1.85);
   }
 }
 

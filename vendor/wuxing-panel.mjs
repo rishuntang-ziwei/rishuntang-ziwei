@@ -294,7 +294,7 @@ function resolveViewBox({ cx, cy, outerDist, outerR, centerR, showCycleLabels, c
     maxY = Math.max(maxY, bounds.maxY);
   }
 
-  const margin = showCycleLabels ? 3 : 8;
+  const margin = showCycleLabels ? 2 : 8;
   minX -= margin;
   minY -= margin;
   maxX += margin;
