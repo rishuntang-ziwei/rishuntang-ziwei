@@ -137,7 +137,7 @@ const CYCLE_LABEL_GROUPS = [
   },
   {
     anchor: '金',
-    corner: 'bottom',
+    corner: 'bottomLeft',
     items: [
       { text: '开发', kind: 'red', role: 'top' },
       { text: '转换', kind: 'green', role: 'bottomLeft' },
@@ -146,7 +146,7 @@ const CYCLE_LABEL_GROUPS = [
   },
   {
     anchor: '木',
-    corner: 'bottom',
+    corner: 'bottomRight',
     items: [
       { text: '改变', kind: 'red', role: 'top' },
       { text: '生机', kind: 'green', role: 'bottomLeft' },
@@ -165,23 +165,27 @@ const CYCLE_LABEL_GROUPS = [
 ];
 
 function cycleGroupCenter(anchorPos, corner, outerR, scale) {
-  const pad = outerR + 16 * scale;
-  const spread = 42 * scale;
+  const pad = outerR + 30 * scale;
+  const spread = 62 * scale;
   switch (corner) {
     case 'topRight':
-      return { x: anchorPos.x + spread * 0.92, y: anchorPos.y - pad - spread * 0.42 };
+      return { x: anchorPos.x + spread * 1.2, y: anchorPos.y - pad - spread * 0.58 };
     case 'topLeft':
-      return { x: anchorPos.x - spread * 0.92, y: anchorPos.y - pad - spread * 0.42 };
+      return { x: anchorPos.x - spread * 1.2, y: anchorPos.y - pad - spread * 0.58 };
+    case 'bottomLeft':
+      return { x: anchorPos.x - spread * 0.88, y: anchorPos.y + pad + spread * 0.72 };
+    case 'bottomRight':
+      return { x: anchorPos.x + spread * 0.88, y: anchorPos.y + pad + spread * 0.72 };
     case 'bottom':
-      return { x: anchorPos.x, y: anchorPos.y + pad + spread * 0.55 };
+      return { x: anchorPos.x, y: anchorPos.y + pad + spread * 0.95 };
     default:
       return anchorPos;
   }
 }
 
 function cycleRolePosition(center, role, scale) {
-  const h = 18 * scale;
-  const w = 24 * scale;
+  const h = 11.5 * scale;
+  const w = 14.5 * scale;
   const map = {
     top: { x: center.x, y: center.y - h },
     bottomLeft: { x: center.x - w, y: center.y + h * 0.88 },
@@ -192,9 +196,9 @@ function cycleRolePosition(center, role, scale) {
 
 function renderCycleLabelItem(item, point, scale) {
   const [top, bottom] = item.text.split('');
-  const font = (10.5 * scale).toFixed(1);
-  const redFont = (11.5 * scale).toFixed(1);
-  const lineGap = (12 * scale).toFixed(1);
+  const font = (12.5 * scale).toFixed(1);
+  const redFont = (13.5 * scale).toFixed(1);
+  const lineGap = (13.5 * scale).toFixed(1);
 
   if (item.kind === 'red') {
     return `
@@ -207,16 +211,16 @@ function renderCycleLabelItem(item, point, scale) {
 
   const stroke = item.kind === 'green' ? '#2a9d4b' : '#111111';
   const fill = item.kind === 'green' ? '#2a9d4b' : '#111111';
-  const rx = (10.5 * scale).toFixed(1);
-  const ry = (14.5 * scale).toFixed(1);
+  const rx = (11.5 * scale).toFixed(1);
+  const ry = (16 * scale).toFixed(1);
   return `
     <g class="wuxing-cycle-label wuxing-cycle-label-${item.kind}">
       <ellipse cx="${point.x.toFixed(1)}" cy="${(point.y + 1.5 * scale).toFixed(1)}" rx="${rx}" ry="${ry}"
-        fill="none" stroke="${stroke}" stroke-width="${(1.6 * scale).toFixed(1)}" />
+        fill="none" stroke="${stroke}" stroke-width="${(1.7 * scale).toFixed(1)}" />
       <text x="${point.x.toFixed(1)}" y="${(point.y - 4 * scale).toFixed(1)}" text-anchor="middle"
         font-size="${font}" fill="${fill}">
         <tspan x="${point.x.toFixed(1)}" dy="0">${top}</tspan>
-        <tspan x="${point.x.toFixed(1)}" dy="${(11 * scale).toFixed(1)}">${bottom}</tspan>
+        <tspan x="${point.x.toFixed(1)}" dy="${(11.5 * scale).toFixed(1)}">${bottom}</tspan>
       </text>
     </g>`;
 }
@@ -251,7 +255,7 @@ export function buildWuxingPanel(counts, options = {}) {
   const { outerDist, outerR, centerR } = resolveLayout(options);
   const viewBox = (() => {
     if (options.size === 'center') return '-14 -14 288 288';
-    const labelPad = showCycleLabels ? 78 * scale * Math.max(1, cycleLabelScale * 0.9) : 8;
+    const labelPad = showCycleLabels ? 98 * scale * Math.max(1, cycleLabelScale * 0.88) : 8;
     const extent = outerDist + outerR + labelPad;
     const size = extent * 2;
     return `${(cx - extent).toFixed(1)} ${(cy - extent).toFixed(1)} ${size.toFixed(1)} ${size.toFixed(1)}`;

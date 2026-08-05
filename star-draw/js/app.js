@@ -484,7 +484,7 @@ function showWuxingPanel() {
     showSummary: false,
     equalCenterRadius: true,
     showCycleLabels: true,
-    cycleLabelScale: 1.55,
+    cycleLabelScale: 1.8,
   });
   panel.classList.remove('hidden');
 }
