@@ -165,27 +165,27 @@ const CYCLE_LABEL_GROUPS = [
 ];
 
 function cycleGroupCenter(anchorPos, corner, outerR, scale) {
-  const pad = outerR + 18 * scale;
-  const spread = 44 * scale;
+  const pad = outerR + 28 * scale;
+  const spread = 58 * scale;
   switch (corner) {
     case 'topRight':
-      return { x: anchorPos.x + spread * 1.08, y: anchorPos.y - pad - spread * 0.5 };
+      return { x: anchorPos.x + spread * 1.15, y: anchorPos.y - pad - spread * 0.55 };
     case 'topLeft':
-      return { x: anchorPos.x - spread * 1.08, y: anchorPos.y - pad - spread * 0.5 };
+      return { x: anchorPos.x - spread * 1.15, y: anchorPos.y - pad - spread * 0.55 };
     case 'bottomLeft':
-      return { x: anchorPos.x - spread * 0.78, y: anchorPos.y + pad + spread * 0.62 };
+      return { x: anchorPos.x - spread * 0.92, y: anchorPos.y + pad + spread * 0.72 };
     case 'bottomRight':
-      return { x: anchorPos.x + spread * 0.78, y: anchorPos.y + pad + spread * 0.62 };
+      return { x: anchorPos.x + spread * 0.92, y: anchorPos.y + pad + spread * 0.72 };
     case 'bottom':
-      return { x: anchorPos.x, y: anchorPos.y + pad + spread * 0.82 };
+      return { x: anchorPos.x, y: anchorPos.y + pad + spread * 0.95 };
     default:
       return anchorPos;
   }
 }
 
 function cycleRolePosition(center, role, scale) {
-  const h = 11.5 * scale;
-  const w = 14.5 * scale;
+  const h = 14.5 * scale;
+  const w = 18 * scale;
   const map = {
     top: { x: center.x, y: center.y - h },
     bottomLeft: { x: center.x - w, y: center.y + h * 0.88 },
@@ -196,9 +196,9 @@ function cycleRolePosition(center, role, scale) {
 
 function renderCycleLabelItem(item, point, scale) {
   const [top, bottom] = item.text.split('');
-  const font = (12.5 * scale).toFixed(1);
-  const redFont = (13.5 * scale).toFixed(1);
-  const lineGap = (13.5 * scale).toFixed(1);
+  const font = (13 * scale).toFixed(1);
+  const redFont = (14.5 * scale).toFixed(1);
+  const lineGap = (14 * scale).toFixed(1);
 
   if (item.kind === 'red') {
     return `
@@ -211,8 +211,8 @@ function renderCycleLabelItem(item, point, scale) {
 
   const stroke = item.kind === 'green' ? '#2a9d4b' : '#111111';
   const fill = item.kind === 'green' ? '#2a9d4b' : '#111111';
-  const rx = (11.5 * scale).toFixed(1);
-  const ry = (16 * scale).toFixed(1);
+  const rx = (12 * scale).toFixed(1);
+  const ry = (17 * scale).toFixed(1);
   return `
     <g class="wuxing-cycle-label wuxing-cycle-label-${item.kind}">
       <ellipse cx="${point.x.toFixed(1)}" cy="${(point.y + 1.5 * scale).toFixed(1)}" rx="${rx}" ry="${ry}"
@@ -220,7 +220,7 @@ function renderCycleLabelItem(item, point, scale) {
       <text x="${point.x.toFixed(1)}" y="${(point.y - 4 * scale).toFixed(1)}" text-anchor="middle"
         font-size="${font}" fill="${fill}">
         <tspan x="${point.x.toFixed(1)}" dy="0">${top}</tspan>
-        <tspan x="${point.x.toFixed(1)}" dy="${(11.5 * scale).toFixed(1)}">${bottom}</tspan>
+        <tspan x="${point.x.toFixed(1)}" dy="${(12 * scale).toFixed(1)}">${bottom}</tspan>
       </text>
     </g>`;
 }
@@ -243,10 +243,10 @@ function cycleLabelBounds(positions, outerR, scale) {
   let minY = Infinity;
   let maxX = -Infinity;
   let maxY = -Infinity;
-  const rx = 11.5 * scale;
-  const ry = 16 * scale;
-  const font = 12.5 * scale;
-  const redFont = 13.5 * scale;
+  const rx = 12 * scale;
+  const ry = 17 * scale;
+  const font = 13 * scale;
+  const redFont = 14.5 * scale;
 
   CYCLE_LABEL_GROUPS.forEach((group) => {
     const anchorPos = positions[group.anchor];
