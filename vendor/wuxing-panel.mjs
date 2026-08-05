@@ -165,8 +165,8 @@ const CYCLE_LABEL_GROUPS = [
 ];
 
 function cycleGroupCenter(anchorPos, corner, outerR, scale) {
-  const pad = outerR + 12 * scale;
-  const spread = 34 * scale;
+  const pad = outerR + 16 * scale;
+  const spread = 42 * scale;
   switch (corner) {
     case 'topRight':
       return { x: anchorPos.x + spread * 0.92, y: anchorPos.y - pad - spread * 0.42 };
@@ -180,8 +180,8 @@ function cycleGroupCenter(anchorPos, corner, outerR, scale) {
 }
 
 function cycleRolePosition(center, role, scale) {
-  const h = 15 * scale;
-  const w = 19 * scale;
+  const h = 18 * scale;
+  const w = 24 * scale;
   const map = {
     top: { x: center.x, y: center.y - h },
     bottomLeft: { x: center.x - w, y: center.y + h * 0.88 },
@@ -192,13 +192,13 @@ function cycleRolePosition(center, role, scale) {
 
 function renderCycleLabelItem(item, point, scale) {
   const [top, bottom] = item.text.split('');
-  const font = (7.2 * scale).toFixed(1);
-  const redFont = (8 * scale).toFixed(1);
-  const lineGap = (8.8 * scale).toFixed(1);
+  const font = (10.5 * scale).toFixed(1);
+  const redFont = (11.5 * scale).toFixed(1);
+  const lineGap = (12 * scale).toFixed(1);
 
   if (item.kind === 'red') {
     return `
-      <text x="${point.x.toFixed(1)}" y="${(point.y - 3 * scale).toFixed(1)}" text-anchor="middle"
+      <text x="${point.x.toFixed(1)}" y="${(point.y - 4 * scale).toFixed(1)}" text-anchor="middle"
         class="wuxing-cycle-label wuxing-cycle-label-red" font-size="${redFont}">
         <tspan x="${point.x.toFixed(1)}" dy="0">${top}</tspan>
         <tspan x="${point.x.toFixed(1)}" dy="${lineGap}">${bottom}</tspan>
@@ -207,16 +207,16 @@ function renderCycleLabelItem(item, point, scale) {
 
   const stroke = item.kind === 'green' ? '#2a9d4b' : '#111111';
   const fill = item.kind === 'green' ? '#2a9d4b' : '#111111';
-  const rx = (7.4 * scale).toFixed(1);
-  const ry = (10.2 * scale).toFixed(1);
+  const rx = (10.5 * scale).toFixed(1);
+  const ry = (14.5 * scale).toFixed(1);
   return `
     <g class="wuxing-cycle-label wuxing-cycle-label-${item.kind}">
-      <ellipse cx="${point.x.toFixed(1)}" cy="${(point.y + 1 * scale).toFixed(1)}" rx="${rx}" ry="${ry}"
-        fill="none" stroke="${stroke}" stroke-width="${(1.2 * scale).toFixed(1)}" />
-      <text x="${point.x.toFixed(1)}" y="${(point.y - 3 * scale).toFixed(1)}" text-anchor="middle"
+      <ellipse cx="${point.x.toFixed(1)}" cy="${(point.y + 1.5 * scale).toFixed(1)}" rx="${rx}" ry="${ry}"
+        fill="none" stroke="${stroke}" stroke-width="${(1.6 * scale).toFixed(1)}" />
+      <text x="${point.x.toFixed(1)}" y="${(point.y - 4 * scale).toFixed(1)}" text-anchor="middle"
         font-size="${font}" fill="${fill}">
         <tspan x="${point.x.toFixed(1)}" dy="0">${top}</tspan>
-        <tspan x="${point.x.toFixed(1)}" dy="${(8.2 * scale).toFixed(1)}">${bottom}</tspan>
+        <tspan x="${point.x.toFixed(1)}" dy="${(11 * scale).toFixed(1)}">${bottom}</tspan>
       </text>
     </g>`;
 }
@@ -251,7 +251,7 @@ export function buildWuxingPanel(counts, options = {}) {
   const { outerDist, outerR, centerR } = resolveLayout(options);
   const viewBox = (() => {
     if (options.size === 'center') return '-14 -14 288 288';
-    const labelPad = showCycleLabels ? 56 * scale : 8;
+    const labelPad = showCycleLabels ? 78 * scale * Math.max(1, cycleLabelScale * 0.9) : 8;
     const extent = outerDist + outerR + labelPad;
     const size = extent * 2;
     return `${(cx - extent).toFixed(1)} ${(cy - extent).toFixed(1)} ${size.toFixed(1)} ${size.toFixed(1)}`;

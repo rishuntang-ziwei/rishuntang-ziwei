@@ -41,7 +41,7 @@ body::after {
   background-image: url("../assets/ui/background.png");
   background-repeat: no-repeat;
   background-position: center center;
-  background-size: 150% 100%;
+  background-size: 130% 100%;
   pointer-events: none;
 }
 
@@ -308,9 +308,9 @@ body::before {
   position: absolute;
   grid-column: 4;
   grid-row: 2;
-  width: calc(var(--card-w) * 1.85);
-  height: calc(var(--card-w) * 1.85);
-  min-height: calc(var(--card-w) * 1.85);
+  width: calc(var(--card-w) * 2.55);
+  height: calc(var(--card-w) * 2.55);
+  min-height: calc(var(--card-w) * 2.55);
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -766,9 +766,9 @@ body::before {
   }
 
   .wuxing-panel {
-    width: calc(var(--card-w) * 1.65);
-    height: calc(var(--card-w) * 1.65);
-    min-height: calc(var(--card-w) * 1.65);
+    width: calc(var(--card-w) * 2.2);
+    height: calc(var(--card-w) * 2.2);
+    min-height: calc(var(--card-w) * 2.2);
   }
 }
 
