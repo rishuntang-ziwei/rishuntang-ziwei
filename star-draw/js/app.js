@@ -1,6 +1,5 @@
 import { DECK, ROUND_ORDER, TIERS, CARD_BACK } from './cards.js';
 import { buildWuxingPanel, countElements } from './wuxing.js';
-import { buildWuxingCycleCard } from './wuxing-cycle-card.js';
 
 const $ = (sel) => document.querySelector(sel);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -466,43 +465,28 @@ function renderRevealGrid() {
     visualIndex += 1;
   });
 
-  const sideStack = document.createElement('div');
-  sideStack.className = 'wuxing-side-stack';
-  sideStack.style.gridColumn = '4';
-  sideStack.style.gridRow = '2';
-
   const wuxing = document.createElement('div');
   wuxing.className = 'wuxing-panel hidden';
   wuxing.id = 'wuxingPanel';
-  sideStack.appendChild(wuxing);
-
-  const wuxingCycle = document.createElement('div');
-  wuxingCycle.className = 'wuxing-cycle-panel hidden';
-  wuxingCycle.id = 'wuxingCyclePanel';
-  sideStack.appendChild(wuxingCycle);
-
-  grid.appendChild(sideStack);
+  wuxing.style.gridColumn = '4';
+  wuxing.style.gridRow = '2';
+  grid.appendChild(wuxing);
 
   table.appendChild(grid);
 }
 
 function showWuxingPanel() {
   const panel = $('#wuxingPanel');
-  const cyclePanel = $('#wuxingCyclePanel');
   if (!panel) return;
   const counts = countElements(state.results);
   panel.innerHTML = buildWuxingPanel(counts, {
     markerId: 'star-draw-wuxing-arrow',
-    showSummary: true,
+    showSummary: false,
     equalCenterRadius: true,
-    summaryRows: [['木', '火', '土'], ['金', '水']],
+    showCycleLabels: true,
+    cycleLabelScale: 0.92,
   });
   panel.classList.remove('hidden');
-
-  if (cyclePanel) {
-    cyclePanel.innerHTML = buildWuxingCycleCard();
-    cyclePanel.classList.remove('hidden');
-  }
 }
 
 function revealCardByIndex(index) {

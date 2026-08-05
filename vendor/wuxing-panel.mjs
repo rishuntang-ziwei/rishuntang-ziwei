@@ -116,12 +116,132 @@ function nodeRadius(name, outerR, centerR) {
   return name === '土' ? centerR : outerR;
 }
 
+const CYCLE_LABEL_GROUPS = [
+  {
+    anchor: '水',
+    corner: 'topRight',
+    items: [
+      { text: '供应', kind: 'red', role: 'top' },
+      { text: '能源', kind: 'green', role: 'bottomLeft' },
+      { text: '学习', kind: 'black', role: 'bottomRight' },
+    ],
+  },
+  {
+    anchor: '水',
+    corner: 'topLeft',
+    items: [
+      { text: '储存', kind: 'red', role: 'top' },
+      { text: '吸收', kind: 'green', role: 'bottomLeft' },
+      { text: '整合', kind: 'black', role: 'bottomRight' },
+    ],
+  },
+  {
+    anchor: '金',
+    corner: 'bottom',
+    items: [
+      { text: '开发', kind: 'red', role: 'top' },
+      { text: '转换', kind: 'green', role: 'bottomLeft' },
+      { text: '运用', kind: 'black', role: 'bottomRight' },
+    ],
+  },
+  {
+    anchor: '木',
+    corner: 'bottom',
+    items: [
+      { text: '改变', kind: 'red', role: 'top' },
+      { text: '生机', kind: 'green', role: 'bottomLeft' },
+      { text: '目标', kind: 'black', role: 'bottomRight' },
+    ],
+  },
+  {
+    anchor: '火',
+    corner: 'bottom',
+    items: [
+      { text: '消耗', kind: 'red', role: 'top' },
+      { text: '能量', kind: 'green', role: 'bottomLeft' },
+      { text: '行动', kind: 'black', role: 'bottomRight' },
+    ],
+  },
+];
+
+function cycleGroupCenter(anchorPos, corner, outerR, scale) {
+  const pad = outerR + 12 * scale;
+  const spread = 34 * scale;
+  switch (corner) {
+    case 'topRight':
+      return { x: anchorPos.x + spread * 0.92, y: anchorPos.y - pad - spread * 0.42 };
+    case 'topLeft':
+      return { x: anchorPos.x - spread * 0.92, y: anchorPos.y - pad - spread * 0.42 };
+    case 'bottom':
+      return { x: anchorPos.x, y: anchorPos.y + pad + spread * 0.55 };
+    default:
+      return anchorPos;
+  }
+}
+
+function cycleRolePosition(center, role, scale) {
+  const h = 15 * scale;
+  const w = 19 * scale;
+  const map = {
+    top: { x: center.x, y: center.y - h },
+    bottomLeft: { x: center.x - w, y: center.y + h * 0.88 },
+    bottomRight: { x: center.x + w, y: center.y + h * 0.88 },
+  };
+  return map[role];
+}
+
+function renderCycleLabelItem(item, point, scale) {
+  const [top, bottom] = item.text.split('');
+  const font = (7.2 * scale).toFixed(1);
+  const redFont = (8 * scale).toFixed(1);
+  const lineGap = (8.8 * scale).toFixed(1);
+
+  if (item.kind === 'red') {
+    return `
+      <text x="${point.x.toFixed(1)}" y="${(point.y - 3 * scale).toFixed(1)}" text-anchor="middle"
+        class="wuxing-cycle-label wuxing-cycle-label-red" font-size="${redFont}">
+        <tspan x="${point.x.toFixed(1)}" dy="0">${top}</tspan>
+        <tspan x="${point.x.toFixed(1)}" dy="${lineGap}">${bottom}</tspan>
+      </text>`;
+  }
+
+  const stroke = item.kind === 'green' ? '#2a9d4b' : '#111111';
+  const fill = item.kind === 'green' ? '#2a9d4b' : '#111111';
+  const rx = (7.4 * scale).toFixed(1);
+  const ry = (10.2 * scale).toFixed(1);
+  return `
+    <g class="wuxing-cycle-label wuxing-cycle-label-${item.kind}">
+      <ellipse cx="${point.x.toFixed(1)}" cy="${(point.y + 1 * scale).toFixed(1)}" rx="${rx}" ry="${ry}"
+        fill="none" stroke="${stroke}" stroke-width="${(1.2 * scale).toFixed(1)}" />
+      <text x="${point.x.toFixed(1)}" y="${(point.y - 3 * scale).toFixed(1)}" text-anchor="middle"
+        font-size="${font}" fill="${fill}">
+        <tspan x="${point.x.toFixed(1)}" dy="0">${top}</tspan>
+        <tspan x="${point.x.toFixed(1)}" dy="${(8.2 * scale).toFixed(1)}">${bottom}</tspan>
+      </text>
+    </g>`;
+}
+
+function buildCycleLabels(positions, outerR, scale = 1) {
+  return CYCLE_LABEL_GROUPS.map((group) => {
+    const anchorPos = positions[group.anchor];
+    const center = cycleGroupCenter(anchorPos, group.corner, outerR, scale);
+    return group.items
+      .map((item) => {
+        const point = cycleRolePosition(center, item.role, scale);
+        return renderCycleLabelItem(item, point, scale);
+      })
+      .join('');
+  }).join('');
+}
+
 export function buildWuxingPanel(counts, options = {}) {
   const {
     title = '五行統計',
     markerId = 'wuxing-arrow',
     showSummary = true,
     summaryRows = null,
+    showCycleLabels = false,
+    cycleLabelScale = 1,
   } = options;
 
   const cx = 130;
@@ -131,7 +251,8 @@ export function buildWuxingPanel(counts, options = {}) {
   const { outerDist, outerR, centerR } = resolveLayout(options);
   const viewBox = (() => {
     if (options.size === 'center') return '-14 -14 288 288';
-    const extent = outerDist + outerR + 8;
+    const labelPad = showCycleLabels ? 56 * scale : 8;
+    const extent = outerDist + outerR + labelPad;
     const size = extent * 2;
     return `${(cx - extent).toFixed(1)} ${(cy - extent).toFixed(1)} ${size.toFixed(1)} ${size.toFixed(1)}`;
   })();
@@ -182,6 +303,10 @@ export function buildWuxingPanel(counts, options = {}) {
       </g>`;
   }).join('');
 
+  const cycleLabels = showCycleLabels
+    ? buildCycleLabels(positions, outerR, cycleLabelScale)
+    : '';
+
   const chipHtml = (name) =>
     `<span class="wuxing-chip" style="--wx-color:${WUXING_COLORS[name]}">${name} ${counts[name] || 0}</span>`;
 
@@ -210,6 +335,7 @@ export function buildWuxingPanel(counts, options = {}) {
       </defs>
       ${generatingEdges}
       ${nodes}
+      ${cycleLabels}
     </svg>
     ${summary}`;
 }
