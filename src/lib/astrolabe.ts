@@ -1,5 +1,4 @@
 import { astro } from 'iztro'
-import './iztroLeapMonth'
 import type FunctionalAstrolabe from 'iztro/lib/astro/FunctionalAstrolabe'
 import type { IFunctionalPalace } from 'iztro/lib/astro/FunctionalPalace'
 import type { PalaceName } from 'iztro/lib/i18n/types/Palace'
@@ -64,7 +63,7 @@ export function formatBazi(astrolabe: FunctionalAstrolabe): string {
 export function formatLunarBirthLine(astrolabe: FunctionalAstrolabe): string {
   const { hourly } = astrolabe.rawDates.chineseDate
   const hour = hourly[1] || '寅'
-  const lm = astrolabe.lunarDate.match(/([正二三四五六七八九十冬臘閏]+)月([初十廿三]*[一二三四五六七八九十]+)/)
+  const lm = astrolabe.lunarDate.match(/([正二三四五六七八九十冬臘闰閏]+)月([初十廿三]*[一二三四五六七八九十]+)/)
   const monthDay = lm ? `${lm[1]}月${lm[2]}` : ''
   const yearMatch = astrolabe.lunarDate.match(/^(.+?年)/)
   const lunarYear = yearMatch?.[1] ?? ''
