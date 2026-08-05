@@ -185,7 +185,7 @@ function cycleGroupCenter(anchorPos, corner, outerR, scale) {
     case 'fireBelow':
       return {
         x: anchorPos.x,
-        y: anchorPos.y + outerR + 12 * scale + rowH,
+        y: anchorPos.y + outerR + 24 * scale + rowH,
       };
     case 'bottomLeft':
       return { x: anchorPos.x - spread * 0.65, y: anchorPos.y + pad + spread * 0.45 };
