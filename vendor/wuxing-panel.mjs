@@ -273,7 +273,18 @@ function cycleLabelBounds(positions, outerR, scale) {
   return { minX, minY, maxX, maxY };
 }
 
-function resolveViewBox({ cx, cy, outerDist, outerR, centerR, showCycleLabels, cycleLabelScale, positions, size }) {
+function resolveViewBox({
+  cx,
+  cy,
+  outerDist,
+  outerR,
+  centerR,
+  showCycleLabels,
+  cycleLabelScale,
+  positions,
+  size,
+  contentZoom = 1,
+}) {
   if (size === 'center') return '-14 -14 288 288';
 
   let minX = cx - outerDist - outerR;
@@ -300,8 +311,18 @@ function resolveViewBox({ cx, cy, outerDist, outerR, centerR, showCycleLabels, c
   maxX += margin;
   maxY += margin;
 
-  const width = maxX - minX;
-  const height = maxY - minY;
+  let width = maxX - minX;
+  let height = maxY - minY;
+
+  if (contentZoom > 1) {
+    const centerX = minX + width / 2;
+    const centerY = minY + height / 2;
+    width /= contentZoom;
+    height /= contentZoom;
+    minX = centerX - width / 2;
+    minY = centerY - height / 2;
+  }
+
   return `${minX.toFixed(1)} ${minY.toFixed(1)} ${width.toFixed(1)} ${height.toFixed(1)}`;
 }
 
@@ -336,6 +357,7 @@ export function buildWuxingPanel(counts, options = {}) {
     cycleLabelScale,
     positions,
     size: options.size,
+    contentZoom: options.contentZoom ?? 1,
   });
 
   const generatingEdges = [
