@@ -119,20 +119,20 @@ function nodeRadius(name, outerR, centerR) {
 const CYCLE_LABEL_GROUPS = [
   {
     anchor: '水',
-    corner: 'topRight',
-    items: [
-      { text: '供应', kind: 'red', role: 'top' },
-      { text: '能源', kind: 'green', role: 'bottomLeft' },
-      { text: '学习', kind: 'black', role: 'bottomRight' },
-    ],
-  },
-  {
-    anchor: '水',
-    corner: 'topLeft',
+    corner: 'waterLeft',
     items: [
       { text: '储存', kind: 'red', role: 'top' },
       { text: '吸收', kind: 'green', role: 'bottomLeft' },
       { text: '整合', kind: 'black', role: 'bottomRight' },
+    ],
+  },
+  {
+    anchor: '水',
+    corner: 'waterRight',
+    items: [
+      { text: '供应', kind: 'red', role: 'top' },
+      { text: '能源', kind: 'green', role: 'bottomLeft' },
+      { text: '学习', kind: 'black', role: 'bottomRight' },
     ],
   },
   {
@@ -165,19 +165,29 @@ const CYCLE_LABEL_GROUPS = [
 ];
 
 function cycleGroupCenter(anchorPos, corner, outerR, scale) {
-  const pad = outerR + 28 * scale;
-  const spread = 58 * scale;
+  const pad = outerR + 20 * scale;
+  const spread = 44 * scale;
+  const rowH = 14.5 * scale;
+  const rowW = 18 * scale;
+  const waterGap = outerR + 10 * scale;
+
   switch (corner) {
-    case 'topRight':
-      return { x: anchorPos.x + spread * 1.15, y: anchorPos.y - pad - spread * 0.55 };
-    case 'topLeft':
-      return { x: anchorPos.x - spread * 1.15, y: anchorPos.y - pad - spread * 0.55 };
+    case 'waterLeft':
+      return {
+        x: anchorPos.x - waterGap - rowW,
+        y: anchorPos.y - rowH * 0.88,
+      };
+    case 'waterRight':
+      return {
+        x: anchorPos.x + waterGap + rowW,
+        y: anchorPos.y - rowH * 0.88,
+      };
     case 'bottomLeft':
-      return { x: anchorPos.x - spread * 0.92, y: anchorPos.y + pad + spread * 0.72 };
+      return { x: anchorPos.x - spread * 0.78, y: anchorPos.y + pad + spread * 0.62 };
     case 'bottomRight':
-      return { x: anchorPos.x + spread * 0.92, y: anchorPos.y + pad + spread * 0.72 };
+      return { x: anchorPos.x + spread * 0.78, y: anchorPos.y + pad + spread * 0.62 };
     case 'bottom':
-      return { x: anchorPos.x, y: anchorPos.y + pad + spread * 0.95 };
+      return { x: anchorPos.x, y: anchorPos.y + pad + spread * 0.52 };
     default:
       return anchorPos;
   }
