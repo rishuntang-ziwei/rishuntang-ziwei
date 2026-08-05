@@ -165,8 +165,8 @@ const CYCLE_LABEL_GROUPS = [
 ];
 
 function cycleGroupCenter(anchorPos, corner, outerR, scale) {
-  const pad = outerR + 22 * scale;
-  const spread = 50 * scale;
+  const pad = outerR + 18 * scale;
+  const spread = 44 * scale;
   switch (corner) {
     case 'topRight':
       return { x: anchorPos.x + spread * 1.08, y: anchorPos.y - pad - spread * 0.5 };
@@ -294,7 +294,7 @@ function resolveViewBox({ cx, cy, outerDist, outerR, centerR, showCycleLabels, c
     maxY = Math.max(maxY, bounds.maxY);
   }
 
-  const margin = showCycleLabels ? 6 : 8;
+  const margin = showCycleLabels ? 3 : 8;
   minX -= margin;
   minY -= margin;
   maxX += margin;

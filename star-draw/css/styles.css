@@ -40,8 +40,8 @@ body::after {
   z-index: -1;
   background-image: url("../assets/ui/background.png");
   background-repeat: no-repeat;
-  background-position: center center;
-  background-size: 130% 100%;
+  background-position: 38% 52%;
+  background-size: 122% 100%;
   pointer-events: none;
 }
 
@@ -315,8 +315,8 @@ body::before {
   flex-direction: column;
   align-items: stretch;
   justify-content: flex-start;
-  gap: calc(var(--card-w) * 0.02);
-  padding: calc(var(--card-w) * 0.03);
+  gap: calc(var(--card-w) * 0.01);
+  padding: calc(var(--card-w) * 0.02);
   background: #f6eedb;
   border: 2px solid #5c4033;
   border-radius: 10px;
@@ -350,8 +350,8 @@ body::before {
 }
 
 .wuxing-title {
-  margin: 0 0 calc(var(--card-w) * 0.008);
-  font-size: clamp(0.75rem, calc(var(--card-w) * 0.1), 1rem);
+  margin: 0;
+  font-size: clamp(0.7rem, calc(var(--card-w) * 0.085), 0.92rem);
   font-weight: 700;
   letter-spacing: 0.12em;
   color: #333;
