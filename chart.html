@@ -1252,10 +1252,10 @@
       justify-content: center;
       align-self: center;
       justify-self: center;
-      height: 100%;
-      width: auto;
-      max-width: 100%;
-      max-height: 100%;
+      width: min(86%, 172px);
+      height: auto;
+      max-width: 86%;
+      max-height: 86%;
       aspect-ratio: 1;
       overflow: visible;
       position: relative;
@@ -1300,6 +1300,7 @@
       min-height: 0;
       min-width: 0;
       overflow: visible;
+      padding: 2px 0;
     }
 
     .center-wuxing-cross {
@@ -1783,16 +1784,17 @@
         column-gap: 3px;
         align-items: center;
         min-height: 0;
-        overflow: hidden;
+        overflow: visible;
+        padding: 2px 0;
       }
 
       .center-wuxing-cross {
         grid-column: 1;
         grid-row: 1;
-        width: auto;
-        height: 100%;
-        max-width: 100%;
-        max-height: 100%;
+        width: min(88%, 100%);
+        height: auto;
+        max-width: 88%;
+        max-height: 88%;
         aspect-ratio: 1;
         align-self: center;
         justify-self: center;
@@ -3895,8 +3897,8 @@
         size: 'center',
         showSummary: false,
         markerId: 'center-wuxing-arrow',
-        textScale: 1.08,
-        contentZoom: 1.14,
+        textScale: 1.02,
+        contentZoom: 1.06,
       })
       return `<div class="center-wuxing-cross">${wuxingHtml}</div>`
     }

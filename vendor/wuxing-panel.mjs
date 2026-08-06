@@ -325,7 +325,7 @@ function resolveViewBox({
     minY = Math.min(minY, cy - centerR);
     maxY = Math.max(maxY, cy + centerR);
 
-    const margin = 12;
+    const margin = 16;
     minX -= margin;
     minY -= margin;
     maxX += margin;
@@ -423,7 +423,7 @@ export function buildWuxingPanel(counts, options = {}) {
     cycleLabelScale,
     positions,
     size: options.size,
-    contentZoom: options.contentZoom ?? (options.size === 'center' ? 1.14 : 1),
+    contentZoom: options.contentZoom ?? (options.size === 'center' ? 1.06 : 1),
   });
 
   const generatingEdges = [
