@@ -1282,13 +1282,11 @@
     }
 
     .center-wuxing-cross .wuxing-node-name {
-      font-size: 26px;
-      font-weight: 700;
+      display: none;
     }
 
     .center-wuxing-cross .wuxing-node-count {
-      font-size: 20px;
-      font-weight: 700;
+      font-weight: 800;
     }
 
     .center-main,
@@ -1776,7 +1774,7 @@
       .center-main,
       .center-body {
         display: grid;
-        grid-template-columns: minmax(0, 42%) minmax(0, 1fr);
+        grid-template-columns: minmax(0, 46%) minmax(0, 1fr);
         grid-template-rows: 1fr;
         column-gap: 3px;
         align-items: center;
@@ -1794,6 +1792,14 @@
         aspect-ratio: 1;
         align-self: center;
         justify-self: center;
+      }
+
+      .center-wuxing-cross .wuxing-node-name {
+        display: none !important;
+      }
+
+      .center-wuxing-cross .wuxing-node-count {
+        font-weight: 800;
       }
 
       .center-right {
@@ -1822,14 +1828,6 @@
 
       .center-person-namecol {
         gap: 2px;
-      }
-
-      .center-wuxing-cross .wuxing-node-name {
-        font-size: 10px;
-      }
-
-      .center-wuxing-cross .wuxing-node-count {
-        font-size: 8px;
       }
 
       .center-birth .lunar-note {
@@ -1904,8 +1902,12 @@
 
       .center-main,
       .center-body {
-        grid-template-columns: minmax(0, 38%) minmax(0, 1fr);
+        grid-template-columns: minmax(0, 48%) minmax(0, 1fr);
         column-gap: 2px;
+      }
+
+      .center-wuxing-cross .wuxing-node-name {
+        display: none !important;
       }
 
       .center-header {
@@ -1933,14 +1935,6 @@
       .center-age,
       .center-person .center-person-namecol .center-age {
         font-size: 9px;
-      }
-
-      .center-wuxing-cross .wuxing-node-name {
-        font-size: 9px;
-      }
-
-      .center-wuxing-cross .wuxing-node-count {
-        font-size: 7px;
       }
 
       .center-brand {
@@ -2551,14 +2545,6 @@
 
       .center-brand {
         font-size: 20px !important;
-      }
-
-      .center-wuxing-cross .wuxing-node-name {
-        font-size: 24px !important;
-      }
-
-      .center-wuxing-cross .wuxing-node-count {
-        font-size: 18px !important;
       }
 
       .vtext.name {

@@ -298,7 +298,16 @@ function resolveViewBox({
   size,
   contentZoom = 1,
 }) {
-  if (size === 'center') return '-14 -14 288 288';
+  if (size === 'center') {
+    const zoom = contentZoom;
+    const full = 288;
+    const origin = -14;
+    const w = full / zoom;
+    const h = full / zoom;
+    const ox = origin + (full - w) / 2;
+    const oy = origin + (full - h) / 2;
+    return `${ox.toFixed(1)} ${oy.toFixed(1)} ${w.toFixed(1)} ${h.toFixed(1)}`;
+  }
 
   let minX = cx - outerDist - outerR;
   let minY = cy - outerDist - outerR;
@@ -339,6 +348,13 @@ function resolveViewBox({
   return `${minX.toFixed(1)} ${minY.toFixed(1)} ${width.toFixed(1)} ${height.toFixed(1)}`;
 }
 
+function countFontSize(count, r) {
+  const digits = String(count).length;
+  if (digits <= 1) return r * 0.96;
+  if (digits === 2) return r * 0.76;
+  return r * 0.58;
+}
+
 export function buildWuxingPanel(counts, options = {}) {
   const {
     title = '五行統計',
@@ -370,7 +386,7 @@ export function buildWuxingPanel(counts, options = {}) {
     cycleLabelScale,
     positions,
     size: options.size,
-    contentZoom: options.contentZoom ?? 1,
+    contentZoom: options.contentZoom ?? (options.size === 'center' ? 1.24 : 1),
   });
 
   const generatingEdges = [
@@ -396,6 +412,20 @@ export function buildWuxingPanel(counts, options = {}) {
     const fill = active ? style.fill : style.inactive;
     const textFill = active ? style.text : style.inactiveText;
     const strokeW = (name === '金' ? 2.5 : active ? 2 : 1.5) * scale;
+    const numbersOnly = options.size === 'center';
+
+    if (numbersOnly) {
+      const countFont = countFontSize(count, r) * textScale;
+      return `
+      <g class="wuxing-node${active ? ' is-active' : ''}" data-element="${name}">
+        <circle cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="${r}"
+          fill="${fill}" stroke="${style.stroke}" stroke-width="${strokeW}" />
+        <text x="${point.x.toFixed(1)}" y="${point.y.toFixed(1)}"
+          text-anchor="middle" dominant-baseline="central" class="wuxing-node-count"
+          font-size="${countFont.toFixed(1)}" fill="${textFill}">${count}</text>
+      </g>`;
+    }
+
     const nameFont = r * 0.62 * textScale;
     const countFont = r * 0.44 * textScale;
     const nameOffset = nameFont * 0.42;

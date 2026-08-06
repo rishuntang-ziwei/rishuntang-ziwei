@@ -40,9 +40,14 @@ body::after {
   z-index: -1;
   background-image: url("../assets/ui/background.png");
   background-repeat: no-repeat;
-  background-position: 38% 52%;
+  background-position: center 52%;
   background-size: 122% 100%;
   pointer-events: none;
+}
+
+body:has(.table.stack-stage)::after {
+  background-size: var(--stack-bg-width, 122%) 100%;
+  background-position: center 52%;
 }
 
 body::before {
