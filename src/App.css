@@ -1199,7 +1199,7 @@ body {
   grid-column: 1;
   grid-row: 1;
   color: #333;
-  font-size: 0.95rem;
+  font-size: 1.15rem;
   white-space: nowrap;
   min-height: 1em;
   padding: 0;
@@ -2244,7 +2244,7 @@ body {
 
   .daxian,
   .decadal-slot {
-    font-size: 15px !important;
+    font-size: 19px !important;
   }
 
   .monthly-badge {
