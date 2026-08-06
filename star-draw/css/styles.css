@@ -8,6 +8,19 @@
   --gold: #c9a227;
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-bounce: cubic-bezier(0.34, 1.35, 0.64, 1);
+  /* 14 張牌展開寬度 + 兩側各 2 張牌：底圖固定依此計算 */
+  --stack-table-w: min(calc(100vw - 24px), 980px);
+  --stack-card-w: clamp(100px, 15vw, 138px);
+  --stack-usable: max(calc(var(--stack-table-w) - 16px), var(--stack-card-w));
+  --stack-step: min(
+    calc(var(--stack-card-w) * 0.82),
+    max(
+      calc(var(--stack-card-w) * 0.2),
+      calc((var(--stack-usable) - var(--stack-card-w)) / 13)
+    )
+  );
+  --stack-spread: calc(13 * var(--stack-step) + var(--stack-card-w));
+  --stack-bg-width: calc(var(--stack-spread) + 4 * var(--stack-card-w));
 }
 
 * {
@@ -41,14 +54,8 @@ body::after {
   background-image: url("../assets/ui/background.png");
   background-repeat: no-repeat;
   background-position: center 52%;
-  background-size: 122% 100%;
+  background-size: var(--stack-bg-width) 100%;
   pointer-events: none;
-  transition: background-size 0.45s var(--ease-out);
-}
-
-body.stack-bg-active::after {
-  background-size: var(--stack-bg-width, 122%) 100%;
-  background-position: center 52%;
 }
 
 body::before {
@@ -335,9 +342,12 @@ body::before {
   overflow: visible;
 }
 
-.wuxing-cycle-label {
+.wuxing-cycle-label,
+.wuxing-cycle-label-text {
   font-family: 'DFKai-SB', 'BiauKai', 'KaiTi', serif;
   font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: middle;
 }
 
 .wuxing-cycle-label-red {
@@ -721,6 +731,10 @@ body::before {
 }
 
 @media (max-width: 640px) {
+  :root {
+    --stack-card-w: clamp(84px, 18vw, 108px);
+  }
+
   .hint {
     margin-top: 40px;
     margin-bottom: 6px;

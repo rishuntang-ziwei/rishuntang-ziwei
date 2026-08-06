@@ -101,49 +101,6 @@ function stackLayout(count, { maxWidth = 620, cardWidth = 110 } = {}) {
   }));
 }
 
-/** 14 張橫列展開時，底圖需超出第 1、第 14 張牌外側各 2 張牌的距離 */
-function stackBackgroundWidth(count, layout, cardWidth) {
-  if (count < 2 || layout.length < 2) return null;
-  const step = Math.abs(layout[1].x - layout[0].x);
-  const fullSpread = (count - 1) * step + cardWidth;
-  const outwardEachSide = 2 * cardWidth;
-  return fullSpread + outwardEachSide * 2;
-}
-
-function syncStackBackgroundWidth(count, layout, cardWidth) {
-  const width = stackBackgroundWidth(count, layout, cardWidth);
-  if (width == null) {
-    document.body.classList.remove('stack-bg-active');
-    document.body.style.removeProperty('--stack-bg-width');
-    return;
-  }
-  const viewportWidth = window.innerWidth || document.documentElement.clientWidth || width;
-  const pct = Math.min(220, Math.max(70, (width / viewportWidth) * 100));
-  document.body.classList.add('stack-bg-active');
-  document.body.style.setProperty('--stack-bg-width', `${pct.toFixed(1)}%`);
-}
-
-function clearStackBackgroundWidth() {
-  document.body.classList.remove('stack-bg-active');
-  document.body.style.removeProperty('--stack-bg-width');
-}
-
-let stackBgResizeBound = false;
-
-function bindStackBackgroundResize(container) {
-  if (stackBgResizeBound) return;
-  stackBgResizeBound = true;
-  window.addEventListener('resize', () => {
-    if (!container.classList.contains('stack-stage')) return;
-    const count = container.querySelectorAll('.card.in-stack').length;
-    if (count < 2) return;
-    const cardWidth = measureCardWidth(container);
-    const maxWidth = container.clientWidth || Math.min(window.innerWidth, 980) - 24;
-    const layout = stackLayout(count, { maxWidth, cardWidth });
-    syncStackBackgroundWidth(count, layout, cardWidth);
-  });
-}
-
 function stackTransform({ x }) {
   return `translateX(${x}px)`;
 }
@@ -174,9 +131,6 @@ function layoutStack(container, entries, { dealIn = false } = {}) {
 
     container.appendChild(el);
   });
-
-  syncStackBackgroundWidth(entries.length, layout, cardWidth);
-  bindStackBackgroundResize(container);
 }
 
 async function flyCardToRow(fromEl, rowEl) {
@@ -277,7 +231,6 @@ function renderIdle() {
   const table = $('#table');
   table.innerHTML = '';
   table.classList.remove('round-exit', 'round-enter', 'reveal-stage', 'stack-stage');
-  clearStackBackgroundWidth();
 
   const hero = makeCardEl({ id: 'hero', name: '開始' }, { hero: true });
   hero.addEventListener('click', () => {
@@ -478,7 +431,6 @@ function renderRevealGrid() {
   const table = $('#table');
   table.innerHTML = '';
   table.classList.remove('stack-stage');
-  clearStackBackgroundWidth();
   table.classList.add('reveal-stage');
 
   const grid = document.createElement('div');
@@ -531,6 +483,7 @@ function showWuxingPanel() {
   panel.innerHTML = buildWuxingPanel(counts, {
     markerId: 'star-draw-wuxing-arrow',
     showSummary: false,
+    numbersOnly: true,
     equalCenterRadius: true,
     showCycleLabels: true,
     cycleLabelScale: 1.82,

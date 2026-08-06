@@ -207,19 +207,33 @@ function cycleRolePosition(center, role, scale) {
   return map[role];
 }
 
+function renderStackedChars(text, point, scale, { fontSize, fill, className }) {
+  const chars = [...text];
+  if (chars.length === 0) return '';
+
+  const x = point.x.toFixed(1);
+  const gap = fontSize * 1.08;
+  const startY = point.y - ((chars.length - 1) * gap) / 2;
+
+  return chars
+    .map((char, index) => {
+      const y = (startY + index * gap).toFixed(1);
+      return `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="middle"
+        class="${className}" font-size="${fontSize.toFixed(1)}" fill="${fill}">${char}</text>`;
+    })
+    .join('');
+}
+
 function renderCycleLabelItem(item, point, scale) {
-  const [top, bottom] = item.text.split('');
-  const font = (13 * scale).toFixed(1);
-  const redFont = (14.5 * scale).toFixed(1);
-  const lineGap = (14 * scale).toFixed(1);
+  const font = 13 * scale;
+  const redFont = 14.5 * scale;
 
   if (item.kind === 'red') {
-    return `
-      <text x="${point.x.toFixed(1)}" y="${(point.y - 4 * scale).toFixed(1)}" text-anchor="middle"
-        class="wuxing-cycle-label wuxing-cycle-label-red" font-size="${redFont}">
-        <tspan x="${point.x.toFixed(1)}" dy="0">${top}</tspan>
-        <tspan x="${point.x.toFixed(1)}" dy="${lineGap}">${bottom}</tspan>
-      </text>`;
+    return renderStackedChars(item.text, point, scale, {
+      fontSize: redFont,
+      fill: '#d82222',
+      className: 'wuxing-cycle-label wuxing-cycle-label-red',
+    });
   }
 
   const stroke = item.kind === 'green' ? '#2a9d4b' : '#111111';
@@ -230,11 +244,11 @@ function renderCycleLabelItem(item, point, scale) {
     <g class="wuxing-cycle-label wuxing-cycle-label-${item.kind}">
       <ellipse cx="${point.x.toFixed(1)}" cy="${(point.y + 1.5 * scale).toFixed(1)}" rx="${rx}" ry="${ry}"
         fill="none" stroke="${stroke}" stroke-width="${(1.7 * scale).toFixed(1)}" />
-      <text x="${point.x.toFixed(1)}" y="${(point.y - 4 * scale).toFixed(1)}" text-anchor="middle"
-        font-size="${font}" fill="${fill}">
-        <tspan x="${point.x.toFixed(1)}" dy="0">${top}</tspan>
-        <tspan x="${point.x.toFixed(1)}" dy="${(12 * scale).toFixed(1)}">${bottom}</tspan>
-      </text>
+      ${renderStackedChars(item.text, point, scale, {
+        fontSize: font,
+        fill,
+        className: 'wuxing-cycle-label-text',
+      })}
     </g>`;
 }
 
@@ -267,18 +281,19 @@ function cycleLabelBounds(positions, outerR, scale) {
     group.items.forEach((item) => {
       const point = cycleRolePosition(center, item.role, scale);
       if (item.kind === 'red') {
-        const top = point.y - 4 * scale;
-        const bottom = top + redFont * 2.2;
+        const gap = redFont * 1.08;
+        const top = point.y - gap / 2 - redFont * 0.5;
+        const bottom = point.y + gap / 2 + redFont * 0.5;
         minX = Math.min(minX, point.x - redFont * 0.9);
         maxX = Math.max(maxX, point.x + redFont * 0.9);
-        minY = Math.min(minY, top - redFont * 0.4);
+        minY = Math.min(minY, top);
         maxY = Math.max(maxY, bottom);
         return;
       }
 
       minX = Math.min(minX, point.x - rx);
       maxX = Math.max(maxX, point.x + rx);
-      minY = Math.min(minY, point.y - 4 * scale - font);
+      minY = Math.min(minY, point.y - font * 1.2);
       maxY = Math.max(maxY, point.y + 1.5 * scale + ry + font * 1.1);
     });
   });
@@ -434,7 +449,7 @@ export function buildWuxingPanel(counts, options = {}) {
     const fill = active ? style.fill : style.inactive;
     const textFill = active ? style.text : style.inactiveText;
     const strokeW = (name === '金' ? 2.5 : active ? 2 : 1.5) * scale;
-    const numbersOnly = options.size === 'center';
+    const numbersOnly = options.numbersOnly ?? options.size === 'center';
 
     if (numbersOnly) {
       const countFont = countFontSize(count, r) * textScale;
