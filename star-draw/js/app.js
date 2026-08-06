@@ -113,13 +113,18 @@ function stackBackgroundWidth(count, layout, cardWidth) {
 function syncStackBackgroundWidth(count, layout, cardWidth) {
   const width = stackBackgroundWidth(count, layout, cardWidth);
   if (width == null) {
+    document.body.classList.remove('stack-bg-active');
     document.body.style.removeProperty('--stack-bg-width');
     return;
   }
-  document.body.style.setProperty('--stack-bg-width', `${width}px`);
+  const viewportWidth = window.innerWidth || document.documentElement.clientWidth || width;
+  const pct = Math.min(220, Math.max(70, (width / viewportWidth) * 100));
+  document.body.classList.add('stack-bg-active');
+  document.body.style.setProperty('--stack-bg-width', `${pct.toFixed(1)}%`);
 }
 
 function clearStackBackgroundWidth() {
+  document.body.classList.remove('stack-bg-active');
   document.body.style.removeProperty('--stack-bg-width');
 }
 

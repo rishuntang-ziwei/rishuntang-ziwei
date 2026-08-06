@@ -43,9 +43,10 @@ body::after {
   background-position: center 52%;
   background-size: 122% 100%;
   pointer-events: none;
+  transition: background-size 0.45s var(--ease-out);
 }
 
-body:has(.table.stack-stage)::after {
+body.stack-bg-active::after {
   background-size: var(--stack-bg-width, 122%) 100%;
   background-position: center 52%;
 }

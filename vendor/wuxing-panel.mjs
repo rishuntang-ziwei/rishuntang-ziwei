@@ -300,13 +300,35 @@ function resolveViewBox({
 }) {
   if (size === 'center') {
     const zoom = contentZoom;
-    const full = 288;
-    const origin = -14;
-    const w = full / zoom;
-    const h = full / zoom;
-    const ox = origin + (full - w) / 2;
-    const oy = origin + (full - h) / 2;
-    return `${ox.toFixed(1)} ${oy.toFixed(1)} ${w.toFixed(1)} ${h.toFixed(1)}`;
+    let minX = cx - outerDist - outerR;
+    let minY = cy - outerDist - outerR;
+    let maxX = cx + outerDist + outerR;
+    let maxY = cy + outerDist + outerR;
+
+    minX = Math.min(minX, cx - centerR);
+    maxX = Math.max(maxX, cx + centerR);
+    minY = Math.min(minY, cy - centerR);
+    maxY = Math.max(maxY, cy + centerR);
+
+    const margin = 8;
+    minX -= margin;
+    minY -= margin;
+    maxX += margin;
+    maxY += margin;
+
+    let width = maxX - minX;
+    let height = maxY - minY;
+
+    if (zoom > 1) {
+      const centerX = minX + width / 2;
+      const centerY = minY + height / 2;
+      width /= zoom;
+      height /= zoom;
+      minX = centerX - width / 2;
+      minY = centerY - height / 2;
+    }
+
+    return `${minX.toFixed(1)} ${minY.toFixed(1)} ${width.toFixed(1)} ${height.toFixed(1)}`;
   }
 
   let minX = cx - outerDist - outerR;
