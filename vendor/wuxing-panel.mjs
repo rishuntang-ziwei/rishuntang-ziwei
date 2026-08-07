@@ -98,7 +98,7 @@ function resolveLayout(options) {
   let base;
 
   if (options.size === 'center') {
-    base = { outerDist: 92, outerR: 40, centerR: 36 };
+    base = { outerDist: 78, outerR: 34, centerR: 30 };
   } else if (options.compact || options.size === 'compact') {
     base = { outerDist: 68, outerR: 24, centerR: 22 };
   } else {
@@ -325,7 +325,7 @@ function resolveViewBox({
     minY = Math.min(minY, cy - centerR);
     maxY = Math.max(maxY, cy + centerR);
 
-    const margin = 16;
+    const margin = 22;
     minX -= margin;
     minY -= margin;
     maxX += margin;
@@ -423,7 +423,7 @@ export function buildWuxingPanel(counts, options = {}) {
     cycleLabelScale,
     positions,
     size: options.size,
-    contentZoom: options.contentZoom ?? (options.size === 'center' ? 1.06 : 1),
+    contentZoom: options.contentZoom ?? (options.size === 'center' ? 1 : 1),
   });
 
   const generatingEdges = [

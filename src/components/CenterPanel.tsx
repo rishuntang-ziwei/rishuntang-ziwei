@@ -74,8 +74,8 @@ export function CenterPanel({
     size: 'center',
     showSummary: false,
     markerId: 'center-wuxing-arrow',
-    textScale: 1.02,
-    contentZoom: 1.06,
+    textScale: 1,
+    contentZoom: 1,
   })
 
   return (
