@@ -7,6 +7,7 @@ import type { PublicUser, SavedChartDetail, SavedChartPayload, SavedChartRow, Sa
 import { mapPaymentOrderRow, mapSavedChartRow, mapUserRow, parseSavedChartPayload, toPublicUser, toSavedChartDetail, toSavedChartSummary } from './shared.js'
 import { resolveMembershipGrant } from '../membershipGrant.js'
 import { canGenerateChartToday, dailyChartQuotaForUser, taipeiDateString } from '../chartQuota.js'
+import { GUEST_DAILY_AI_LIMIT } from '../guestQuota.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const dataDir = process.env.DB_PATH
@@ -71,6 +72,15 @@ export async function initDb() {
   if (!userColumns.some((col) => col.name === 'daily_chart_gen_count')) {
     db.exec(`ALTER TABLE users ADD COLUMN daily_chart_gen_count INTEGER NOT NULL DEFAULT 0`)
   }
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS guest_ai_usage (
+      ip TEXT NOT NULL,
+      usage_date TEXT NOT NULL,
+      count INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY (ip, usage_date)
+    );
+  `)
 
   db.exec(`
     CREATE TABLE IF NOT EXISTS payment_orders (
@@ -366,6 +376,27 @@ export async function consumeDailyChartGeneration(userId: number) {
   const updated = await findUserById(userId)
   if (!updated) throw new Error('找不到使用者')
   return { allowed: true as const, quota: dailyChartQuotaForUser(updated)! }
+}
+
+export async function consumeGuestAiQuota(ip: string) {
+  const today = taipeiDateString()
+  const limit = GUEST_DAILY_AI_LIMIT
+  const row = db
+    .prepare('SELECT count FROM guest_ai_usage WHERE ip = ? AND usage_date = ?')
+    .get(ip, today) as { count: number } | undefined
+  const used = row?.count ?? 0
+  if (used >= limit) {
+    return { allowed: false as const, quota: { used, limit, remaining: 0 } }
+  }
+  const next = used + 1
+  db.prepare(
+    `INSERT INTO guest_ai_usage (ip, usage_date, count) VALUES (?, ?, ?)
+     ON CONFLICT(ip, usage_date) DO UPDATE SET count = excluded.count`,
+  ).run(ip, today, next)
+  return {
+    allowed: true as const,
+    quota: { used: next, limit, remaining: Math.max(0, limit - next) },
+  }
 }
 
 export async function ensureAdminUser() {

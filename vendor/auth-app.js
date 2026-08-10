@@ -744,6 +744,37 @@
     }
   }
 
+  async function enterGuestApp() {
+    window.__guestMode = true
+    currentUser = null
+    document.body.classList.add('guest-mode')
+    setView('app')
+
+    const formPanel = document.querySelector('.form-panel')
+    if (formPanel) formPanel.hidden = true
+
+    const toolbar = document.getElementById('appToolbar')
+    if (toolbar) toolbar.hidden = true
+
+    let guestBar = document.getElementById('guestBar')
+    if (!guestBar) {
+      guestBar = document.createElement('div')
+      guestBar.id = 'guestBar'
+      guestBar.className = 'guest-bar'
+      guestBar.innerHTML =
+        '<span class="guest-bar-text">免費試排 · 資料僅保留於此視窗，關閉後即清除</span>' +
+        '<a class="guest-bar-link" href="https://rishuntang.com/free-chart.html" target="_blank" rel="noopener noreferrer">重新填寫</a>' +
+        '<a class="guest-bar-link" href="https://rishuntang.com/" target="_blank" rel="noopener noreferrer">返回官網</a>'
+      const appRoot = document.getElementById('appRoot')
+      if (appRoot) appRoot.insertBefore(guestBar, appRoot.firstChild)
+    }
+
+    if (typeof window.initChartApp === 'function') window.initChartApp()
+    if (typeof window.loadGuestChartPayload === 'function') {
+      await window.loadGuestChartPayload()
+    }
+  }
+
   async function enterApp(user) {
     currentUser = user
     setView('app')
@@ -791,6 +822,11 @@
   }
 
   async function boot() {
+    if (new URLSearchParams(location.search).get('guest') === '1') {
+      await enterGuestApp()
+      return
+    }
+
     const token = auth.getToken()
     if (!token) {
       auth.redirectToLogin()

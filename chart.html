@@ -1670,6 +1670,40 @@
 
     [hidden] { display: none !important; }
 
+    .guest-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px 16px;
+      width: 100%;
+      padding: 10px 14px;
+      margin-bottom: 12px;
+      background: #fff8e8;
+      border: 1px solid #e8d4a8;
+      border-radius: 8px;
+      font-size: 16px;
+      color: #5c4033;
+    }
+
+    .guest-bar-link {
+      color: #8b2500;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .guest-bar-link:hover {
+      text-decoration: underline;
+    }
+
+    body.guest-mode .layout {
+      flex-direction: column;
+    }
+
+    body.guest-mode .chart-panel {
+      width: 100%;
+      flex: 1;
+    }
+
     @media (max-width: 900px) {
       body {
         padding: 8px;
@@ -2873,6 +2907,22 @@
     let aiInterpretEnabled = false
     let aiInterpretStatusLoaded = false
     let aiInterpretAbortController = null
+    let guestInterpretTopics = null
+
+    const GUEST_TOPIC_LABELS = {
+      overall: '整體運勢',
+      love: '戀愛運勢',
+      career: '事業運勢',
+    }
+
+    function isGuestMode() {
+      return Boolean(window.__guestMode)
+    }
+
+    function guestTopicLabel() {
+      const topic = window.__guestTopic || 'overall'
+      return GUEST_TOPIC_LABELS[topic] || GUEST_TOPIC_LABELS.overall
+    }
 
     function shouldShowAiInterpretButton() {
       return initialChartType === 'natal' && resolveEffectiveChartMode() === 'origin'
@@ -2886,17 +2936,25 @@
     }
 
     async function loadAiInterpretStatus() {
-      if (!window.AiInterpreter || !window.ZiweiAuth) {
+      if (!window.AiInterpreter) {
         aiInterpretEnabled = false
         aiInterpretStatusLoaded = true
         return
       }
       try {
-        const data = await window.AiInterpreter.fetchInterpretStatus(
-          window.ZiweiAuth.apiBase(),
-          window.ZiweiAuth.getToken(),
-        )
-        aiInterpretEnabled = Boolean(data.enabled)
+        if (isGuestMode()) {
+          const data = await window.AiInterpreter.fetchGuestInterpretStatus(window.ZiweiAuth.apiBase())
+          aiInterpretEnabled = Boolean(data.enabled)
+          guestInterpretTopics = data.topics || null
+        } else if (window.ZiweiAuth) {
+          const data = await window.AiInterpreter.fetchInterpretStatus(
+            window.ZiweiAuth.apiBase(),
+            window.ZiweiAuth.getToken(),
+          )
+          aiInterpretEnabled = Boolean(data.enabled)
+        } else {
+          aiInterpretEnabled = false
+        }
       } catch (_) {
         aiInterpretEnabled = false
       } finally {
@@ -2914,12 +2972,16 @@
         return
       }
       if (!aiInterpretEnabled) {
-        openBtn.textContent = '🔮 命盤解析（籌備中）'
+        openBtn.textContent = isGuestMode() ? '🔮 免費解析（籌備中）' : '🔮 命盤解析（籌備中）'
         openBtn.disabled = true
         openBtn.classList.add('is-pending')
         return
       }
-      openBtn.textContent = '🔮 命盤解析 (命/事/夫)'
+      if (isGuestMode()) {
+        openBtn.textContent = '🔮 免費解析 · ' + guestTopicLabel()
+      } else {
+        openBtn.textContent = '🔮 命盤解析 (命/事/夫)'
+      }
       openBtn.disabled = false
       openBtn.classList.remove('is-pending')
     }
@@ -2964,8 +3026,10 @@
         timeIndex: currentInput.timeIndex,
       }
 
+      const modalTitle = isGuestMode() ? '免費命盤解析 · ' + guestTopicLabel() : '命盤解析'
+
       body.innerHTML =
-        '<h2 class="ai-interpret-modal-title">命盤解析</h2>' +
+        '<h2 class="ai-interpret-modal-title">' + escapeHtml(modalTitle) + '</h2>' +
         '<div class="ai-interpret-loading">正在分析命盤...</div>'
       modal.classList.add('is-open')
       modal.setAttribute('aria-hidden', 'false')
@@ -2978,22 +3042,36 @@
       }
 
       try {
-        await window.AiInterpreter.streamInterpret({
-          apiBase: window.ZiweiAuth.apiBase(),
-          token: window.ZiweiAuth.getToken(),
-          palaceJson: JSON.stringify(palaceData),
-          userInfo: userInfo,
-          signal: aiInterpretAbortController.signal,
-          onUpdate: function (text) {
-            body.innerHTML =
-              '<h2 class="ai-interpret-modal-title">命盤解析</h2>' +
-              '<div class="ai-interpret-content">' + escapeHtml(text) + '</div>'
-          },
-        })
+        if (isGuestMode()) {
+          await window.AiInterpreter.streamGuestInterpret({
+            apiBase: window.ZiweiAuth.apiBase(),
+            palaceJson: JSON.stringify(palaceData),
+            topic: window.__guestTopic || 'overall',
+            signal: aiInterpretAbortController.signal,
+            onUpdate: function (text) {
+              body.innerHTML =
+                '<h2 class="ai-interpret-modal-title">' + escapeHtml(modalTitle) + '</h2>' +
+                '<div class="ai-interpret-content">' + escapeHtml(text) + '</div>'
+            },
+          })
+        } else {
+          await window.AiInterpreter.streamInterpret({
+            apiBase: window.ZiweiAuth.apiBase(),
+            token: window.ZiweiAuth.getToken(),
+            palaceJson: JSON.stringify(palaceData),
+            userInfo: userInfo,
+            signal: aiInterpretAbortController.signal,
+            onUpdate: function (text) {
+              body.innerHTML =
+                '<h2 class="ai-interpret-modal-title">' + escapeHtml(modalTitle) + '</h2>' +
+                '<div class="ai-interpret-content">' + escapeHtml(text) + '</div>'
+            },
+          })
+        }
       } catch (err) {
         if (err && err.name === 'AbortError') return
         body.innerHTML =
-          '<h2 class="ai-interpret-modal-title">命盤解析</h2>' +
+          '<h2 class="ai-interpret-modal-title">' + escapeHtml(modalTitle) + '</h2>' +
           '<p class="ai-interpret-error">' + escapeHtml(err.message || '命盤解析失敗，請稍後再試。') + '</p>'
       } finally {
         aiInterpretAbortController = null
@@ -3868,6 +3946,58 @@
       run({ skipQuotaCheck: skipQuotaCheck })
     }
 
+    function applyGuestPayload(payload) {
+      window.__guestTopic = payload.topic || 'overall'
+      applyInputToForm(payload)
+      run({ skipQuotaCheck: true })
+    }
+
+    function isAllowedGuestOrigin(origin) {
+      if (!origin) return false
+      if (origin === 'https://rishuntang.com' || origin === 'https://www.rishuntang.com') return true
+      if (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) return true
+      return false
+    }
+
+    window.addEventListener('message', function (e) {
+      if (!isGuestMode() || window.__guestPayloadReceived) return
+      if (!isAllowedGuestOrigin(e.origin)) return
+      if (e.data && e.data.type === 'guestChartPayload' && e.data.payload) {
+        window.__guestPayloadReceived = true
+        applyGuestPayload(e.data.payload)
+      }
+    })
+
+    window.loadGuestChartPayload = async function () {
+      if (!isGuestMode()) return
+
+      try {
+        const raw = sessionStorage.getItem('guestChartPayload')
+        if (raw) {
+          window.__guestPayloadReceived = true
+          applyGuestPayload(JSON.parse(raw))
+          return
+        }
+      } catch (_err) {
+        /* fall through to wait for postMessage */
+      }
+
+      document.getElementById('chartView').innerHTML =
+        '<div class="chart-placeholder">正在載入試排資料…</div>'
+
+      const deadline = Date.now() + 4000
+      while (!window.__guestPayloadReceived && Date.now() < deadline) {
+        await new Promise(function (resolve) {
+          window.setTimeout(resolve, 120)
+        })
+      }
+
+      if (!window.__guestPayloadReceived) {
+        document.getElementById('chartView').innerHTML =
+          '<div class="error-box">找不到試排資料，請從官網「免費試排」重新填寫並允許開啟新視窗。</div>'
+      }
+    }
+
     window.loadRegistrationBirthChart = async function () {
       try {
         const data = await window.ZiweiAuth.api('/api/auth/birth-chart')
@@ -4333,7 +4463,7 @@
       showChartView()
       try {
         const skipQuota = options && options.skipQuotaCheck
-        if (!skipQuota && !isPremiumMember()) {
+        if (!skipQuota && !isGuestMode() && !isPremiumMember()) {
           const data = await window.ZiweiAuth.api('/api/auth/chart-generate', { method: 'POST' })
           if (data.quota && window.ZiweiMember && window.ZiweiMember.currentUser) {
             window.ZiweiMember.currentUser.dailyChartQuota = data.quota
@@ -4424,6 +4554,6 @@
   </script>
   <script src="./vendor/auth-common.js?v=20260717"></script>
   <script src="./vendor/payment-ui.js?v=20260717"></script>
-  <script src="./vendor/auth-app.js?v=20260720"></script>
+  <script src="./vendor/auth-app.js?v=20260729"></script>
   </body>
 </html>

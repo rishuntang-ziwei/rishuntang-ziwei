@@ -8,6 +8,7 @@ import chartRoutes from './routes/charts.js'
 import starDrawRoutes from './routes/starDraw.js'
 import paymentRoutes from './routes/payment.js'
 import interpretRoutes from './routes/interpret.js'
+import guestInterpretRoutes from './routes/guestInterpret.js'
 
 if (process.env.RENDER && !process.env.DATABASE_URL?.trim()) {
   console.error(
@@ -19,6 +20,8 @@ if (process.env.RENDER && !process.env.DATABASE_URL?.trim()) {
 
 const app = express()
 const port = Number(process.env.PORT || 3001)
+
+app.set('trust proxy', 1)
 
 app.use(cors())
 app.use('/api/payment/newebpay', express.urlencoded({ extended: false }))
@@ -58,6 +61,7 @@ app.use('/api/charts', chartRoutes)
 app.use('/api/star-draw', starDrawRoutes)
 app.use('/api/payment', paymentRoutes)
 app.use('/api/interpret', interpretRoutes)
+app.use('/api/guest', guestInterpretRoutes)
 
 await initDb()
 const dbInfo = await getDbInfo()
