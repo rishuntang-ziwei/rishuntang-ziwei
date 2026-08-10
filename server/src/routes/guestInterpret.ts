@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { getGuestAiQuota, incrementGuestAiQuota } from '../db.js'
-import { formatAiError, generateWithGemini, isGeminiConfigured } from '../gemini.js'
+import { formatAiError, generateWithGemini, isGeminiConfigured, probeGeminiConnection } from '../gemini.js'
 import { clientIp, GUEST_DAILY_AI_LIMIT } from '../guestQuota.js'
 import {
   buildGuestInterpretSystemPrompt,
@@ -19,6 +19,10 @@ router.get('/status', (_req, res) => {
     answerMaxChars: GUEST_ANSWER_MAX_CHARS,
     dailyLimit: GUEST_DAILY_AI_LIMIT,
   })
+})
+
+router.get('/ai-check', async (_req, res) => {
+  res.json(await probeGeminiConnection())
 })
 
 router.post('/interpret', async (req, res) => {
