@@ -51,7 +51,8 @@ export const fulfillPaymentOrder = (order: import('../types.js').PaymentOrderRow
 export const grantUserMembership = (userId: number, planId: string) =>
   driver.grantUserMembership(userId, planId)
 export const consumeDailyChartGeneration = (userId: number) => driver.consumeDailyChartGeneration(userId)
-export const consumeGuestAiQuota = (ip: string) => driver.consumeGuestAiQuota(ip)
+export const getGuestAiQuota = (ip: string) => driver.getGuestAiQuota(ip)
+export const incrementGuestAiQuota = (ip: string) => driver.incrementGuestAiQuota(ip)
 export const ensureAdminUser = () => driver.ensureAdminUser()
 
 export { toPublicUser } from './shared.js'

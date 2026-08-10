@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { streamText } from 'ai'
+import { generateText } from 'ai'
 import { google } from '@ai-sdk/google'
 import { requireAuth, requireActiveMember } from '../middleware.js'
 
@@ -32,14 +32,21 @@ router.post('/', requireAuth, requireActiveMember, async (req, res) => {
   }
 
   try {
-    const result = streamText({
+    const result = await generateText({
       model: google('gemini-2.0-flash'),
       system: INTERPRET_SYSTEM_PROMPT,
       prompt: `用戶資料：${JSON.stringify(userInfo ?? {})}。宮位數據：${palaceJson}`,
       maxOutputTokens: INTERPRET_PARAGRAPH_MAX_CHARS * 5,
     })
 
-    await result.pipeTextStreamToResponse(res)
+    const text = result.text.trim()
+    if (!text) {
+      console.error('[interpret] empty response', result.finishReason)
+      res.status(500).json({ error: 'AI 解盤失敗，請稍後再試。' })
+      return
+    }
+
+    res.type('text/plain; charset=utf-8').send(text)
   } catch (err) {
     console.error('[interpret]', err)
     if (!res.headersSent) {

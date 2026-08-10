@@ -378,25 +378,32 @@ export async function consumeDailyChartGeneration(userId: number) {
   return { allowed: true as const, quota: dailyChartQuotaForUser(updated)! }
 }
 
-export async function consumeGuestAiQuota(ip: string) {
+export async function getGuestAiQuota(ip: string) {
   const today = taipeiDateString()
   const limit = GUEST_DAILY_AI_LIMIT
   const row = db
     .prepare('SELECT count FROM guest_ai_usage WHERE ip = ? AND usage_date = ?')
     .get(ip, today) as { count: number } | undefined
   const used = row?.count ?? 0
-  if (used >= limit) {
-    return { allowed: false as const, quota: { used, limit, remaining: 0 } }
+  return {
+    allowed: used < limit,
+    quota: { used, limit, remaining: Math.max(0, limit - used) },
   }
+}
+
+export async function incrementGuestAiQuota(ip: string) {
+  const today = taipeiDateString()
+  const limit = GUEST_DAILY_AI_LIMIT
+  const row = db
+    .prepare('SELECT count FROM guest_ai_usage WHERE ip = ? AND usage_date = ?')
+    .get(ip, today) as { count: number } | undefined
+  const used = row?.count ?? 0
   const next = used + 1
   db.prepare(
     `INSERT INTO guest_ai_usage (ip, usage_date, count) VALUES (?, ?, ?)
      ON CONFLICT(ip, usage_date) DO UPDATE SET count = excluded.count`,
   ).run(ip, today, next)
-  return {
-    allowed: true as const,
-    quota: { used: next, limit, remaining: Math.max(0, limit - next) },
-  }
+  return { used: next, limit, remaining: Math.max(0, limit - next) }
 }
 
 export async function ensureAdminUser() {

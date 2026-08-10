@@ -12,6 +12,27 @@ export async function fetchGuestInterpretStatus(apiBase) {
   return res.json()
 }
 
+function withTimeoutSignal(signal, timeoutMs) {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), timeoutMs)
+
+  const abort = () => {
+    clearTimeout(timer)
+    controller.abort()
+  }
+
+  if (signal) {
+    if (signal.aborted) {
+      clearTimeout(timer)
+      controller.abort()
+    } else {
+      signal.addEventListener('abort', abort, { once: true })
+    }
+  }
+
+  return controller.signal
+}
+
 export async function streamInterpret({ apiBase, token, palaceJson, userInfo, onUpdate, signal }) {
   const res = await fetch(`${apiBase}/api/interpret`, {
     method: 'POST',
@@ -20,7 +41,7 @@ export async function streamInterpret({ apiBase, token, palaceJson, userInfo, on
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: JSON.stringify({ palaceJson, userInfo, prompt: '' }),
-    signal,
+    signal: withTimeoutSignal(signal, 90000),
   })
 
   if (!res.ok) {
@@ -46,6 +67,8 @@ export async function streamInterpret({ apiBase, token, palaceJson, userInfo, on
     text += decoder.decode(value, { stream: true })
     onUpdate(text)
   }
+
+  if (!text.trim()) throw new Error('AI 未能產生解析，請稍後再試。')
 
   return text
 }
@@ -55,7 +78,7 @@ export async function streamGuestInterpret({ apiBase, palaceJson, topic, onUpdat
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ palaceJson, topic }),
-    signal,
+    signal: withTimeoutSignal(signal, 90000),
   })
 
   if (!res.ok) {
@@ -81,6 +104,8 @@ export async function streamGuestInterpret({ apiBase, palaceJson, topic, onUpdat
     text += decoder.decode(value, { stream: true })
     onUpdate(text)
   }
+
+  if (!text.trim()) throw new Error('AI 未能產生解析，請稍後再試。')
 
   return text
 }

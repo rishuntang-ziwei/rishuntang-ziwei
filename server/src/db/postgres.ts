@@ -395,7 +395,7 @@ export async function consumeDailyChartGeneration(userId: number) {
   return { allowed: true as const, quota: dailyChartQuotaForUser(updated)! }
 }
 
-export async function consumeGuestAiQuota(ip: string) {
+export async function getGuestAiQuota(ip: string) {
   const today = taipeiDateString()
   const limit = GUEST_DAILY_AI_LIMIT
   const existing = await pool.query<{ count: number }>(
@@ -403,19 +403,27 @@ export async function consumeGuestAiQuota(ip: string) {
     [ip, today],
   )
   const used = existing.rows[0]?.count ?? 0
-  if (used >= limit) {
-    return { allowed: false as const, quota: { used, limit, remaining: 0 } }
+  return {
+    allowed: used < limit,
+    quota: { used, limit, remaining: Math.max(0, limit - used) },
   }
+}
+
+export async function incrementGuestAiQuota(ip: string) {
+  const today = taipeiDateString()
+  const limit = GUEST_DAILY_AI_LIMIT
+  const existing = await pool.query<{ count: number }>(
+    'SELECT count FROM guest_ai_usage WHERE ip = $1 AND usage_date = $2',
+    [ip, today],
+  )
+  const used = existing.rows[0]?.count ?? 0
   const next = used + 1
   await pool.query(
     `INSERT INTO guest_ai_usage (ip, usage_date, count) VALUES ($1, $2, $3)
      ON CONFLICT (ip, usage_date) DO UPDATE SET count = EXCLUDED.count`,
     [ip, today, next],
   )
-  return {
-    allowed: true as const,
-    quota: { used: next, limit, remaining: Math.max(0, limit - next) },
-  }
+  return { used: next, limit, remaining: Math.max(0, limit - next) }
 }
 
 export async function ensureAdminUser() {

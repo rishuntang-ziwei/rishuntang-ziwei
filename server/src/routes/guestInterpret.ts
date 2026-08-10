@@ -1,7 +1,7 @@
 import { Router } from 'express'
-import { streamText } from 'ai'
+import { generateText } from 'ai'
 import { google } from '@ai-sdk/google'
-import { consumeGuestAiQuota } from '../db.js'
+import { getGuestAiQuota, incrementGuestAiQuota } from '../db.js'
 import { clientIp, GUEST_DAILY_AI_LIMIT } from '../guestQuota.js'
 import {
   buildGuestInterpretSystemPrompt,
@@ -40,11 +40,11 @@ router.post('/interpret', async (req, res) => {
   }
 
   const ip = clientIp(req)
-  const quota = await consumeGuestAiQuota(ip)
+  const quota = await getGuestAiQuota(ip)
   if (!quota.allowed) {
     res.status(429).json({
       error: `今日免費解析次數已用完（${GUEST_DAILY_AI_LIMIT} 次），請明日再試或註冊會員使用完整功能。`,
-      quota,
+      quota: quota.quota,
     })
     return
   }
@@ -53,18 +53,26 @@ router.post('/interpret', async (req, res) => {
   const topicMeta = GUEST_TOPICS[normalizedTopic]
 
   try {
-    const result = streamText({
+    const result = await generateText({
       model: google('gemini-2.0-flash'),
       system: buildGuestInterpretSystemPrompt(normalizedTopic),
       prompt: `主題：${topicMeta.label}。宮位數據：${palaceJson}`,
-      maxOutputTokens: GUEST_ANSWER_MAX_CHARS * 2,
+      maxOutputTokens: 1024,
     })
 
-    await result.pipeTextStreamToResponse(res)
+    const text = result.text.trim()
+    if (!text) {
+      console.error('[guest/interpret] empty response', result.finishReason)
+      res.status(500).json({ error: 'AI 未能產生解析，請稍後再試。' })
+      return
+    }
+
+    await incrementGuestAiQuota(ip)
+    res.type('text/plain; charset=utf-8').send(text.slice(0, GUEST_ANSWER_MAX_CHARS))
   } catch (err) {
     console.error('[guest/interpret]', err)
     if (!res.headersSent) {
-      res.status(500).json({ error: '命盤解析失敗' })
+      res.status(500).json({ error: '命盤解析失敗，請稍後再試。' })
     }
   }
 })

@@ -3069,7 +3069,15 @@
           })
         }
       } catch (err) {
-        if (err && err.name === 'AbortError') return
+        if (err && err.name === 'AbortError') {
+          const modal = document.getElementById('natalReadingModal')
+          if (modal && modal.classList.contains('is-open')) {
+            body.innerHTML =
+              '<h2 class="ai-interpret-modal-title">' + escapeHtml(modalTitle) + '</h2>' +
+              '<p class="ai-interpret-error">解析逾時，請稍後再試。</p>'
+          }
+          return
+        }
         body.innerHTML =
           '<h2 class="ai-interpret-modal-title">' + escapeHtml(modalTitle) + '</h2>' +
           '<p class="ai-interpret-error">' + escapeHtml(err.message || '命盤解析失敗，請稍後再試。') + '</p>'
