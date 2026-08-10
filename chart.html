@@ -994,6 +994,22 @@
       font-size: 18px;
     }
 
+    .chart-outer.chart-mode-yearly .mutagen-circle {
+      width: clamp(28px, 3.1vh, 34px);
+      height: clamp(28px, 3.1vh, 34px);
+      line-height: calc(clamp(28px, 3.1vh, 34px) - 2px);
+      font-size: clamp(28px, 3.2vh, 35px);
+    }
+
+    .chart-outer.chart-mode-yearly .star-vcol.g-lg .mutagen-circle,
+    .chart-outer.chart-mode-yearly .star-vcol.g-sm .mutagen-circle,
+    .chart-outer.chart-mode-yearly .star-vcol.p-sm .mutagen-circle {
+      width: clamp(24px, 2.8vh, 30px);
+      height: clamp(24px, 2.8vh, 30px);
+      line-height: calc(clamp(24px, 2.8vh, 30px) - 2px);
+      font-size: clamp(24px, 2.9vh, 31px);
+    }
+
     .stars-center {
       display: flex;
       flex-direction: row;
@@ -1837,6 +1853,22 @@
         font-size: 11px;
       }
 
+      .chart-outer.chart-mode-yearly .mutagen-circle {
+        width: 18px;
+        height: 18px;
+        line-height: 16px;
+        font-size: 18px;
+      }
+
+      .chart-outer.chart-mode-yearly .star-vcol.g-lg .mutagen-circle,
+      .chart-outer.chart-mode-yearly .star-vcol.g-sm .mutagen-circle,
+      .chart-outer.chart-mode-yearly .star-vcol.p-sm .mutagen-circle {
+        width: 16px;
+        height: 16px;
+        line-height: 14px;
+        font-size: 16px;
+      }
+
       .palace-label {
         font-size: 13px;
         letter-spacing: 1px;
@@ -2590,6 +2622,22 @@
         height: 22px !important;
         line-height: 20px !important;
         font-size: 20px !important;
+      }
+
+      .chart-outer.chart-mode-yearly .mutagen-circle {
+        width: 32px !important;
+        height: 32px !important;
+        line-height: 30px !important;
+        font-size: 32px !important;
+      }
+
+      .chart-outer.chart-mode-yearly .star-vcol.g-lg .mutagen-circle,
+      .chart-outer.chart-mode-yearly .star-vcol.g-sm .mutagen-circle,
+      .chart-outer.chart-mode-yearly .star-vcol.p-sm .mutagen-circle {
+        width: 28px !important;
+        height: 28px !important;
+        line-height: 26px !important;
+        font-size: 28px !important;
       }
 
       .palace {
@@ -4353,7 +4401,7 @@
       const sanFangRoles = getSanFangBranchRoles(a, h, selectedPalaceName, chartMode, displayOpts)
       const agePalaceIndex = getAgePalaceIndex(a, h)
       let centerDone = false
-      let html = '<div class="chart-outer"><div class="chart-grid">'
+      let html = '<div class="chart-outer chart-mode-' + chartMode + '"><div class="chart-grid">'
 
       GRID.forEach((row, ri) => {
         row.forEach((cell, ci) => {
