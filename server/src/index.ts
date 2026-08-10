@@ -7,6 +7,7 @@ import adminRoutes from './routes/admin.js'
 import chartRoutes from './routes/charts.js'
 import starDrawRoutes from './routes/starDraw.js'
 import paymentRoutes from './routes/payment.js'
+import interpretRoutes from './routes/interpret.js'
 
 if (process.env.RENDER && !process.env.DATABASE_URL?.trim()) {
   console.error(
@@ -56,6 +57,7 @@ app.use('/api/admin', adminRoutes)
 app.use('/api/charts', chartRoutes)
 app.use('/api/star-draw', starDrawRoutes)
 app.use('/api/payment', paymentRoutes)
+app.use('/api/interpret', interpretRoutes)
 
 await initDb()
 const dbInfo = await getDbInfo()

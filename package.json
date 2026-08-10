@@ -14,11 +14,15 @@
     "postinstall": "patch-package && node scripts/patch-vendor-iztro.mjs"
   },
   "dependencies": {
+    "@ai-sdk/react": "^4.0.61",
+    "ai": "^7.0.58",
     "iztro": "^2.5.8",
     "lunar-lite": "^0.2.8",
     "lunar-typescript": "^1.7.7",
+    "openai": "^7.4.0",
     "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "react-dom": "^19.2.7",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/node": "^24.13.2",

@@ -3,6 +3,7 @@ import type FunctionalAstrolabe from 'iztro/lib/astro/FunctionalAstrolabe'
 import { AstrolabeChart } from './components/AstrolabeChart'
 import { BirthForm } from './components/BirthForm'
 import { SavedChartsPanel } from './components/SavedChartsPanel'
+import { AIInterpretation } from './components/AIInterpretation'
 import { useAuth } from './context/AuthContext'
 import {
   computeAstrolabe,
@@ -140,26 +141,38 @@ export function ChartApp({
           {!submitted ? (
             <div className="chart-placeholder">請輸入資料後按「開始排盤」</div>
           ) : astrolabe && submitted.timeIndex !== '' ? (
-            <AstrolabeChart
-              name={submitted.name}
-              astrolabe={astrolabe}
-              calendar={submitted.calendarType}
-              birthDate={submitted.date}
-              birthTimeIndex={submitted.timeIndex}
-              initialChartType={submitted.initialChartType}
-              viewDecadalChart={viewDecadalChart}
-              onViewDecadalChart={(value) => {
-                setViewDecadalChart(value)
-                if (!value) setHoroscopeDate(todaySolarDate())
-              }}
-              horoscopeDate={horoscopeDate}
-              onHoroscopeDateChange={setHoroscopeDate}
-              yearlyYear={yearlyYear}
-              onYearlyYearChange={(year) => {
-                setYearlyYear(year)
-                setHoroscopeDate(horoscopeDateForYear(year))
-              }}
-            />
+            <>
+              <AstrolabeChart
+                name={submitted.name}
+                astrolabe={astrolabe}
+                calendar={submitted.calendarType}
+                birthDate={submitted.date}
+                birthTimeIndex={submitted.timeIndex}
+                initialChartType={submitted.initialChartType}
+                viewDecadalChart={viewDecadalChart}
+                onViewDecadalChart={(value) => {
+                  setViewDecadalChart(value)
+                  if (!value) setHoroscopeDate(todaySolarDate())
+                }}
+                horoscopeDate={horoscopeDate}
+                onHoroscopeDateChange={setHoroscopeDate}
+                yearlyYear={yearlyYear}
+                onYearlyYearChange={(year) => {
+                  setYearlyYear(year)
+                  setHoroscopeDate(horoscopeDateForYear(year))
+                }}
+              />
+              <AIInterpretation
+                astrolabe={astrolabe}
+                userInfo={{
+                  name: submitted.name,
+                  gender: submitted.gender,
+                  calendar: submitted.calendarType,
+                  birthDate: submitted.date,
+                  timeIndex: submitted.timeIndex,
+                }}
+              />
+            </>
           ) : (
             <div className="chart-error">排盤失敗，請檢查輸入資料是否正確。</div>
           )}
