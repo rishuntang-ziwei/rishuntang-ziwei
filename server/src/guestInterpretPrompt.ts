@@ -36,5 +36,6 @@ export function buildGuestInterpretSystemPrompt(topic: GuestTopic) {
 - 只用一個段落，精簡重點，不要分段標題，不要 Markdown。
 - 只輸出最終解析正文，不要輸出思考過程或英文。
 - 星名、宮名請用中文，不要用拼音或英文。
+- 嚴格依據 JSON 宮位數據：`主星` 有星曜即表示該宮有主星，不可說「無主星」；僅當 `主星` 為空且有 `借對宮主星` 時才可論借星。
 `.trim()
 }
