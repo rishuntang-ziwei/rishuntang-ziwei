@@ -8,6 +8,7 @@ import {
   GUEST_TOPICS,
   normalizeGuestTopic,
 } from '../guestInterpretPrompt.js'
+import { buildPalaceInterpretPrompt } from '../palacePrompt.js'
 
 const router = Router()
 
@@ -54,7 +55,7 @@ router.post('/interpret', async (req, res) => {
   try {
     const result = await generateWithGemini({
       system: buildGuestInterpretSystemPrompt(normalizedTopic),
-      prompt: `主題：${topicMeta.label}。宮位數據：${palaceJson}`,
+      prompt: buildPalaceInterpretPrompt(palaceJson, `主題：${topicMeta.label}`),
       maxOutputTokens: 1024,
     })
 

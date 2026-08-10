@@ -2,6 +2,7 @@ import { Router } from 'express'
 import { requireAuth, requireActiveMember } from '../middleware.js'
 import { formatAiError, generateWithGemini, isGeminiConfigured } from '../gemini.js'
 import { INTERPRET_PARAGRAPH_MAX_CHARS, INTERPRET_SYSTEM_PROMPT } from '../interpretPrompt.js'
+import { buildPalaceInterpretPrompt } from '../palacePrompt.js'
 
 const router = Router()
 
@@ -28,7 +29,7 @@ router.post('/', requireAuth, requireActiveMember, async (req, res) => {
   try {
     const result = await generateWithGemini({
       system: INTERPRET_SYSTEM_PROMPT,
-      prompt: `用戶資料：${JSON.stringify(userInfo ?? {})}。宮位數據：${palaceJson}`,
+      prompt: buildPalaceInterpretPrompt(palaceJson, `用戶資料：${JSON.stringify(userInfo ?? {})}`),
       maxOutputTokens: INTERPRET_PARAGRAPH_MAX_CHARS * 5,
     })
 

@@ -22,6 +22,7 @@ function formatPalaceEntry(astrolabe, palace, label) {
     宮位: label,
     地支: palace.earthlyBranch,
     主星: palace.majorStars.map(formatStar),
+    主星名稱: palace.majorStars.map((star) => star.name),
     輔星: palace.minorStars.map(formatStar),
     煞星: palace.adjectiveStars.map(formatStar),
     四化: collectMutagens(allStars),
