@@ -71,10 +71,10 @@ export function AIInterpretation({ astrolabe, userInfo }: AIInterpretationProps)
   const buttonLabel = !statusLoaded
     ? '載入中…'
     : !enabled
-      ? '🔮 AI 深度解盤（籌備中）'
+      ? '🔮 命盤解析（籌備中）'
       : isLoading
-        ? '大師正在觀星中...'
-        : '🔮 AI 深度解盤 (命/事/夫)'
+        ? '正在解析中...'
+        : '🔮 命盤解析 (命/事/夫)'
 
   return (
     <div className="ai-interpret-wrap">
@@ -83,19 +83,19 @@ export function AIInterpretation({ astrolabe, userInfo }: AIInterpretationProps)
         onClick={handleStartAnalysis}
         className={`ai-interpret-btn${enabled ? '' : ' ai-interpret-btn--pending'}`}
         disabled={!statusLoaded || !enabled || isLoading}
-        title={enabled ? undefined : 'AI 解盤功能籌備中，開放後即可使用'}
+        title={enabled ? undefined : '命盤解析功能籌備中，開放後即可使用'}
       >
         {buttonLabel}
       </button>
       {!enabled && statusLoaded && (
-        <p className="ai-interpret-hint">此功能籌備中，正式開放後將提供命宮、事業宮、夫妻宮 AI 解析。</p>
+        <p className="ai-interpret-hint">此功能籌備中，正式開放後將提供命宮、事業宮、夫妻宮解析。</p>
       )}
 
       {isOpen && enabled && (
-        <div className="ai-interpret-modal" role="dialog" aria-modal="true" aria-label="紫微 AI 命理報告">
+        <div className="ai-interpret-modal" role="dialog" aria-modal="true" aria-label="命盤解析">
           <div className="ai-interpret-dialog">
             <div className="ai-interpret-header">
-              <h2 className="ai-interpret-title">紫微 AI 命理報告</h2>
+              <h2 className="ai-interpret-title">命盤解析</h2>
               <button type="button" onClick={() => setIsOpen(false)} className="ai-interpret-close">
                 關閉
               </button>
@@ -103,11 +103,11 @@ export function AIInterpretation({ astrolabe, userInfo }: AIInterpretationProps)
 
             <div className="ai-interpret-body">
               {error ? (
-                <p className="ai-interpret-error">{error.message || 'AI 解盤失敗，請稍後再試。'}</p>
+                <p className="ai-interpret-error">{error.message || '命盤解析失敗，請稍後再試。'}</p>
               ) : completion ? (
                 <div className="ai-interpret-content">{completion}</div>
               ) : (
-                <div className="ai-interpret-loading">正在分析星盤能量...</div>
+                <div className="ai-interpret-loading">正在分析命盤...</div>
               )}
             </div>
           </div>
