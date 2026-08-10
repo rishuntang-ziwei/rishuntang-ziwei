@@ -1,10 +1,11 @@
 import { generateText } from 'ai'
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
+import { sanitizeInterpretOutput } from './sanitizeInterpretOutput.js'
 
-/** 2026-08：gemini-2.0-flash 已下線，優先使用 2.5 / 3.x */
+/** 優先使用較少思考輸出的模型 */
 const GEMINI_MODEL_CANDIDATES = [
-  'gemini-2.5-flash',
   'gemini-2.5-flash-lite',
+  'gemini-2.5-flash',
   'gemini-3.5-flash',
   'gemini-3.6-flash',
 ] as const
@@ -112,7 +113,11 @@ async function generateWithGeminiRest(
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: input.system }] },
         contents: [{ role: 'user', parts: [{ text: input.prompt }] }],
-        generationConfig: { maxOutputTokens: input.maxOutputTokens },
+        generationConfig: {
+          maxOutputTokens: input.maxOutputTokens,
+          temperature: 0.5,
+          thinkingConfig: { thinkingBudget: 0 },
+        },
       }),
     },
   )
@@ -121,7 +126,7 @@ async function generateWithGeminiRest(
     error?: { message?: string }
     candidates?: Array<{
       finishReason?: string
-      content?: { parts?: Array<{ text?: string }> }
+      content?: { parts?: Array<{ text?: string; thought?: boolean }> }
     }>
   }
 
@@ -129,10 +134,13 @@ async function generateWithGeminiRest(
     throw new Error(data.error?.message || `Gemini HTTP ${res.status}`)
   }
 
-  const text = (data.candidates?.[0]?.content?.parts ?? [])
-    .map((part) => part.text ?? '')
-    .join('')
-    .trim()
+  const text = sanitizeInterpretOutput(
+    (data.candidates?.[0]?.content?.parts ?? [])
+      .filter((part) => !part.thought)
+      .map((part) => part.text ?? '')
+      .join('')
+      .trim(),
+  )
 
   return {
     text,
@@ -165,9 +173,10 @@ export async function generateWithGemini(input: {
         system: input.system,
         prompt: input.prompt,
         maxOutputTokens: input.maxOutputTokens,
+        temperature: 0.5,
       })
       return {
-        text: sdkResult.text.trim(),
+        text: sanitizeInterpretOutput(sdkResult.text.trim()),
         finishReason: sdkResult.finishReason ?? 'unknown',
       }
     } catch (sdkErr) {

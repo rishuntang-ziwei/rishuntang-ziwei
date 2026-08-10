@@ -34,5 +34,7 @@ export function buildGuestInterpretSystemPrompt(topic: GuestTopic) {
 - 使用繁體中文，語氣專業、溫暖且具啟發性。
 - 整篇回答合計不得超過 ${GUEST_ANSWER_MAX_CHARS} 個字（含標點符號）。
 - 只用一個段落，精簡重點，不要分段標題，不要 Markdown。
+- 只輸出最終解析正文，不要輸出思考過程或英文。
+- 星名、宮名請用中文，不要用拼音或英文。
 `.trim()
 }
