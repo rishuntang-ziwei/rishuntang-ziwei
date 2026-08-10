@@ -9,6 +9,11 @@ const GEMINI_MODEL_CANDIDATES = [
   'gemini-3.6-flash',
 ] as const
 
+type GeminiGenerateResult = {
+  text: string
+  finishReason: string
+}
+
 function sanitizeApiKey(raw: string) {
   let key = raw.trim()
   if (
@@ -29,12 +34,25 @@ function getApiKey() {
   return sanitizeApiKey(raw)
 }
 
+function getKeyType(key: string) {
+  if (key.startsWith('AQ.')) return 'auth'
+  if (key.startsWith('AIza')) return 'standard'
+  return 'unknown'
+}
+
+function looksValidKey(key: string) {
+  if (/^AIza[\w-]{30,}$/.test(key)) return true
+  if (/^AQ\.[\w.-]{20,}$/.test(key)) return true
+  return false
+}
+
 export function getGeminiKeyMeta() {
   const key = getApiKey()
   return {
     configured: Boolean(key),
     keyLength: key.length,
-    looksValid: /^AIza[\w-]{30,}$/.test(key),
+    keyType: getKeyType(key),
+    looksValid: looksValidKey(key),
   }
 }
 
@@ -53,13 +71,12 @@ export function formatAiError(err: unknown): string {
   if (
     lower.includes('api key not valid') ||
     lower.includes('api_key_invalid') ||
-    lower.includes('api key') ||
-    lower.includes('apikey')
+    lower.includes('invalid authentication credentials')
   ) {
-    return 'AI 服務金鑰無效。請至 Google AI Studio 建立新金鑰，並在 Render 更新 GOOGLE_GENERATIVE_AI_API_KEY 後重新部署。'
+    return 'AI 服務金鑰無效或未完整貼上。請在 Render 更新 GOOGLE_GENERATIVE_AI_API_KEY 後重新部署。'
   }
   if (lower.includes('permission denied') || lower.includes('referer') || lower.includes('referrer')) {
-    return 'AI 金鑰限制了使用來源，請在 Google AI Studio 建立「不限網站」的伺服器用金鑰。'
+    return 'AI 金鑰限制了使用來源，請在 Google AI Studio 建立伺服器用金鑰。'
   }
   if (
     lower.includes('quota') ||
@@ -79,11 +96,55 @@ export function formatAiError(err: unknown): string {
   return '命盤解析失敗，請稍後再試。'
 }
 
+async function generateWithGeminiRest(
+  modelId: string,
+  input: { system: string; prompt: string; maxOutputTokens: number },
+): Promise<GeminiGenerateResult> {
+  const apiKey = getApiKey()
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': apiKey,
+      },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: input.system }] },
+        contents: [{ role: 'user', parts: [{ text: input.prompt }] }],
+        generationConfig: { maxOutputTokens: input.maxOutputTokens },
+      }),
+    },
+  )
+
+  const data = (await res.json()) as {
+    error?: { message?: string }
+    candidates?: Array<{
+      finishReason?: string
+      content?: { parts?: Array<{ text?: string }> }
+    }>
+  }
+
+  if (!res.ok) {
+    throw new Error(data.error?.message || `Gemini HTTP ${res.status}`)
+  }
+
+  const text = (data.candidates?.[0]?.content?.parts ?? [])
+    .map((part) => part.text ?? '')
+    .join('')
+    .trim()
+
+  return {
+    text,
+    finishReason: data.candidates?.[0]?.finishReason ?? 'unknown',
+  }
+}
+
 export async function generateWithGemini(input: {
   system: string
   prompt: string
   maxOutputTokens: number
-}) {
+}): Promise<GeminiGenerateResult> {
   const apiKey = getApiKey()
   if (!apiKey) {
     throw new Error('Google Generative AI API key is missing')
@@ -92,15 +153,26 @@ export async function generateWithGemini(input: {
   let lastError: unknown
   for (const modelId of GEMINI_MODEL_CANDIDATES) {
     try {
-      return await generateText({
+      return await generateWithGeminiRest(modelId, input)
+    } catch (restErr) {
+      lastError = restErr
+      console.error(`[gemini/rest] ${modelId} failed:`, restErr)
+    }
+
+    try {
+      const sdkResult = await generateText({
         model: googleModel(modelId),
         system: input.system,
         prompt: input.prompt,
         maxOutputTokens: input.maxOutputTokens,
       })
-    } catch (err) {
-      lastError = err
-      console.error(`[gemini] ${modelId} failed:`, err)
+      return {
+        text: sdkResult.text.trim(),
+        finishReason: sdkResult.finishReason ?? 'unknown',
+      }
+    } catch (sdkErr) {
+      lastError = sdkErr
+      console.error(`[gemini/sdk] ${modelId} failed:`, sdkErr)
     }
   }
 
@@ -111,6 +183,15 @@ export async function probeGeminiConnection() {
   const meta = getGeminiKeyMeta()
   if (!meta.configured) {
     return { ok: false as const, meta, error: '未設定 GOOGLE_GENERATIVE_AI_API_KEY' }
+  }
+
+  if (!meta.looksValid) {
+    return {
+      ok: false as const,
+      meta,
+      error: '金鑰長度或格式異常，可能未完整複製。請重新 Copy key 並貼到 Render。',
+      detail: `keyType=${meta.keyType}, keyLength=${meta.keyLength}`,
+    }
   }
 
   try {
