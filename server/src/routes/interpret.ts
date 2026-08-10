@@ -1,19 +1,13 @@
 import { Router } from 'express'
-import { generateText } from 'ai'
-import { google } from '@ai-sdk/google'
 import { requireAuth, requireActiveMember } from '../middleware.js'
-
+import { formatAiError, generateWithGemini, isGeminiConfigured } from '../gemini.js'
 import { INTERPRET_PARAGRAPH_MAX_CHARS, INTERPRET_SYSTEM_PROMPT } from '../interpretPrompt.js'
 
 const router = Router()
 
-function isInterpretEnabled() {
-  return Boolean(process.env.GOOGLE_GENERATIVE_AI_API_KEY?.trim())
-}
-
 router.get('/status', requireAuth, (_req, res) => {
   res.json({
-    enabled: isInterpretEnabled(),
+    enabled: isGeminiConfigured(),
     provider: 'gemini',
   })
 })
@@ -26,14 +20,13 @@ router.post('/', requireAuth, requireActiveMember, async (req, res) => {
     return
   }
 
-  if (!isInterpretEnabled()) {
+  if (!isGeminiConfigured()) {
     res.status(503).json({ error: 'AI 解盤功能尚未開放，請稍後再試。' })
     return
   }
 
   try {
-    const result = await generateText({
-      model: google('gemini-2.0-flash'),
+    const result = await generateWithGemini({
       system: INTERPRET_SYSTEM_PROMPT,
       prompt: `用戶資料：${JSON.stringify(userInfo ?? {})}。宮位數據：${palaceJson}`,
       maxOutputTokens: INTERPRET_PARAGRAPH_MAX_CHARS * 5,
@@ -50,7 +43,7 @@ router.post('/', requireAuth, requireActiveMember, async (req, res) => {
   } catch (err) {
     console.error('[interpret]', err)
     if (!res.headersSent) {
-      res.status(500).json({ error: 'AI 解盤失敗' })
+      res.status(500).json({ error: formatAiError(err) })
     }
   }
 })

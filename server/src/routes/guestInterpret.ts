@@ -1,7 +1,6 @@
 import { Router } from 'express'
-import { generateText } from 'ai'
-import { google } from '@ai-sdk/google'
 import { getGuestAiQuota, incrementGuestAiQuota } from '../db.js'
+import { formatAiError, generateWithGemini, isGeminiConfigured } from '../gemini.js'
 import { clientIp, GUEST_DAILY_AI_LIMIT } from '../guestQuota.js'
 import {
   buildGuestInterpretSystemPrompt,
@@ -12,13 +11,9 @@ import {
 
 const router = Router()
 
-function isGuestInterpretEnabled() {
-  return Boolean(process.env.GOOGLE_GENERATIVE_AI_API_KEY?.trim())
-}
-
 router.get('/status', (_req, res) => {
   res.json({
-    enabled: isGuestInterpretEnabled(),
+    enabled: isGeminiConfigured(),
     provider: 'gemini',
     topics: GUEST_TOPICS,
     answerMaxChars: GUEST_ANSWER_MAX_CHARS,
@@ -34,7 +29,7 @@ router.post('/interpret', async (req, res) => {
     return
   }
 
-  if (!isGuestInterpretEnabled()) {
+  if (!isGeminiConfigured()) {
     res.status(503).json({ error: '命盤解析功能尚未開放，請稍後再試。' })
     return
   }
@@ -53,8 +48,7 @@ router.post('/interpret', async (req, res) => {
   const topicMeta = GUEST_TOPICS[normalizedTopic]
 
   try {
-    const result = await generateText({
-      model: google('gemini-2.0-flash'),
+    const result = await generateWithGemini({
       system: buildGuestInterpretSystemPrompt(normalizedTopic),
       prompt: `主題：${topicMeta.label}。宮位數據：${palaceJson}`,
       maxOutputTokens: 1024,
@@ -67,12 +61,17 @@ router.post('/interpret', async (req, res) => {
       return
     }
 
-    await incrementGuestAiQuota(ip)
+    try {
+      await incrementGuestAiQuota(ip)
+    } catch (quotaErr) {
+      console.error('[guest/interpret] quota increment failed', quotaErr)
+    }
+
     res.type('text/plain; charset=utf-8').send(text.slice(0, GUEST_ANSWER_MAX_CHARS))
   } catch (err) {
     console.error('[guest/interpret]', err)
     if (!res.headersSent) {
-      res.status(500).json({ error: '命盤解析失敗，請稍後再試。' })
+      res.status(500).json({ error: formatAiError(err) })
     }
   }
 })
