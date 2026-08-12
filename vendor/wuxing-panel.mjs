@@ -121,9 +121,9 @@ const CYCLE_LABEL_GROUPS = [
     anchor: '水',
     corner: 'waterLeft',
     items: [
-      { text: '储存', kind: 'red', role: 'top' },
-      { text: '吸收', kind: 'green', role: 'bottomLeft' },
-      { text: '整合', kind: 'black', role: 'bottomRight' },
+      { text: '开发', kind: 'red', role: 'top' },
+      { text: '转换', kind: 'green', role: 'bottomLeft' },
+      { text: '运用', kind: 'black', role: 'bottomRight' },
     ],
   },
   {
@@ -139,9 +139,9 @@ const CYCLE_LABEL_GROUPS = [
     anchor: '金',
     corner: 'bottomLeft',
     items: [
-      { text: '开发', kind: 'red', role: 'top' },
-      { text: '转换', kind: 'green', role: 'bottomLeft' },
-      { text: '运用', kind: 'black', role: 'bottomRight' },
+      { text: '储存', kind: 'red', role: 'top' },
+      { text: '吸收', kind: 'green', role: 'bottomLeft' },
+      { text: '整合', kind: 'black', role: 'bottomRight' },
     ],
   },
   {

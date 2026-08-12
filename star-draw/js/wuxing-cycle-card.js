@@ -10,12 +10,12 @@ const ROWS = [
   {
     centered: false,
     items: [
-      { text: '转换', kind: 'green' },
-      { text: '开发', kind: 'red' },
-      { text: '运用', kind: 'black' },
       { text: '吸收', kind: 'green' },
       { text: '储存', kind: 'red' },
       { text: '整合', kind: 'black' },
+      { text: '转换', kind: 'green' },
+      { text: '开发', kind: 'red' },
+      { text: '运用', kind: 'black' },
       { text: '生机', kind: 'green' },
       { text: '改变', kind: 'red' },
       { text: '目标', kind: 'black' },
