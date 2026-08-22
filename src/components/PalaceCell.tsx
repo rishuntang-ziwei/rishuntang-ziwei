@@ -163,7 +163,6 @@ export function PalaceCell({
           ) : (
             <span className="decadal-range" />
           )}
-          <span className="gz-gan">{palace.heavenlyStem}</span>
           <span className="palace-name">
             {chartMode === 'yearly' && yearlyMonthlyEntry && (
               <span className="monthly-badges">
@@ -177,7 +176,10 @@ export function PalaceCell({
             )}
             ({formatPalaceName(displayPalaceName)})
           </span>
-          <span className="gz-zhi">{palace.earthlyBranch}</span>
+          <span className="gz-col">
+            <span className="gz-gan">{palace.heavenlyStem}</span>
+            <span className="gz-zhi">{palace.earthlyBranch}</span>
+          </span>
         </div>
       </div>
     </div>

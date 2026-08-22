@@ -787,6 +787,7 @@
     }
 
     .palace-footer-dimmed .decadal-slot,
+    .palace-footer-dimmed .gz-col,
     .palace-footer-dimmed .gz-gan,
     .palace-footer-dimmed .palace-label,
     .palace-footer-dimmed .gz-zhi {
@@ -1223,19 +1224,27 @@
       background: #fff8e1;
     }
 
-    .gz-gan {
+    .gz-col {
       grid-column: 2;
-      grid-row: 1;
-      font-size: 15px;
+      grid-row: 1 / span 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      line-height: 0.72;
+      gap: 0;
+      align-self: center;
+    }
+
+    .gz-gan {
+      font-size: 24px;
       color: #8b4513;
       text-align: center;
       min-width: 1em;
     }
 
     .gz-zhi {
-      grid-column: 2;
-      grid-row: 2;
-      font-size: 15px;
+      font-size: 24px;
       font-weight: 700;
       color: var(--major);
       text-align: center;
@@ -1420,8 +1429,8 @@
     .center-bazi-line {
       writing-mode: vertical-rl;
       text-orientation: upright;
-      font-size: 13px;
-      line-height: 1.4;
+      font-size: 17px;
+      line-height: 1.35;
       letter-spacing: 0.06em;
       white-space: nowrap;
       flex-shrink: 0;
@@ -1468,6 +1477,20 @@
     .center-person .center-chart-title {
       flex-shrink: 0;
       align-self: flex-start;
+    }
+
+    .center-title-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 4px;
+      flex-shrink: 0;
+      min-width: 0;
+    }
+
+    .center-title-col .center-age {
+      margin-top: 0;
     }
 
     .center-person-meta {
@@ -1524,7 +1547,7 @@
       letter-spacing: 8px;
     }
 
-    .center-person .center-person-namecol .center-age {
+    .center-person .center-title-col .center-age {
       font-size: calc(14px * 1.6);
       letter-spacing: 0.04em;
       line-height: 1.25;
@@ -1888,7 +1911,7 @@
 
       .gz-gan,
       .gz-zhi {
-        font-size: 10px;
+        font-size: 13px;
       }
 
       .center {
@@ -1954,7 +1977,7 @@
 
       .center-birth-line,
       .center-bazi-line {
-        font-size: 8px;
+        font-size: 10px;
         letter-spacing: 0;
         line-height: 1.25;
       }
@@ -1989,7 +2012,7 @@
       }
 
       .center-age,
-      .center-person .center-person-namecol .center-age {
+      .center-title-col .center-age {
         font-size: 10px;
       }
 
@@ -2070,8 +2093,9 @@
       }
 
       .center-age,
-      .center-person .center-person-namecol .center-age {
+      .center-title-col .center-age {
         font-size: 9px;
+      }
       }
 
       .center-brand {
@@ -2499,7 +2523,8 @@
         font-size: 32px !important;
       }
 
-      .center-person-namecol .center-age {
+      .center-person-namecol .center-age,
+      .center-title-col .center-age {
         font-size: calc(14px * 1.6) !important;
         background: #fff !important;
         overflow: visible !important;
@@ -2510,7 +2535,7 @@
         max-width: none !important;
       }
 
-      .center-person-namecol .center-age .center-num {
+      .center-title-col .center-age .center-num {
         display: inline-block !important;
         visibility: visible !important;
       }
@@ -2532,8 +2557,13 @@
       }
 
       .center-vcol {
-        font-size: 16px !important;
+        font-size: 18px !important;
         flex-shrink: 0 !important;
+      }
+
+      .center-birth-line,
+      .center-bazi-line {
+        font-size: 18px !important;
       }
 
       .center-wuxing-cross {
@@ -2650,7 +2680,7 @@
 
       .gz-gan,
       .gz-zhi {
-        font-size: 15px !important;
+        font-size: 24px !important;
       }
 
       .daxian,
@@ -2895,6 +2925,11 @@
     window.__chartAppInitialized = true
 
     const { astro } = iztro
+    astro.config({
+      mutagens: {
+        gengHeavenly: ['taiyangMaj', 'wuquMaj', 'tiantongMaj', 'taiyinMaj'],
+      },
+    })
     const { Lunar, LunarMonth, LunarYear, Solar } = LunarLib
 
     const BRANCH_POS = {
@@ -3289,7 +3324,7 @@
       丁: ['太陰', '天同', '天機', '巨門'],
       戊: ['貪狼', '太陰', '右弼', '天機'],
       己: ['武曲', '貪狼', '天梁', '文曲'],
-      庚: ['太陽', '武曲', '太陰', '天同'],
+      庚: ['太陽', '武曲', '天同', '太陰'],
       辛: ['巨門', '太陽', '文曲', '文昌'],
       壬: ['天梁', '紫微', '左輔', '武曲'],
       癸: ['破軍', '巨門', '太陰', '貪狼'],
@@ -3397,17 +3432,19 @@
     function formatBrightness(b) {
       if (!b) return ''
       const raw = String(b).trim()
-      const canonical = new Set(['廟', '旺', '平', '陷', '閒', '地'])
+      if (raw === '利') return '旺'
+      if (raw === '地') return '閒'
+      const canonical = new Set(['廟', '旺', '平', '陷', '閒'])
       if (canonical.has(raw)) return raw
       const s = raw.replace(/廟/g, '庙').replace(/閒/g, '闲')
       if (/不得/.test(s) || s === '不') return '平'
-      if (/得地/.test(s) || s === '得') return '地'
-      if (/利益/.test(s) || s === '利') return '平'
+      if (/得地/.test(s) || s === '得') return '閒'
+      if (/利益/.test(s) || s === '利') return '旺'
       if (/庙|米/.test(s)) return '廟'
       if (/旺/.test(s)) return '旺'
       if (/陷|落/.test(s)) return '陷'
       if (/闲/.test(s)) return '閒'
-      if (/地/.test(s)) return '地'
+      if (/地/.test(s)) return '閒'
       if (/平/.test(s)) return '平'
       return '平'
     }
@@ -4203,9 +4240,8 @@
         <div class="palace-bottom ${footerDim ? 'palace-footer-dimmed' : ''}">
           <div class="palace-footer-grid">
             ${daxianHtml}
-            <span class="gz-gan">${p.heavenlyStem}</span>
             <div class="palace-label"><span class="monthly-badges">${monthlyBadge}</span>(${formatPalaceName(displayName)})</div>
-            <span class="gz-zhi">${p.earthlyBranch}</span>
+            <span class="gz-col"><span class="gz-gan">${p.heavenlyStem}</span><span class="gz-zhi">${p.earthlyBranch}</span></span>
           </div>
         </div>
       </div>`
@@ -4319,12 +4355,14 @@
             <div class="center-person">
               <div class="center-person-namecol">
                 <div class="vtext name">${name || '匿名'}</div>
+              </div>
+              <div class="center-title-col">
+                <div class="vtext title center-chart-title">${MODE_TITLE[chartMode]}</div>
                 <div class="center-age">
                   <div class="center-age-year"><span class="center-num">${new Date(horoscopeDate).getFullYear()}</span></div>
                   <div class="center-age-value"><span class="center-num">${age}</span> 歲</div>
                 </div>
               </div>
-              <div class="vtext title center-chart-title">${MODE_TITLE[chartMode]}</div>
             </div>
           </div>
         </div>

@@ -172,6 +172,10 @@ export function CenterPanel({
           <div className="center-person">
             <div className="center-person-namecol">
               <div className="vtext name">{name || '匿名'}</div>
+            </div>
+
+            <div className="center-title-col">
+              <div className="vtext title center-chart-title">{chartModeTitle(chartMode)}</div>
               <div className="center-age">
                 <div className="center-age-year">
                   <span className="center-num">
@@ -183,8 +187,6 @@ export function CenterPanel({
                 </div>
               </div>
             </div>
-
-            <div className="vtext title center-chart-title">{chartModeTitle(chartMode)}</div>
           </div>
         </div>
       </div>

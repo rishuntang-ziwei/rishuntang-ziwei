@@ -512,7 +512,7 @@ body {
   }
 
   .center-age,
-  .center-person .center-person-namecol .center-age {
+  .center-person .center-title-col .center-age {
     font-size: 0.62rem;
   }
 
@@ -575,7 +575,7 @@ body {
   }
 
   .center-age,
-  .center-person .center-person-namecol .center-age {
+  .center-person .center-title-col .center-age {
     font-size: 0.56rem;
   }
 
@@ -1251,6 +1251,7 @@ body {
 }
 
 .palace-footer-dimmed .decadal-range,
+.palace-footer-dimmed .gz-col,
 .palace-footer-dimmed .gz-gan,
 .palace-footer-dimmed .palace-name,
 .palace-footer-dimmed .gz-zhi {
@@ -1394,10 +1395,20 @@ body {
   outline-offset: -2px;
 }
 
-.gz-gan {
+.gz-col {
   grid-column: 2;
-  grid-row: 1;
-  font-size: 0.95rem;
+  grid-row: 1 / span 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 0.72;
+  gap: 0;
+  align-self: center;
+}
+
+.gz-gan {
+  font-size: 1.5rem;
   color: #8b4513;
   text-align: center;
   min-width: 1em;
@@ -1416,9 +1427,7 @@ body {
 }
 
 .gz-zhi {
-  grid-column: 2;
-  grid-row: 2;
-  font-size: 0.95rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: var(--major-star);
   text-align: center;
@@ -1596,8 +1605,8 @@ body {
 .center-bazi-line {
   writing-mode: vertical-rl;
   text-orientation: upright;
-  font-size: 0.82rem;
-  line-height: 1.4;
+  font-size: 1.05rem;
+  line-height: 1.35;
   letter-spacing: 0.06em;
   white-space: nowrap;
   flex-shrink: 0;
@@ -1658,13 +1667,27 @@ body {
   align-self: flex-start;
 }
 
+.center-title-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.center-title-col .center-age {
+  margin-top: 0;
+}
+
 .center-person .center-person-namecol .vtext.name {
   flex-shrink: 0;
   font-size: 2.1rem;
   letter-spacing: 8px;
 }
 
-.center-person .center-person-namecol .center-age {
+.center-person .center-title-col .center-age {
   font-size: calc(0.82rem * 1.6);
   letter-spacing: 0.04em;
   line-height: 1.25;
@@ -2250,7 +2273,7 @@ body {
     font-size: 32px !important;
   }
 
-  .center-person-namecol .center-age {
+  .center-title-col .center-age {
     font-size: 18px !important;
     background: #fff !important;
     overflow: visible !important;
@@ -2261,7 +2284,7 @@ body {
     max-width: none !important;
   }
 
-  .center-person-namecol .center-age .center-num {
+  .center-title-col .center-age .center-num {
     display: inline-block !important;
     visibility: visible !important;
   }
