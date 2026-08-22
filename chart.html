@@ -1231,20 +1231,20 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      line-height: 0.72;
-      gap: 0;
+      line-height: 1;
+      gap: 3px;
       align-self: center;
     }
 
     .gz-gan {
-      font-size: 24px;
+      font-size: 20px;
       color: #8b4513;
       text-align: center;
       min-width: 1em;
     }
 
     .gz-zhi {
-      font-size: 24px;
+      font-size: 20px;
       font-weight: 700;
       color: var(--major);
       text-align: center;
@@ -1272,7 +1272,7 @@
     }
 
     .center-info label { display: flex; align-items: center; gap: 3px; cursor: pointer; }
-    .center-brand { font-size: 17px; color: var(--brand-red); font-weight: 700; letter-spacing: 0.12em; line-height: 1.45; }
+    .center-brand { font-size: 22px; color: var(--brand-red); font-weight: 700; letter-spacing: 0.12em; line-height: 1.45; }
     .center {
       position: relative;
       display: flex;
@@ -1305,7 +1305,7 @@
       right: 8px;
       z-index: 11;
       text-align: right;
-      font-size: 12px;
+      font-size: 15px;
       line-height: 1.35;
     }
 
@@ -1516,15 +1516,22 @@
       align-items: flex-end;
       gap: 2px;
       margin-bottom: 2px;
+      font-size: 14px;
+    }
+
+    .center-control-row span {
+      font-size: 14px;
+      font-weight: 600;
+      white-space: nowrap;
     }
 
     .center-control-row input[type="date"],
     .center-control-row input[type="number"],
     .center-control-row select {
       font-family: inherit;
-      font-size: 12px;
-      padding: 1px 3px;
-      width: 118px;
+      font-size: 14px;
+      padding: 2px 4px;
+      width: 132px;
     }
 
     .center-check-row {
@@ -1540,6 +1547,10 @@
     }
 
     .center-control-meta { color: #444; white-space: nowrap; }
+
+    .center-print-date {
+      display: none;
+    }
 
     .center-person .center-person-namecol .vtext.name {
       flex-shrink: 0;
@@ -1911,7 +1922,7 @@
 
       .gz-gan,
       .gz-zhi {
-        font-size: 13px;
+        font-size: 17px;
       }
 
       .center {
@@ -2017,7 +2028,7 @@
       }
 
       .center-brand {
-        font-size: 8px;
+        font-size: 16px;
         letter-spacing: 0.06em;
       }
 
@@ -2096,17 +2107,16 @@
       .center-title-col .center-age {
         font-size: 9px;
       }
-      }
 
       .center-brand {
-        font-size: 7px;
+        font-size: 14px;
       }
 
       .center-control-row input[type="date"],
       .center-control-row input[type="number"],
       .center-control-row select {
         width: 64px;
-        font-size: 8px;
+        font-size: 11px;
       }
     }
 
@@ -2414,6 +2424,18 @@
         margin-top: 0 !important;
       }
 
+      .center-print-date {
+        display: block !important;
+        position: absolute !important;
+        top: 1.5mm !important;
+        right: 2mm !important;
+        font-size: 16px !important;
+        font-weight: 700 !important;
+        color: #222 !important;
+        white-space: nowrap !important;
+        z-index: 12 !important;
+      }
+
       /* 列印用 mm 絕對定位，不受螢幕 DPI / 瀏覽器縮放影響 */
       .center-main,
       .center-body {
@@ -2680,7 +2702,7 @@
 
       .gz-gan,
       .gz-zhi {
-        font-size: 24px !important;
+        font-size: 20px !important;
       }
 
       .daxian,
@@ -2727,7 +2749,7 @@
       }
 
       .center-brand {
-        font-size: 20px !important;
+        font-size: 26px !important;
       }
 
       .vtext.name {
@@ -4345,6 +4367,7 @@
           <div class="center-top-right">
             ${yearControl}
           </div>
+          <div class="center-print-date">論命日期 ${horoscopeDate.replace(/-/g, '/')}</div>
         </div>
         <div class="center-main">
           ${renderCenterWuxingCross(a)}
