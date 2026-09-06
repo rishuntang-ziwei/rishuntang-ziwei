@@ -20,7 +20,7 @@ export const PAYMENT_PLANS: PaymentPlan[] = [
     amount: 600,
     days: 30,
     periodLabel: '1 個月',
-    starDraw: true,
+    starDraw: false,
   },
   {
     id: 'member_half_year',
@@ -29,7 +29,7 @@ export const PAYMENT_PLANS: PaymentPlan[] = [
     amount: 3300,
     days: 182,
     periodLabel: '半年',
-    starDraw: true,
+    starDraw: false,
   },
   {
     id: 'member_yearly',
@@ -38,7 +38,7 @@ export const PAYMENT_PLANS: PaymentPlan[] = [
     amount: 6000,
     days: 365,
     periodLabel: '1 年',
-    starDraw: true,
+    starDraw: false,
   },
   {
     id: 'member_lifetime',
@@ -47,7 +47,7 @@ export const PAYMENT_PLANS: PaymentPlan[] = [
     amount: 0,
     days: 0,
     periodLabel: '終身',
-    starDraw: true,
+    starDraw: false,
     lifetime: true,
     adminOnly: true,
   },

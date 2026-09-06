@@ -45,7 +45,8 @@
       actions.push(
         '<button type="button" data-view-charts="' + user.id + '" data-name="' + user.name + '">查看命盤</button>',
         user.membershipActive
-          ? '<button type="button" data-grant-membership="' + user.id + '" data-name="' + user.name + '" data-extend="1">延長付費</button>'
+          ? '<button type="button" data-grant-membership="' + user.id + '" data-name="' + user.name + '" data-extend="1" data-expires-at="' + escapeAdminHtml(user.membershipExpiresAt || '') + '">延長付費</button>' +
+            '<button type="button" class="danger" data-revoke-membership="' + user.id + '" data-name="' + user.name + '" data-expires-at="' + escapeAdminHtml(user.membershipExpiresAt || '') + '">取消付費</button>'
           : '<button type="button" data-grant-membership="' + user.id + '" data-name="' + user.name + '">開通付費</button>',
         user.starDrawEnabled
           ? '<button type="button" class="danger" data-disable-star-draw="' + user.id + '" data-name="' + user.name + '">取消神牌</button>'
@@ -100,13 +101,54 @@
   }
 
   const MEMBERSHIP_PLAN_OPTIONS = [
-    { id: 'member_monthly', label: '付費會員 · 單月（30 天）' },
-    { id: 'member_half_year', label: '付費會員 · 半年（182 天）' },
-    { id: 'member_yearly', label: '付費會員 · 一年（365 天）' },
-    { id: 'member_lifetime', label: '終身開通' },
+    { id: 'member_monthly', label: '付費會員 · 單月（30 天）', days: 30 },
+    { id: 'member_half_year', label: '付費會員 · 半年（182 天）', days: 182 },
+    { id: 'member_yearly', label: '付費會員 · 一年（365 天）', days: 365 },
+    { id: 'member_lifetime', label: '終身開通', lifetime: true },
   ]
 
-  function showGrantMembershipModal(userId, userName, isExtend) {
+  function findMembershipPlan(planId) {
+    return MEMBERSHIP_PLAN_OPTIONS.find(function (plan) {
+      return plan.id === planId
+    })
+  }
+
+  function formatGrantExpiryPreview(iso) {
+    if (!iso) return '尚未開通'
+    const d = new Date(iso)
+    if (Number.isNaN(d.getTime())) return '尚未開通'
+    if (d.getFullYear() >= 2099) return '終身'
+    if (d.getTime() <= Date.now()) return d.toLocaleDateString('zh-TW') + '（已過期）'
+    return d.toLocaleDateString('zh-TW')
+  }
+
+  function previewMembershipExpiry(currentExpiresAt, planId) {
+    const plan = findMembershipPlan(planId)
+    if (!plan) return '—'
+    if (plan.lifetime) return '終身'
+    const now = Date.now()
+    const base = currentExpiresAt
+      ? Math.max(new Date(currentExpiresAt).getTime(), now)
+      : now
+    return new Date(base + plan.days * 24 * 60 * 60 * 1000).toLocaleDateString('zh-TW')
+  }
+
+  function updateGrantMembershipPreview(modal, currentExpiresAt) {
+    const previewEl = modal.querySelector('#grantMembershipPreview')
+    if (!previewEl) return
+    const planId = modal.querySelector('[name=planId]').value
+    const plan = findMembershipPlan(planId)
+    previewEl.innerHTML =
+      '<strong>目前有效至：</strong>' + formatGrantExpiryPreview(currentExpiresAt) +
+      '<br><strong>操作後有效至：</strong>' + previewMembershipExpiry(currentExpiresAt, planId) +
+      (plan && !plan.lifetime
+        ? '<br><span class="auth-note">期限採累加制：若會員尚未到期，會在現有到期日上加天數。</span>'
+        : plan && plan.lifetime
+          ? '<br><span class="auth-note">終身開通將覆蓋現有到期日，請再三確認。</span>'
+          : '')
+  }
+
+  function showGrantMembershipModal(userId, userName, isExtend, currentExpiresAt) {
     const existing = document.getElementById('grantMembershipModal')
     if (existing) existing.remove()
 
@@ -123,10 +165,11 @@
         '<p class="auth-note">為「' + escapeAdminHtml(userName) + '」手動開通（線下付款），效果與線上訂閱相同。</p>' +
         '<form id="grantMembershipForm">' +
           '<label>訂閱方案<select name="planId" required>' + options + '</select></label>' +
+          '<p class="auth-note" id="grantMembershipPreview"></p>' +
           '<div class="auth-error" id="grantMembershipError" hidden></div>' +
           '<div class="password-modal-actions">' +
             '<button type="button" class="secondary" id="cancelGrantMembership">取消</button>' +
-            '<button type="submit" class="primary">確認開通</button>' +
+            '<button type="submit" class="primary" id="submitGrantMembership">確認開通</button>' +
           '</div>' +
         '</form>' +
       '</div>'
@@ -137,25 +180,71 @@
       modal.remove()
     })
 
+    modal.querySelector('[name=planId]').addEventListener('change', function () {
+      updateGrantMembershipPreview(modal, currentExpiresAt)
+    })
+    updateGrantMembershipPreview(modal, currentExpiresAt)
+
     document.getElementById('grantMembershipForm').addEventListener('submit', async function (e) {
       e.preventDefault()
       const planId = modal.querySelector('[name=planId]').value
+      const plan = findMembershipPlan(planId)
       const errorEl = document.getElementById('grantMembershipError')
+      const submitBtn = document.getElementById('submitGrantMembership')
+      const newExpiry = previewMembershipExpiry(currentExpiresAt, planId)
+      const currentLabel = formatGrantExpiryPreview(currentExpiresAt)
+
+      if (plan && plan.lifetime) {
+        if (!confirm('您選擇「終身開通」，此操作請再三確認。\n\n確定要繼續？')) return
+      }
+
+      const confirmMsg =
+        '確定要為「' + userName + '」' + (isExtend ? '延長' : '開通') + '付費會員？\n\n' +
+        '方案：' + (plan ? plan.label : planId) + '\n' +
+        '目前有效至：' + currentLabel + '\n' +
+        '操作後有效至：' + newExpiry + '\n\n' +
+        (plan && plan.lifetime
+          ? '終身開通將覆蓋現有期限。'
+          : '期限採累加制，請確認無誤。')
+
+      if (!confirm(confirmMsg)) return
+
+      if (submitBtn) submitBtn.disabled = true
       try {
         const data = await auth.api('/api/admin/users/' + userId + '/grant-membership', {
           method: 'POST',
           body: JSON.stringify({ planId: planId }),
         })
         modal.remove()
-        alert('已為「' + userName + '」開通 ' + (data.planLabel || '付費會員'))
+        alert(
+          '已為「' + userName + '」' + (isExtend ? '延長' : '開通') + ' ' + (data.planLabel || '付費會員') +
+          '\n新的有效至：' + formatGrantExpiryPreview(data.user && data.user.membershipExpiresAt),
+        )
         await renderAdminPanel()
       } catch (err) {
         if (errorEl) {
           errorEl.textContent = err.message
           errorEl.hidden = false
         }
+        if (submitBtn) submitBtn.disabled = false
       }
     })
+  }
+
+  async function revokeUserMembership(id, name, expiresAt) {
+    const expiryLabel = formatGrantExpiryPreview(expiresAt)
+    if (
+      !confirm(
+        '確定要取消「' + name + '」的付費會員資格？\n\n' +
+          '目前有效至：' + expiryLabel + '\n\n' +
+          '取消後將降為免費會員，之後可重新開通或延長。',
+      )
+    ) {
+      return
+    }
+    await auth.api('/api/admin/users/' + id + '/revoke-membership', { method: 'POST' })
+    alert('已取消「' + name + '」的付費會員資格')
+    await renderAdminPanel()
   }
 
   function escapeAdminHtml(value) {
@@ -338,7 +427,22 @@
           btn.dataset.grantMembership,
           btn.dataset.name,
           btn.dataset.extend === '1',
+          btn.dataset.expiresAt || null,
         )
+      })
+    })
+
+    panel.querySelectorAll('[data-revoke-membership]').forEach(function (btn) {
+      btn.addEventListener('click', async function () {
+        try {
+          await revokeUserMembership(
+            btn.dataset.revokeMembership,
+            btn.dataset.name,
+            btn.dataset.expiresAt || null,
+          )
+        } catch (err) {
+          alert(err.message)
+        }
       })
     })
   }

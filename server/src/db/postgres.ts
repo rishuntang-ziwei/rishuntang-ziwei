@@ -355,11 +355,26 @@ export async function grantUserMembership(userId: number, planId: string): Promi
      SET status = 'approved',
          approved_at = COALESCE(approved_at, NOW()),
          membership_plan = $2,
-         membership_expires_at = $3,
-         star_draw_enabled = $4
+         membership_expires_at = $3
      WHERE id = $1
      RETURNING *`,
-    [userId, grant.planId, grant.expiresAt, grant.starDrawEnabled],
+    [userId, grant.planId, grant.expiresAt],
+  )
+  const row = result.rows[0]
+  return row ? toPublicUser(mapUserRow(row)) : undefined
+}
+
+export async function revokeUserMembership(userId: number): Promise<PublicUser | undefined> {
+  const user = await findUserById(userId)
+  if (!user || user.role !== 'user') return undefined
+
+  const result = await pool.query(
+    `UPDATE users
+     SET membership_plan = NULL,
+         membership_expires_at = NULL
+     WHERE id = $1
+     RETURNING *`,
+    [userId],
   )
   const row = result.rows[0]
   return row ? toPublicUser(mapUserRow(row)) : undefined

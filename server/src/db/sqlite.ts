@@ -332,17 +332,29 @@ export async function grantUserMembership(userId: number, planId: string): Promi
   const grant = resolveMembershipGrant(user, planId)
   if (!grant) return undefined
 
-  const starDraw = grant.starDrawEnabled ? 1 : 0
-
   db.prepare(
     `UPDATE users
      SET status = 'approved',
          approved_at = COALESCE(approved_at, datetime('now')),
          membership_plan = ?,
-         membership_expires_at = ?,
-         star_draw_enabled = ?
+         membership_expires_at = ?
      WHERE id = ?`,
-  ).run(grant.planId, grant.expiresAt, starDraw, userId)
+  ).run(grant.planId, grant.expiresAt, userId)
+
+  const row = await findUserById(userId)
+  return row ? toPublicUser(row) : undefined
+}
+
+export async function revokeUserMembership(userId: number): Promise<PublicUser | undefined> {
+  const user = await findUserById(userId)
+  if (!user || user.role !== 'user') return undefined
+
+  db.prepare(
+    `UPDATE users
+     SET membership_plan = NULL,
+         membership_expires_at = NULL
+     WHERE id = ?`,
+  ).run(userId)
 
   const row = await findUserById(userId)
   return row ? toPublicUser(row) : undefined

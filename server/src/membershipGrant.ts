@@ -23,7 +23,6 @@ export function resolveMembershipGrant(user: UserRow, planId: string) {
   return {
     planId: plan.id,
     expiresAt,
-    starDrawEnabled: plan.starDraw || user.star_draw_enabled,
     planLabel: plan.name,
     planDays: plan.days,
   }

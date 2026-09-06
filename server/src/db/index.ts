@@ -50,6 +50,7 @@ export const fulfillPaymentOrder = (order: import('../types.js').PaymentOrderRow
   driver.fulfillPaymentOrder(order)
 export const grantUserMembership = (userId: number, planId: string) =>
   driver.grantUserMembership(userId, planId)
+export const revokeUserMembership = (userId: number) => driver.revokeUserMembership(userId)
 export const consumeDailyChartGeneration = (userId: number) => driver.consumeDailyChartGeneration(userId)
 export const getGuestAiQuota = (ip: string) => driver.getGuestAiQuota(ip)
 export const incrementGuestAiQuota = (ip: string) => driver.incrementGuestAiQuota(ip)
