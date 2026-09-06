@@ -80,7 +80,7 @@
         '<p>會員等級：<strong>付費會員</strong></p>' +
         '<p>訂閱方案：' + label + '</p>' +
         (expiry ? '<p>有效至：' + expiry + '</p>' : '') +
-        '<p class="membership-plan-tag">已解鎖大限流年、列印儲存、神牌等完整功能</p>' +
+        '<p class="membership-plan-tag">已解鎖大限流年、列印儲存等完整功能</p>' +
       '</div>'
     )
   }
@@ -89,7 +89,7 @@
     let html =
       '<div class="membership-free">' +
         '<p class="membership-alert">您目前是 <strong>免費會員</strong>，登入後自動顯示本命命盤，每日最多排盤 3 次。</p>' +
-        '<p class="membership-note">升級付費訂閱後，可解鎖大限流年命盤、列印、儲存命盤、神牌等完整功能。</p>'
+        '<p class="membership-note">升級付費後，可解鎖大限流年命盤、列印、儲存命盤等完整功能。</p>'
 
     if (!status.paymentEnabled) {
       html += '<p class="membership-note">線上付款尚未啟用，請聯絡管理員。</p></div>'
@@ -128,7 +128,7 @@
   function bindPayButtons(container) {
     container.querySelectorAll('.membership-pay-btn').forEach(function (btn) {
       btn.addEventListener('click', function () {
-        handleCheckout(btn.dataset.planId, btn)
+        alert('請聯絡管理員申請付費開通')
       })
     })
   }

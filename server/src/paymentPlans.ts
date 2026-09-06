@@ -12,7 +12,7 @@ export const PAYMENT_PLANS: PaymentPlan[] = [
   {
     id: 'member_monthly',
     name: '付費會員 · 單月',
-    description: '大限流年、列印儲存、神牌等完整功能',
+    description: '大限流年、列印儲存等完整功能',
     amount: 600,
     days: 30,
     periodLabel: '1 個月',
@@ -21,7 +21,7 @@ export const PAYMENT_PLANS: PaymentPlan[] = [
   {
     id: 'member_half_year',
     name: '付費會員 · 半年',
-    description: '大限流年、列印儲存、神牌等完整功能',
+    description: '大限流年、列印儲存等完整功能',
     amount: 3300,
     days: 182,
     periodLabel: '半年',
@@ -30,7 +30,7 @@ export const PAYMENT_PLANS: PaymentPlan[] = [
   {
     id: 'member_yearly',
     name: '付費會員 · 一年',
-    description: '大限流年、列印儲存、神牌等完整功能',
+    description: '大限流年、列印儲存等完整功能',
     amount: 6000,
     days: 365,
     periodLabel: '1 年',
