@@ -3,6 +3,8 @@ import bcrypt from 'bcryptjs'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import type { AdminAuditAction, AdminAuditLogInput, PublicAdminAuditLog } from '../adminAuditLog.js'
+import { LIFETIME_MEMBERSHIP_EXPIRY } from '../paymentPlans.js'
 import type { PublicUser, SavedChartDetail, SavedChartPayload, SavedChartRow, SavedChartSummary, UserRow, PaymentOrderRow } from '../types.js'
 import { mapPaymentOrderRow, mapSavedChartRow, mapUserRow, parseSavedChartPayload, toPublicUser, toSavedChartDetail, toSavedChartSummary } from './shared.js'
 import { resolveMembershipGrant } from '../membershipGrant.js'
@@ -94,6 +96,20 @@ export async function initDb() {
       paid_at TEXT,
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     )
+  `)
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS admin_audit_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      admin_id INTEGER NOT NULL,
+      admin_name TEXT NOT NULL,
+      target_user_id INTEGER,
+      target_user_name TEXT,
+      action TEXT NOT NULL,
+      details TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_admin_audit_logs_created ON admin_audit_logs(created_at DESC);
   `)
 
   if (process.env.RENDER && !process.env.DB_PATH) {
@@ -355,6 +371,82 @@ export async function revokeUserMembership(userId: number): Promise<PublicUser |
          membership_expires_at = NULL
      WHERE id = ?`,
   ).run(userId)
+
+  const row = await findUserById(userId)
+  return row ? toPublicUser(row) : undefined
+}
+
+function mapAuditLogRow(row: Record<string, unknown>): PublicAdminAuditLog {
+  let details: Record<string, unknown> | null = null
+  if (row.details != null && String(row.details).trim()) {
+    try {
+      details = JSON.parse(String(row.details)) as Record<string, unknown>
+    } catch {
+      details = null
+    }
+  }
+  return {
+    id: Number(row.id),
+    adminId: Number(row.admin_id),
+    adminName: String(row.admin_name),
+    targetUserId: row.target_user_id != null ? Number(row.target_user_id) : null,
+    targetUserName: row.target_user_name != null ? String(row.target_user_name) : null,
+    action: String(row.action) as AdminAuditAction,
+    details,
+    createdAt: String(row.created_at),
+  }
+}
+
+export async function createAdminAuditLog(input: AdminAuditLogInput): Promise<PublicAdminAuditLog> {
+  const details = input.details ? JSON.stringify(input.details) : null
+  const result = db
+    .prepare(
+      `INSERT INTO admin_audit_logs (admin_id, admin_name, target_user_id, target_user_name, action, details)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+    )
+    .run(
+      input.adminId,
+      input.adminName,
+      input.targetUserId ?? null,
+      input.targetUserName ?? null,
+      input.action,
+      details,
+    )
+  const row = db.prepare('SELECT * FROM admin_audit_logs WHERE id = ?').get(result.lastInsertRowid)
+  return mapAuditLogRow(row as Record<string, unknown>)
+}
+
+export async function listAdminAuditLogs(limit = 50): Promise<PublicAdminAuditLog[]> {
+  const rows = db
+    .prepare('SELECT * FROM admin_audit_logs ORDER BY created_at DESC, id DESC LIMIT ?')
+    .all(Math.min(Math.max(limit, 1), 200))
+  return rows.map((row) => mapAuditLogRow(row as Record<string, unknown>))
+}
+
+export async function setUserMembershipExpiry(
+  userId: number,
+  expiresAt: string | null,
+): Promise<PublicUser | undefined> {
+  const user = await findUserById(userId)
+  if (!user || user.role !== 'user') return undefined
+
+  let planId = user.membership_plan
+  if (!expiresAt) {
+    planId = null
+  } else if (expiresAt === LIFETIME_MEMBERSHIP_EXPIRY) {
+    planId = 'member_lifetime'
+  } else if (!planId) {
+    planId = 'member_monthly'
+  }
+
+  db.prepare(
+    `UPDATE users
+     SET status = 'approved',
+         approved_at = COALESCE(approved_at, datetime('now')),
+         membership_plan = ?,
+         membership_expires_at = ?
+     WHERE id = ?`,
+  ).run(planId, expiresAt, userId)
 
   const row = await findUserById(userId)
   return row ? toPublicUser(row) : undefined

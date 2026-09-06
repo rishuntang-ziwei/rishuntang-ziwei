@@ -721,6 +721,36 @@ body {
   line-height: 1.5;
 }
 
+.admin-member-alert {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 248, 230, 0.8);
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.admin-member-alert button {
+  margin-left: 8px;
+}
+
+.admin-audit-section {
+  margin-top: 24px;
+}
+
+.admin-audit-section h3 {
+  margin: 0 0 10px;
+  font-size: 16px;
+}
+
+.admin-audit-table td:last-child {
+  max-width: 280px;
+  word-break: break-word;
+  font-size: 12px;
+}
+
 .admin-empty {
   text-align: center;
   color: var(--ink-muted);

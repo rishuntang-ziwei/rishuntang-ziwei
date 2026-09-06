@@ -2821,8 +2821,9 @@
         <label><input type="radio" name="chartType" value="natal" checked /> 本命命盤</label>
         <label class="chart-type-premium"><input type="radio" name="chartType" value="yearly" /> 流年命盤</label>
       </div>
-      <p class="membership-note chart-type-note hidden" id="chartTypeNote">免費會員每日最多排盤 3 次；升級付費訂閱可解鎖流年、大限等功能</p>
+      <p class="membership-note chart-type-note hidden" id="chartTypeNote">免費會員每日最多排盤 3 次。升級付費可解鎖流年、大限、列印與儲存命盤；課程功能請聯絡老師洽詢。</p>
       <p class="membership-note hidden" id="freeChartQuotaNote"></p>
+      <p class="membership-note hidden" id="memberTierNote"></p>
       <div class="row hidden" id="yearlyYearRow">
         <label for="yearlyYear">流年年份（西元）</label>
         <input id="yearlyYear" type="number" min="1900" max="2100" />
@@ -2921,10 +2922,24 @@
       if (quotaNote) {
         if (!premium && quota) {
           quotaNote.classList.remove('hidden')
-          quotaNote.textContent = '免費會員今日剩餘排盤次數：' + quota.remaining + ' / ' + quota.limit
+          quotaNote.textContent =
+            '免費會員今日剩餘排盤次數：' + quota.remaining + ' / ' + quota.limit +
+            ' · 升級付費可解鎖流年、大限、列印、儲存'
         } else {
           quotaNote.classList.add('hidden')
           quotaNote.textContent = ''
+        }
+      }
+
+      const member = window.ZiweiMember && window.ZiweiMember.currentUser
+      const tierNote = document.getElementById('memberTierNote')
+      if (tierNote) {
+        if (member && window.ZiweiAuth && window.ZiweiAuth.memberTierDetailedLabel) {
+          tierNote.textContent = '會員狀態：' + window.ZiweiAuth.memberTierDetailedLabel(member)
+          tierNote.classList.remove('hidden')
+        } else {
+          tierNote.classList.add('hidden')
+          tierNote.textContent = ''
         }
       }
 

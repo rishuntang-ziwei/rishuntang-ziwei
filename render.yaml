@@ -18,6 +18,7 @@ services:
       # 詳見 server/NEON-SETUP.md
       # 藍新金流變數亦請在 Dashboard 手動設定（勿寫入 Git）
       # 詳見 server/NEWEBPAY-SETUP.md
+      # 敏感管理操作 PIN（選填）：設定 ADMIN_OPERATION_PIN 後，取消付費／調整到期日／終身開通需輸入 PIN
       - key: ADMIN_EMAIL
         value: admin@rishuntang.com
       - key: ADMIN_PASSWORD

@@ -2,6 +2,12 @@
   const auth = window.ZiweiAuth
   let currentUser = null
 
+  function promptAdminPin() {
+    const pin = prompt('此操作需要管理員 PIN，請輸入：')
+    if (!pin) return null
+    return pin
+  }
+
   function setView(view) {
     const adminPanel = document.getElementById('adminPanel')
     const appRoot = document.getElementById('appRoot')
@@ -46,11 +52,12 @@
         '<button type="button" data-view-charts="' + user.id + '" data-name="' + user.name + '">查看命盤</button>',
         user.membershipActive
           ? '<button type="button" data-grant-membership="' + user.id + '" data-name="' + user.name + '" data-extend="1" data-expires-at="' + escapeAdminHtml(user.membershipExpiresAt || '') + '">延長付費</button>' +
+            '<button type="button" data-set-expiry="' + user.id + '" data-name="' + user.name + '" data-expires-at="' + escapeAdminHtml(user.membershipExpiresAt || '') + '">調整到期日</button>' +
             '<button type="button" class="danger" data-revoke-membership="' + user.id + '" data-name="' + user.name + '" data-expires-at="' + escapeAdminHtml(user.membershipExpiresAt || '') + '">取消付費</button>'
           : '<button type="button" data-grant-membership="' + user.id + '" data-name="' + user.name + '">開通付費</button>',
         user.starDrawEnabled
-          ? '<button type="button" class="danger" data-disable-star-draw="' + user.id + '" data-name="' + user.name + '">取消神牌</button>'
-          : '<button type="button" data-enable-star-draw="' + user.id + '" data-name="' + user.name + '">開通神牌</button>',
+          ? '<button type="button" class="danger" data-disable-star-draw="' + user.id + '" data-name="' + user.name + '">取消課程</button>'
+          : '<button type="button" data-enable-star-draw="' + user.id + '" data-name="' + user.name + '">開通課程</button>',
         '<button type="button" data-reset="' + user.id + '" data-name="' + user.name + '">重設密碼</button>',
         '<button type="button" data-make-admin="' + user.id + '" data-name="' + user.name + '">設為管理員</button>',
       )
@@ -211,9 +218,18 @@
 
       if (submitBtn) submitBtn.disabled = true
       try {
+        const payload = { planId: planId }
+        if (plan && plan.lifetime) {
+          const adminPin = promptAdminPin()
+          if (!adminPin) {
+            if (submitBtn) submitBtn.disabled = false
+            return
+          }
+          payload.adminPin = adminPin
+        }
         const data = await auth.api('/api/admin/users/' + userId + '/grant-membership', {
           method: 'POST',
-          body: JSON.stringify({ planId: planId }),
+          body: JSON.stringify(payload),
         })
         modal.remove()
         alert(
@@ -242,9 +258,117 @@
     ) {
       return
     }
-    await auth.api('/api/admin/users/' + id + '/revoke-membership', { method: 'POST' })
+    const adminPin = promptAdminPin()
+    if (!adminPin) return
+    await auth.api('/api/admin/users/' + id + '/revoke-membership', {
+      method: 'POST',
+      body: JSON.stringify({ adminPin: adminPin }),
+    })
     alert('已取消「' + name + '」的付費會員資格')
     await renderAdminPanel()
+  }
+
+  function showSetExpiryModal(userId, userName, currentExpiresAt) {
+    const existing = document.getElementById('setExpiryModal')
+    if (existing) existing.remove()
+
+    const currentLabel = formatGrantExpiryPreview(currentExpiresAt)
+    const defaultDate = currentExpiresAt
+      ? new Date(currentExpiresAt).toISOString().slice(0, 10)
+      : new Date().toISOString().slice(0, 10)
+
+    const modal = document.createElement('div')
+    modal.id = 'setExpiryModal'
+    modal.className = 'password-modal'
+    modal.innerHTML =
+      '<div class="password-modal-card">' +
+        '<h3>調整付費到期日</h3>' +
+        '<p class="auth-note">為「' + escapeAdminHtml(userName) + '」直接設定到期日（覆蓋累加結果，請謹慎操作）。</p>' +
+        '<p class="auth-note"><strong>目前有效至：</strong>' + currentLabel + '</p>' +
+        '<form id="setExpiryForm">' +
+          '<label>新到期日<input type="date" name="expiresAt" value="' + defaultDate + '" required></label>' +
+          '<label class="auth-note"><input type="checkbox" name="lifetime" value="1"> 設為終身</label>' +
+          '<div class="auth-error" id="setExpiryError" hidden></div>' +
+          '<div class="password-modal-actions">' +
+            '<button type="button" class="secondary" id="cancelSetExpiry">取消</button>' +
+            '<button type="submit" class="primary">確認更新</button>' +
+          '</div>' +
+        '</form>' +
+      '</div>'
+
+    document.body.appendChild(modal)
+
+    document.getElementById('cancelSetExpiry').addEventListener('click', function () {
+      modal.remove()
+    })
+
+    document.getElementById('setExpiryForm').addEventListener('submit', async function (e) {
+      e.preventDefault()
+      const errorEl = document.getElementById('setExpiryError')
+      const lifetime = modal.querySelector('[name=lifetime]').checked
+      const dateValue = modal.querySelector('[name=expiresAt]').value
+      const nextValue = lifetime ? 'lifetime' : dateValue
+      if (
+        !confirm(
+          '確定要將「' + userName + '」的到期日改為「' +
+            (lifetime ? '終身' : dateValue) + '」？\n\n目前：' + currentLabel,
+        )
+      ) {
+        return
+      }
+      const adminPin = promptAdminPin()
+      if (!adminPin) return
+      try {
+        const data = await auth.api('/api/admin/users/' + userId + '/set-membership-expiry', {
+          method: 'POST',
+          body: JSON.stringify({ expiresAt: nextValue, adminPin: adminPin }),
+        })
+        modal.remove()
+        alert(
+          '已更新「' + userName + '」的到期日\n新的有效至：' +
+            formatGrantExpiryPreview(data.user && data.user.membershipExpiresAt),
+        )
+        await renderAdminPanel()
+      } catch (err) {
+        if (errorEl) {
+          errorEl.textContent = err.message
+          errorEl.hidden = false
+        }
+      }
+    })
+  }
+
+  function renderAuditLogs(logs) {
+    if (!logs.length) {
+      return '<p class="admin-member-note">尚無操作紀錄。</p>'
+    }
+    return (
+      '<table class="admin-member-table admin-audit-table">' +
+        '<thead><tr><th>時間</th><th>管理員</th><th>對象</th><th>操作</th><th>詳情</th></tr></thead>' +
+        '<tbody>' +
+          logs
+            .map(function (log) {
+              const details = log.details
+                ? Object.keys(log.details)
+                    .map(function (key) {
+                      return key + '：' + String(log.details[key])
+                    })
+                    .join('；')
+                : '—'
+              return (
+                '<tr>' +
+                  '<td>' + new Date(log.createdAt).toLocaleString('zh-TW') + '</td>' +
+                  '<td>' + escapeAdminHtml(log.adminName) + '</td>' +
+                  '<td>' + escapeAdminHtml(log.targetUserName || '—') + '</td>' +
+                  '<td>' + escapeAdminHtml(log.actionLabel || log.action) + '</td>' +
+                  '<td>' + escapeAdminHtml(details) + '</td>' +
+                '</tr>'
+              )
+            })
+            .join('') +
+        '</tbody>' +
+      '</table>'
+    )
   }
 
   function escapeAdminHtml(value) {
@@ -399,7 +523,7 @@
 
     panel.querySelectorAll('[data-enable-star-draw]').forEach(function (btn) {
       btn.addEventListener('click', async function () {
-        if (!confirm('確定要為「' + btn.dataset.name + '」開通神牌功能？')) return
+        if (!confirm('確定要為「' + btn.dataset.name + '」開通課程功能？')) return
         try {
           await auth.api('/api/admin/users/' + btn.dataset.enableStarDraw + '/enable-star-draw', { method: 'POST' })
           await renderAdminPanel()
@@ -411,7 +535,7 @@
 
     panel.querySelectorAll('[data-disable-star-draw]').forEach(function (btn) {
       btn.addEventListener('click', async function () {
-        if (!confirm('確定要取消「' + btn.dataset.name + '」的神牌功能？')) return
+        if (!confirm('確定要取消「' + btn.dataset.name + '」的課程功能？')) return
         try {
           await auth.api('/api/admin/users/' + btn.dataset.disableStarDraw + '/disable-star-draw', { method: 'POST' })
           await renderAdminPanel()
@@ -427,6 +551,16 @@
           btn.dataset.grantMembership,
           btn.dataset.name,
           btn.dataset.extend === '1',
+          btn.dataset.expiresAt || null,
+        )
+      })
+    })
+
+    panel.querySelectorAll('[data-set-expiry]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        showSetExpiryModal(
+          btn.dataset.setExpiry,
+          btn.dataset.name,
           btn.dataset.expiresAt || null,
         )
       })
@@ -452,6 +586,7 @@
       '<div class="admin-member-tabs">' +
         '<button type="button" class="admin-member-tab' + (activeTab === 'free' ? ' is-active' : '') + '" data-admin-tab="free">免費會員（' + summary.free + '）</button>' +
         '<button type="button" class="admin-member-tab' + (activeTab === 'paid' ? ' is-active' : '') + '" data-admin-tab="paid">付費會員（' + summary.paid + '）</button>' +
+        '<button type="button" class="admin-member-tab' + (activeTab === 'expiring' ? ' is-active' : '') + '" data-admin-tab="expiring">即將到期（' + (summary.expiring || 0) + '）</button>' +
         '<button type="button" class="admin-member-tab' + (activeTab === 'pending' ? ' is-active' : '') + '" data-admin-tab="pending">待審核（' + summary.pending + '）</button>' +
         '<button type="button" class="admin-member-tab' + (activeTab === 'admins' ? ' is-active' : '') + '" data-admin-tab="admins">管理員（' + summary.admins + '）</button>' +
       '</div>'
@@ -465,24 +600,30 @@
           ? '目前沒有免費會員'
           : tab === 'paid'
             ? '目前沒有付費會員'
+            : tab === 'expiring'
+              ? '30 天內沒有即將到期的付費會員'
             : tab === 'pending'
               ? '目前沒有待審核會員'
               : '尚無其他管理員'
-      const colspan = tab === 'paid' ? 9 : tab === 'admins' ? 5 : 8
+      const colspan =
+        tab === 'expiring' ? 10 : tab === 'paid' ? 9 : tab === 'admins' ? 5 : 8
       return '<tr><td colspan="' + colspan + '" class="admin-empty">' + emptyMsg + '</td></tr>'
     }
 
     return members
       .map(function (user) {
-        const starDrawCell =
+        const courseCell =
           user.role === 'admin'
             ? '—'
             : user.starDrawEnabled
               ? '已開通'
               : '未開通'
         const birthCell = user.birthDateTime || '—'
+        const tierLabel = user.memberTierLabel || auth.memberTierDetailedLabel(user)
 
-        if (tab === 'paid') {
+        if (tab === 'paid' || tab === 'expiring') {
+          const daysLeft =
+            user.daysUntilExpiry != null ? user.daysUntilExpiry + ' 天' : '—'
           return (
             '<tr>' +
               '<td>' + user.name + '</td>' +
@@ -491,7 +632,8 @@
               '<td>' + birthCell + '</td>' +
               '<td>' + (user.membershipPlanLabel || '付費會員') + '</td>' +
               '<td>' + auth.formatMembershipExpiry(user.membershipExpiresAt) + '</td>' +
-              '<td>' + starDrawCell + '</td>' +
+              (tab === 'expiring' ? '<td>' + daysLeft + '</td>' : '') +
+              '<td>' + courseCell + '</td>' +
               '<td>' + new Date(user.createdAt).toLocaleString('zh-TW') + '</td>' +
               '<td>' + renderUserActions(user) + '</td>' +
             '</tr>'
@@ -516,8 +658,8 @@
             '<td>' + user.phone + '</td>' +
             '<td>' + user.email + '</td>' +
             '<td>' + birthCell + '</td>' +
-            '<td>' + auth.membershipTierLabel(user) + '</td>' +
-            '<td>' + starDrawCell + '</td>' +
+            '<td>' + tierLabel + '</td>' +
+            '<td>' + courseCell + '</td>' +
             '<td>' + new Date(user.createdAt).toLocaleString('zh-TW') + '</td>' +
             '<td>' + renderUserActions(user) + '</td>' +
           '</tr>'
@@ -530,7 +672,16 @@
     if (tab === 'paid') {
       return (
         '<table class="admin-member-table">' +
-          '<thead><tr><th>姓名</th><th>電話</th><th>Email</th><th>出生資料</th><th>訂閱方案</th><th>有效至</th><th>神牌</th><th>註冊時間</th><th>操作</th></tr></thead>' +
+          '<thead><tr><th>姓名</th><th>電話</th><th>Email</th><th>出生資料</th><th>訂閱方案</th><th>有效至</th><th>課程</th><th>註冊時間</th><th>操作</th></tr></thead>' +
+          '<tbody>' + renderAdminMemberRows(tab, members) + '</tbody>' +
+        '</table>'
+      )
+    }
+
+    if (tab === 'expiring') {
+      return (
+        '<table class="admin-member-table">' +
+          '<thead><tr><th>姓名</th><th>電話</th><th>Email</th><th>出生資料</th><th>訂閱方案</th><th>有效至</th><th>剩餘天數</th><th>課程</th><th>註冊時間</th><th>操作</th></tr></thead>' +
           '<tbody>' + renderAdminMemberRows(tab, members) + '</tbody>' +
         '</table>'
       )
@@ -547,7 +698,7 @@
 
     return (
       '<table class="admin-member-table">' +
-        '<thead><tr><th>姓名</th><th>電話</th><th>Email</th><th>出生資料</th><th>會員類型</th><th>神牌</th><th>註冊時間</th><th>操作</th></tr></thead>' +
+        '<thead><tr><th>姓名</th><th>電話</th><th>Email</th><th>出生資料</th><th>會員類型</th><th>課程</th><th>註冊時間</th><th>操作</th></tr></thead>' +
         '<tbody>' + renderAdminMemberRows(tab, members) + '</tbody>' +
       '</table>'
     )
@@ -558,7 +709,10 @@
       return '註冊即列入免費會員資料庫，可使用本命命盤；線上訂閱或管理員手動開通後，會移至付費會員。'
     }
     if (tab === 'paid') {
-      return '付費訂閱中的會員，可完整使用大限流年、列印儲存與神牌等功能；線下付款可由管理員按「延長付費」加期。'
+      return '付費訂閱中的會員，可完整使用大限流年、列印儲存等功能；線下付款可由管理員按「延長付費」加期。'
+    }
+    if (tab === 'expiring') {
+      return '30 天內即將到期的付費會員，建議主動聯絡續費。'
     }
     if (tab === 'pending') {
       return '尚未審核通過的申請（若仍使用人工審核流程）。'
@@ -575,17 +729,27 @@
     panel.innerHTML = '<div class="auth-card"><p>載入中…</p></div>'
 
     try {
-      const data = await auth.api('/api/admin/members/' + adminMemberTab)
-      const summary = data.summary || { free: 0, paid: 0, pending: 0, admins: 0 }
+      const [data, auditData] = await Promise.all([
+        auth.api('/api/admin/members/' + adminMemberTab),
+        auth.api('/api/admin/audit-logs?limit=20'),
+      ])
+      const summary = data.summary || { free: 0, paid: 0, expiring: 0, pending: 0, admins: 0 }
       const members = data.members || []
+      const auditLogs = auditData.logs || []
       const tabTitle =
         adminMemberTab === 'free'
           ? '免費會員資料庫'
           : adminMemberTab === 'paid'
             ? '付費會員資料庫'
+            : adminMemberTab === 'expiring'
+              ? '即將到期會員'
             : adminMemberTab === 'pending'
               ? '待審核會員'
               : '管理員'
+      const expiringAlert =
+        summary.expiring > 0 && adminMemberTab !== 'expiring'
+          ? '<p class="admin-member-alert">有 <strong>' + summary.expiring + '</strong> 位付費會員將在 30 天內到期。<button type="button" class="secondary" data-admin-tab="expiring">查看即將到期</button></p>'
+          : ''
 
       panel.innerHTML =
         '<div id="adminPanelInner" class="admin-member-db">' +
@@ -597,8 +761,13 @@
             '<button type="button" id="backToAppBtn">返回排盤</button>' +
           '</div>' +
           renderAdminMemberTabs(summary, adminMemberTab) +
+          expiringAlert +
           '<p class="admin-member-note">' + adminTabDescription(adminMemberTab) + '</p>' +
           '<div class="admin-table-wrap">' + renderAdminMemberTable(adminMemberTab, members) + '</div>' +
+          '<div class="admin-audit-section">' +
+            '<h3>最近操作紀錄</h3>' +
+            renderAuditLogs(auditLogs) +
+          '</div>' +
         '</div>'
 
       bindAdminPanelEvents(panel)
@@ -842,7 +1011,7 @@
         if (canUseStarDraw(user)) {
           location.href = 'star-draw/index.html'
         } else {
-          alert('神牌功能尚未開通，請聯絡管理員')
+          alert('課程功能尚未開通，請聯絡管理員')
         }
       }
     }
@@ -871,6 +1040,7 @@
       guestBar.className = 'guest-bar'
       guestBar.innerHTML =
         '<span class="guest-bar-text">免費試排 · 資料僅保留於此視窗，關閉後即清除</span>' +
+        '<a class="guest-bar-link" href="index.html">註冊／登入</a>' +
         '<a class="guest-bar-link" href="https://rishuntang.com/free-chart.html" target="_blank" rel="noopener noreferrer">重新填寫</a>' +
         '<a class="guest-bar-link" href="https://rishuntang.com/" target="_blank" rel="noopener noreferrer">返回官網</a>'
       const appRoot = document.getElementById('appRoot')
@@ -927,6 +1097,15 @@
       await window.loadRegistrationBirthChart()
     }
     if (typeof window.applyMemberTierUI === 'function') window.applyMemberTierUI()
+    showMembershipExpiryNotice(user)
+  }
+
+  function showMembershipExpiryNotice(user) {
+    if (!user || user.role === 'admin') return
+    const days = auth.daysUntilMembershipExpiry(user)
+    if (days != null && days > 0 && days <= 7) {
+      alert('您的付費會員將於 ' + days + ' 天後到期，如需續費請聯絡老師。')
+    }
   }
 
   async function boot() {

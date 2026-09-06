@@ -41,6 +41,25 @@ window.ZiweiAuth = (function () {
     return '免費會員'
   }
 
+  function memberTierDetailedLabel(user) {
+    if (user.role === 'admin') return '管理員'
+    if (user.status === 'pending') return '待審核'
+    if (user.status === 'rejected') return '已拒絕'
+    var parts = []
+    parts.push(user.membershipActive ? '付費會員' : '免費會員')
+    if (user.starDrawEnabled) parts.push('課程已開通')
+    return parts.join(' · ')
+  }
+
+  function daysUntilMembershipExpiry(user) {
+    if (!user || !user.membershipActive || !user.membershipExpiresAt) return null
+    var d = new Date(user.membershipExpiresAt)
+    if (Number.isNaN(d.getTime()) || d.getFullYear() >= 2099) return null
+    var diff = d.getTime() - Date.now()
+    if (diff <= 0) return 0
+    return Math.ceil(diff / (24 * 60 * 60 * 1000))
+  }
+
   function formatMembershipExpiry(iso) {
     if (!iso) return '—'
     const d = new Date(iso)
@@ -67,6 +86,8 @@ window.ZiweiAuth = (function () {
     api,
     statusLabel,
     membershipTierLabel,
+    memberTierDetailedLabel,
+    daysUntilMembershipExpiry,
     formatMembershipExpiry,
     redirectToLogin,
     redirectToChart,

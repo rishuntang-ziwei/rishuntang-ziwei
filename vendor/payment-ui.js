@@ -78,12 +78,23 @@
   function renderPaidActive(status) {
     const expiry = formatExpiry(status.membershipExpiresAt)
     const label = status.membershipPlanLabel || planLabel(status.membershipPlan)
+    let expiryNotice = ''
+    if (status.membershipExpiresAt) {
+      const d = new Date(status.membershipExpiresAt)
+      if (!Number.isNaN(d.getTime()) && d.getFullYear() < 2099) {
+        const days = Math.ceil((d.getTime() - Date.now()) / (24 * 60 * 60 * 1000))
+        if (days > 0 && days <= 30) {
+          expiryNotice = '<p class="membership-alert">您的付費會員將於 ' + days + ' 天後到期，如需續費請聯絡老師。</p>'
+        }
+      }
+    }
 
     return (
       '<div class="membership-active">' +
         '<p>會員等級：<strong>付費會員</strong></p>' +
         '<p>訂閱方案：' + label + '</p>' +
         (expiry ? '<p>有效至：' + expiry + '</p>' : '') +
+        expiryNotice +
         '<p class="membership-plan-tag">已解鎖大限流年、列印儲存等完整功能</p>' +
       '</div>'
     )

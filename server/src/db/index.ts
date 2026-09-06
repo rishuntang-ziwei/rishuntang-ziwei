@@ -51,6 +51,11 @@ export const fulfillPaymentOrder = (order: import('../types.js').PaymentOrderRow
 export const grantUserMembership = (userId: number, planId: string) =>
   driver.grantUserMembership(userId, planId)
 export const revokeUserMembership = (userId: number) => driver.revokeUserMembership(userId)
+export const setUserMembershipExpiry = (userId: number, expiresAt: string | null) =>
+  driver.setUserMembershipExpiry(userId, expiresAt)
+export const createAdminAuditLog = (input: import('../adminAuditLog.js').AdminAuditLogInput) =>
+  driver.createAdminAuditLog(input)
+export const listAdminAuditLogs = (limit?: number) => driver.listAdminAuditLogs(limit)
 export const consumeDailyChartGeneration = (userId: number) => driver.consumeDailyChartGeneration(userId)
 export const getGuestAiQuota = (ip: string) => driver.getGuestAiQuota(ip)
 export const incrementGuestAiQuota = (ip: string) => driver.incrementGuestAiQuota(ip)

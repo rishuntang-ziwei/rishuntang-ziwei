@@ -1,7 +1,9 @@
 import bcrypt from 'bcryptjs'
 import pg from 'pg'
+import type { AdminAuditAction, AdminAuditLogInput, PublicAdminAuditLog } from '../adminAuditLog.js'
+import { LIFETIME_MEMBERSHIP_EXPIRY } from '../paymentPlans.js'
 import type { PublicUser, SavedChartDetail, SavedChartPayload, SavedChartRow, SavedChartSummary, UserRow, PaymentOrderRow } from '../types.js'
-import { mapPaymentOrderRow, mapSavedChartRow, mapUserRow, parseSavedChartPayload, toPublicUser, toSavedChartDetail, toSavedChartSummary } from './shared.js'
+import { mapPaymentOrderRow, mapSavedChartRow, mapUserRow, parseSavedChartPayload, toIsoString, toPublicUser, toSavedChartDetail, toSavedChartSummary } from './shared.js'
 import { resolveMembershipGrant } from '../membershipGrant.js'
 import { canGenerateChartToday, dailyChartQuotaForUser, taipeiDateString } from '../chartQuota.js'
 import { GUEST_DAILY_AI_LIMIT } from '../guestQuota.js'
@@ -118,6 +120,22 @@ export async function initDb() {
       paid_at TIMESTAMPTZ,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
+  `)
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS admin_audit_logs (
+      id SERIAL PRIMARY KEY,
+      admin_id INTEGER NOT NULL,
+      admin_name TEXT NOT NULL,
+      target_user_id INTEGER,
+      target_user_name TEXT,
+      action TEXT NOT NULL,
+      details TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `)
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_admin_audit_logs_created ON admin_audit_logs(created_at DESC)
   `)
 
   console.log('[db] PostgreSQL 就緒')
@@ -375,6 +393,83 @@ export async function revokeUserMembership(userId: number): Promise<PublicUser |
      WHERE id = $1
      RETURNING *`,
     [userId],
+  )
+  const row = result.rows[0]
+  return row ? toPublicUser(mapUserRow(row)) : undefined
+}
+
+function mapAuditLogRow(row: Record<string, unknown>): PublicAdminAuditLog {
+  let details: Record<string, unknown> | null = null
+  if (row.details != null && String(row.details).trim()) {
+    try {
+      details = JSON.parse(String(row.details)) as Record<string, unknown>
+    } catch {
+      details = null
+    }
+  }
+  return {
+    id: Number(row.id),
+    adminId: Number(row.admin_id),
+    adminName: String(row.admin_name),
+    targetUserId: row.target_user_id != null ? Number(row.target_user_id) : null,
+    targetUserName: row.target_user_name != null ? String(row.target_user_name) : null,
+    action: String(row.action) as AdminAuditAction,
+    details,
+    createdAt: toIsoString(row.created_at),
+  }
+}
+
+export async function createAdminAuditLog(input: AdminAuditLogInput): Promise<PublicAdminAuditLog> {
+  const details = input.details ? JSON.stringify(input.details) : null
+  const result = await pool.query(
+    `INSERT INTO admin_audit_logs (admin_id, admin_name, target_user_id, target_user_name, action, details)
+     VALUES ($1, $2, $3, $4, $5, $6)
+     RETURNING *`,
+    [
+      input.adminId,
+      input.adminName,
+      input.targetUserId ?? null,
+      input.targetUserName ?? null,
+      input.action,
+      details,
+    ],
+  )
+  return mapAuditLogRow(result.rows[0])
+}
+
+export async function listAdminAuditLogs(limit = 50): Promise<PublicAdminAuditLog[]> {
+  const result = await pool.query(
+    `SELECT * FROM admin_audit_logs ORDER BY created_at DESC, id DESC LIMIT $1`,
+    [Math.min(Math.max(limit, 1), 200)],
+  )
+  return result.rows.map((row) => mapAuditLogRow(row))
+}
+
+export async function setUserMembershipExpiry(
+  userId: number,
+  expiresAt: string | null,
+): Promise<PublicUser | undefined> {
+  const user = await findUserById(userId)
+  if (!user || user.role !== 'user') return undefined
+
+  let planId = user.membership_plan
+  if (!expiresAt) {
+    planId = null
+  } else if (expiresAt === LIFETIME_MEMBERSHIP_EXPIRY) {
+    planId = 'member_lifetime'
+  } else if (!planId) {
+    planId = 'member_monthly'
+  }
+
+  const result = await pool.query(
+    `UPDATE users
+     SET status = 'approved',
+         approved_at = COALESCE(approved_at, NOW()),
+         membership_plan = $2,
+         membership_expires_at = $3
+     WHERE id = $1
+     RETURNING *`,
+    [userId, planId, expiresAt],
   )
   const row = result.rows[0]
   return row ? toPublicUser(mapUserRow(row)) : undefined
