@@ -45,6 +45,7 @@ window.ZiweiAuth = (function () {
     if (!iso) return '—'
     const d = new Date(iso)
     if (Number.isNaN(d.getTime())) return '—'
+    if (d.getFullYear() >= 2099) return '終身'
     return d.toLocaleDateString('zh-TW')
   }
 

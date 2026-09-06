@@ -5,6 +5,7 @@
     member_monthly: '付費會員 · 單月',
     member_half_year: '付費會員 · 半年',
     member_yearly: '付費會員 · 一年',
+    member_lifetime: '付費會員 · 終身',
   }
 
   const PLAN_DESCRIPTION = '大限流年、列印儲存等完整功能'
@@ -17,6 +18,7 @@
     if (!iso) return ''
     const d = new Date(iso)
     if (Number.isNaN(d.getTime())) return ''
+    if (d.getFullYear() >= 2099) return '終身'
     return d.toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric' })
   }
 

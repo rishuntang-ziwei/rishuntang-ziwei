@@ -1,4 +1,4 @@
-import { getPaymentPlan } from './paymentPlans.js'
+import { getPaymentPlan, LIFETIME_MEMBERSHIP_EXPIRY } from './paymentPlans.js'
 import type { UserRow } from './types.js'
 
 export function computeMembershipExpiry(
@@ -16,9 +16,13 @@ export function resolveMembershipGrant(user: UserRow, planId: string) {
   const plan = getPaymentPlan(planId)
   if (!plan) return null
 
+  const expiresAt = plan.lifetime
+    ? LIFETIME_MEMBERSHIP_EXPIRY
+    : computeMembershipExpiry(user.membership_expires_at, plan.days)
+
   return {
     planId: plan.id,
-    expiresAt: computeMembershipExpiry(user.membership_expires_at, plan.days),
+    expiresAt,
     starDrawEnabled: plan.starDraw || user.star_draw_enabled,
     planLabel: plan.name,
     planDays: plan.days,

@@ -103,6 +103,7 @@
     { id: 'member_monthly', label: '付費會員 · 單月（30 天）' },
     { id: 'member_half_year', label: '付費會員 · 半年（182 天）' },
     { id: 'member_yearly', label: '付費會員 · 一年（365 天）' },
+    { id: 'member_lifetime', label: '終身開通' },
   ]
 
   function showGrantMembershipModal(userId, userName, isExtend) {

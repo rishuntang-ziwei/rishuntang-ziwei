@@ -6,7 +6,11 @@ export interface PaymentPlan {
   days: number
   periodLabel: string
   starDraw: boolean
+  lifetime?: boolean
+  adminOnly?: boolean
 }
+
+export const LIFETIME_MEMBERSHIP_EXPIRY = '2099-12-31T23:59:59.999Z'
 
 export const PAYMENT_PLANS: PaymentPlan[] = [
   {
@@ -36,6 +40,17 @@ export const PAYMENT_PLANS: PaymentPlan[] = [
     periodLabel: '1 年',
     starDraw: true,
   },
+  {
+    id: 'member_lifetime',
+    name: '付費會員 · 終身',
+    description: '大限流年、列印儲存等完整功能',
+    amount: 0,
+    days: 0,
+    periodLabel: '終身',
+    starDraw: true,
+    lifetime: true,
+    adminOnly: true,
+  },
 ]
 
 export function getPaymentPlan(planId: string): PaymentPlan | undefined {
@@ -43,7 +58,7 @@ export function getPaymentPlan(planId: string): PaymentPlan | undefined {
 }
 
 export function listPublicPlans() {
-  return PAYMENT_PLANS.map((p) => ({
+  return PAYMENT_PLANS.filter((p) => !p.adminOnly).map((p) => ({
     id: p.id,
     name: p.name,
     description: p.description,

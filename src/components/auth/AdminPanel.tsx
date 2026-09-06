@@ -28,6 +28,7 @@ function formatExpiry(iso: string | null) {
   if (!iso) return '—'
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return '—'
+  if (d.getFullYear() >= 2099) return '終身'
   return d.toLocaleDateString('zh-TW')
 }
 
@@ -258,6 +259,7 @@ export function AdminPanel({
               <option value="member_monthly">付費會員 · 單月（30 天）</option>
               <option value="member_half_year">付費會員 · 半年（182 天）</option>
               <option value="member_yearly">付費會員 · 一年（365 天）</option>
+              <option value="member_lifetime">終身開通</option>
             </select>
           </label>
           {grantError && <div className="auth-error">{grantError}</div>}
