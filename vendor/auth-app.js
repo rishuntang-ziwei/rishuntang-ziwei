@@ -730,7 +730,10 @@
 
     if (starDrawBtn) {
       starDrawBtn.onclick = function () {
-        if (!requireUpgrade('神牌功能')) return
+        if (!isPremiumMember(window.ZiweiMember.currentUser)) {
+          alert('神牌屬於新課程，請聯絡老師洽詢')
+          return
+        }
         if (canUseStarDraw(user)) {
           location.href = 'star-draw/index.html'
         } else {
