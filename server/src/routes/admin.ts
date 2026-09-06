@@ -316,7 +316,7 @@ router.post('/users/:id/enable-star-draw', async (req, res) => {
     return
   }
   if (target.status !== 'approved') {
-    res.status(400).json({ error: '請先開通會員帳號，再啟用課程功能' })
+    res.status(400).json({ error: '請先開通會員帳號，再啟用神牌功能' })
     return
   }
 
@@ -326,7 +326,7 @@ router.post('/users/:id/enable-star-draw', async (req, res) => {
     return
   }
   await recordAudit(req, 'enable_course', id, target.name)
-  res.json({ message: '已開通課程功能', user })
+  res.json({ message: '已開通神牌功能', user })
 })
 
 router.post('/users/:id/disable-star-draw', async (req, res) => {
@@ -348,7 +348,7 @@ router.post('/users/:id/disable-star-draw', async (req, res) => {
     return
   }
   await recordAudit(req, 'disable_course', id, target.name)
-  res.json({ message: '已取消課程功能', user })
+  res.json({ message: '已取消神牌功能', user })
 })
 
 router.post('/users/:id/grant-membership', async (req, res) => {

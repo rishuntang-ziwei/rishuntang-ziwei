@@ -47,7 +47,7 @@ window.ZiweiAuth = (function () {
     if (user.status === 'rejected') return '已拒絕'
     var parts = []
     parts.push(user.membershipActive ? '付費會員' : '免費會員')
-    if (user.starDrawEnabled) parts.push('課程已開通')
+    if (user.starDrawEnabled) parts.push('神牌已開通')
     return parts.join(' · ')
   }
 

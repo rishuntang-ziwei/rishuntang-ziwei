@@ -56,8 +56,8 @@
             '<button type="button" class="danger" data-revoke-membership="' + user.id + '" data-name="' + user.name + '" data-expires-at="' + escapeAdminHtml(user.membershipExpiresAt || '') + '">取消付費</button>'
           : '<button type="button" data-grant-membership="' + user.id + '" data-name="' + user.name + '">開通付費</button>',
         user.starDrawEnabled
-          ? '<button type="button" class="danger" data-disable-star-draw="' + user.id + '" data-name="' + user.name + '">取消課程</button>'
-          : '<button type="button" data-enable-star-draw="' + user.id + '" data-name="' + user.name + '">開通課程</button>',
+          ? '<button type="button" class="danger" data-disable-star-draw="' + user.id + '" data-name="' + user.name + '">取消神牌</button>'
+          : '<button type="button" data-enable-star-draw="' + user.id + '" data-name="' + user.name + '">開通神牌</button>',
         '<button type="button" data-reset="' + user.id + '" data-name="' + user.name + '">重設密碼</button>',
         '<button type="button" data-make-admin="' + user.id + '" data-name="' + user.name + '">設為管理員</button>',
       )
@@ -523,7 +523,7 @@
 
     panel.querySelectorAll('[data-enable-star-draw]').forEach(function (btn) {
       btn.addEventListener('click', async function () {
-        if (!confirm('確定要為「' + btn.dataset.name + '」開通課程功能？')) return
+        if (!confirm('確定要為「' + btn.dataset.name + '」開通神牌功能？')) return
         try {
           await auth.api('/api/admin/users/' + btn.dataset.enableStarDraw + '/enable-star-draw', { method: 'POST' })
           await renderAdminPanel()
@@ -535,7 +535,7 @@
 
     panel.querySelectorAll('[data-disable-star-draw]').forEach(function (btn) {
       btn.addEventListener('click', async function () {
-        if (!confirm('確定要取消「' + btn.dataset.name + '」的課程功能？')) return
+        if (!confirm('確定要取消「' + btn.dataset.name + '」的神牌功能？')) return
         try {
           await auth.api('/api/admin/users/' + btn.dataset.disableStarDraw + '/disable-star-draw', { method: 'POST' })
           await renderAdminPanel()
@@ -672,7 +672,7 @@
     if (tab === 'paid') {
       return (
         '<table class="admin-member-table">' +
-          '<thead><tr><th>姓名</th><th>電話</th><th>Email</th><th>出生資料</th><th>訂閱方案</th><th>有效至</th><th>課程</th><th>註冊時間</th><th>操作</th></tr></thead>' +
+          '<thead><tr><th>姓名</th><th>電話</th><th>Email</th><th>出生資料</th><th>訂閱方案</th><th>有效至</th><th>神牌</th><th>註冊時間</th><th>操作</th></tr></thead>' +
           '<tbody>' + renderAdminMemberRows(tab, members) + '</tbody>' +
         '</table>'
       )
@@ -681,7 +681,7 @@
     if (tab === 'expiring') {
       return (
         '<table class="admin-member-table">' +
-          '<thead><tr><th>姓名</th><th>電話</th><th>Email</th><th>出生資料</th><th>訂閱方案</th><th>有效至</th><th>剩餘天數</th><th>課程</th><th>註冊時間</th><th>操作</th></tr></thead>' +
+          '<thead><tr><th>姓名</th><th>電話</th><th>Email</th><th>出生資料</th><th>訂閱方案</th><th>有效至</th><th>剩餘天數</th><th>神牌</th><th>註冊時間</th><th>操作</th></tr></thead>' +
           '<tbody>' + renderAdminMemberRows(tab, members) + '</tbody>' +
         '</table>'
       )
@@ -698,7 +698,7 @@
 
     return (
       '<table class="admin-member-table">' +
-        '<thead><tr><th>姓名</th><th>電話</th><th>Email</th><th>出生資料</th><th>會員類型</th><th>課程</th><th>註冊時間</th><th>操作</th></tr></thead>' +
+        '<thead><tr><th>姓名</th><th>電話</th><th>Email</th><th>出生資料</th><th>會員類型</th><th>神牌</th><th>註冊時間</th><th>操作</th></tr></thead>' +
         '<tbody>' + renderAdminMemberRows(tab, members) + '</tbody>' +
       '</table>'
     )
@@ -1011,7 +1011,7 @@
         if (canUseStarDraw(user)) {
           location.href = 'star-draw/index.html'
         } else {
-          alert('課程功能尚未開通，請聯絡管理員')
+          alert('神牌功能尚未開通，請聯絡管理員')
         }
       }
     }

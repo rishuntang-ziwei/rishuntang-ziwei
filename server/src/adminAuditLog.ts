@@ -44,9 +44,9 @@ export function auditActionLabel(action: AdminAuditAction): string {
     case 'set_membership_expiry':
       return '調整到期日'
     case 'enable_course':
-      return '開通課程'
+      return '開通神牌'
     case 'disable_course':
-      return '取消課程'
+      return '取消神牌'
     case 'approve_user':
       return '審核通過'
     case 'reject_user':
