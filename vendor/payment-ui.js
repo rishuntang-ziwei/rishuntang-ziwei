@@ -7,6 +7,8 @@
     member_yearly: '付費會員 · 一年',
   }
 
+  const PLAN_DESCRIPTION = '大限流年、列印儲存等完整功能'
+
   function formatAmount(amount) {
     return 'NT$ ' + Number(amount).toLocaleString('zh-TW')
   }
@@ -60,7 +62,7 @@
             return (
               '<div class="membership-plan-card">' +
                 '<h4>' + plan.name + '</h4>' +
-                '<p class="membership-plan-desc">' + plan.description + '</p>' +
+                '<p class="membership-plan-desc">' + PLAN_DESCRIPTION + '</p>' +
                 '<p class="membership-plan-price">' + formatAmount(plan.amount) + ' / ' + period + '</p>' +
                 '<button type="button" class="primary membership-pay-btn" data-plan-id="' + plan.id + '">訂閱付款</button>' +
               '</div>'
