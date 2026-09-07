@@ -7,6 +7,7 @@ import { validateChartPayload } from '../chartPayload.js'
 import { formatBirthDateTime } from '../chartFormat.js'
 import { parseSavedChartPayload } from '../db/shared.js'
 import type { SavedChartPayload } from '../types.js'
+import { formatPhoneForStorage, phonesMatch, validatePhone } from '../phoneNumber.js'
 
 const router = Router()
 
@@ -14,22 +15,10 @@ function validateEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 }
 
-function validatePhone(phone: string) {
-  const normalized = phone.replace(/\s+/g, '')
-  return /^09\d{8}$/.test(normalized) || /^0\d{1,2}-?\d{6,8}$/.test(normalized)
-}
-
-function normalizePhone(phone: string) {
-  return phone.replace(/[\s-]/g, '')
-}
-
-function phonesMatch(stored: string, input: string) {
-  return normalizePhone(stored) === normalizePhone(input)
-}
-
 router.post('/register', async (req, res) => {
   const name = String(req.body?.name ?? '').trim()
-  const phone = String(req.body?.phone ?? '').trim()
+  const phoneRaw = String(req.body?.phone ?? '').trim()
+  const phone = formatPhoneForStorage(phoneRaw)
   const email = String(req.body?.email ?? '').trim().toLowerCase()
   const password = String(req.body?.password ?? '')
   const confirmPassword = String(req.body?.confirmPassword ?? '')
@@ -43,7 +32,7 @@ router.post('/register', async (req, res) => {
     return
   }
   if (!validatePhone(phone)) {
-    res.status(400).json({ error: '電話格式不正確' })
+    res.status(400).json({ error: '電話格式不正確，請確認國碼與號碼' })
     return
   }
   if (password.length < 8) {
@@ -110,7 +99,7 @@ router.post('/login', async (req, res) => {
 
 router.post('/forgot-password', async (req, res) => {
   const email = String(req.body?.email ?? '').trim().toLowerCase()
-  const phone = String(req.body?.phone ?? '').trim()
+  const phone = formatPhoneForStorage(String(req.body?.phone ?? '').trim())
 
   if (!email || !phone) {
     res.status(400).json({ error: '請填寫 Email 與註冊電話' })
@@ -121,7 +110,7 @@ router.post('/forgot-password', async (req, res) => {
     return
   }
   if (!validatePhone(phone)) {
-    res.status(400).json({ error: '電話格式不正確' })
+    res.status(400).json({ error: '電話格式不正確，請確認國碼與號碼' })
     return
   }
 

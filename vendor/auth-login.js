@@ -44,7 +44,13 @@
         '<h2>忘記密碼</h2>' +
         '<p class="auth-note">請輸入註冊時的 Email 與電話，驗證成功後即可重設密碼</p>' +
         '<label>Email<input type="email" name="email" required></label>' +
-        '<label>註冊電話<input type="tel" name="phone" placeholder="例如 0912345678" required></label>' +
+        (window.ZiweiPhoneIntl
+          ? window.ZiweiPhoneIntl.renderPhoneFieldHtml({
+              label: '註冊電話',
+              localName: 'phoneLocal',
+              countryName: 'phoneCountry',
+            })
+          : '<label>電話<input type="tel" name="phoneLocal" required></label>') +
         '<div class="auth-error" id="forgotError" hidden></div>' +
         '<button type="submit">驗證身分</button>' +
         '<button type="button" class="auth-link-btn" id="goLoginFromForgot">返回登入</button>' +
@@ -77,7 +83,13 @@
         '<p class="auth-note">註冊即開通免費會員（本命命盤）</p>' +
         '<p class="auth-note auth-note-follow">付費訂閱可解鎖完整功能</p>' +
         '<label>姓名<input type="text" name="name" required></label>' +
-        '<label>電話<input type="tel" name="phone" placeholder="例如 0912345678" required></label>' +
+        (window.ZiweiPhoneIntl
+          ? window.ZiweiPhoneIntl.renderPhoneFieldHtml({
+              label: '電話',
+              localName: 'phoneLocal',
+              countryName: 'phoneCountry',
+            })
+          : '<label>電話<input type="tel" name="phoneLocal" required></label>') +
         birthHtml +
         '<label>Email<input type="email" name="email" required></label>' +
         '<label>密碼<input type="password" name="password" required minlength="8"></label>' +
@@ -163,7 +175,9 @@
           method: 'POST',
           body: JSON.stringify({
             email: form.email.value.trim(),
-            phone: form.phone.value.trim(),
+            phone: window.ZiweiPhoneIntl
+              ? window.ZiweiPhoneIntl.readPhoneFromForm(form)
+              : form.phoneLocal.value.trim(),
           }),
         })
         renderAuth('reset', data.resetToken)
@@ -229,7 +243,9 @@
           method: 'POST',
           body: JSON.stringify({
             name: form.name.value.trim(),
-            phone: form.phone.value.trim(),
+            phone: window.ZiweiPhoneIntl
+              ? window.ZiweiPhoneIntl.readPhoneFromForm(form)
+              : form.phoneLocal.value.trim(),
             email: form.email.value.trim(),
             password: form.password.value,
             confirmPassword: form.confirmPassword.value,

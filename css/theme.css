@@ -324,6 +324,47 @@ body {
   color: var(--ink-muted);
 }
 
+.auth-phone-label {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: var(--ink-muted);
+}
+
+.auth-phone-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+  margin-top: 4px;
+}
+
+.auth-phone-country {
+  flex: 0 0 148px;
+  min-width: 0;
+  margin-top: 0;
+  padding: 9px 8px;
+  font-family: inherit;
+  font-size: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--paper-surface);
+  color: var(--ink);
+}
+
+.auth-phone-local {
+  flex: 1;
+  min-width: 0;
+  margin-top: 0 !important;
+}
+
+.auth-phone-hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--ink-muted);
+  line-height: 1.4;
+}
+
 .auth-form input {
   display: block;
   width: 100%;
