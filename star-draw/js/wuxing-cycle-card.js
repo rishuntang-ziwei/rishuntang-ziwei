@@ -3,22 +3,22 @@ const ROWS = [
     centered: true,
     items: [
       { text: '能源', kind: 'green' },
-      { text: '供应', kind: 'red' },
-      { text: '学习', kind: 'black' },
+      { text: '供應', kind: 'red' },
+      { text: '學習', kind: 'black' },
     ],
   },
   {
     centered: false,
     items: [
       { text: '吸收', kind: 'green' },
-      { text: '储存', kind: 'red' },
+      { text: '儲存', kind: 'red' },
       { text: '整合', kind: 'black' },
-      { text: '转换', kind: 'green' },
-      { text: '开发', kind: 'red' },
-      { text: '运用', kind: 'black' },
-      { text: '生机', kind: 'green' },
-      { text: '改变', kind: 'red' },
-      { text: '目标', kind: 'black' },
+      { text: '轉換', kind: 'green' },
+      { text: '開發', kind: 'red' },
+      { text: '運用', kind: 'black' },
+      { text: '生機', kind: 'green' },
+      { text: '改變', kind: 'red' },
+      { text: '目標', kind: 'black' },
     ],
   },
   {
@@ -26,7 +26,7 @@ const ROWS = [
     items: [
       { text: '能量', kind: 'green' },
       { text: '消耗', kind: 'red' },
-      { text: '行动', kind: 'black' },
+      { text: '行動', kind: 'black' },
     ],
   },
 ];

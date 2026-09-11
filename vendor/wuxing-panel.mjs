@@ -121,25 +121,25 @@ const CYCLE_LABEL_GROUPS = [
     anchor: '水',
     corner: 'waterLeft',
     items: [
-      { text: '开发', kind: 'red', role: 'top' },
-      { text: '转换', kind: 'green', role: 'bottomLeft' },
-      { text: '运用', kind: 'black', role: 'bottomRight' },
+      { text: '開發', kind: 'red', role: 'top' },
+      { text: '轉換', kind: 'green', role: 'bottomLeft' },
+      { text: '運用', kind: 'black', role: 'bottomRight' },
     ],
   },
   {
     anchor: '水',
     corner: 'waterRight',
     items: [
-      { text: '供应', kind: 'red', role: 'top' },
+      { text: '供應', kind: 'red', role: 'top' },
       { text: '能源', kind: 'green', role: 'bottomLeft' },
-      { text: '学习', kind: 'black', role: 'bottomRight' },
+      { text: '學習', kind: 'black', role: 'bottomRight' },
     ],
   },
   {
     anchor: '金',
     corner: 'bottomLeft',
     items: [
-      { text: '储存', kind: 'red', role: 'top' },
+      { text: '儲存', kind: 'red', role: 'top' },
       { text: '吸收', kind: 'green', role: 'bottomLeft' },
       { text: '整合', kind: 'black', role: 'bottomRight' },
     ],
@@ -148,9 +148,9 @@ const CYCLE_LABEL_GROUPS = [
     anchor: '木',
     corner: 'bottomRight',
     items: [
-      { text: '改变', kind: 'red', role: 'top' },
-      { text: '生机', kind: 'green', role: 'bottomLeft' },
-      { text: '目标', kind: 'black', role: 'bottomRight' },
+      { text: '改變', kind: 'red', role: 'top' },
+      { text: '生機', kind: 'green', role: 'bottomLeft' },
+      { text: '目標', kind: 'black', role: 'bottomRight' },
     ],
   },
   {
@@ -159,7 +159,7 @@ const CYCLE_LABEL_GROUPS = [
     items: [
       { text: '消耗', kind: 'red', role: 'top' },
       { text: '能量', kind: 'green', role: 'bottomLeft' },
-      { text: '行动', kind: 'black', role: 'bottomRight' },
+      { text: '行動', kind: 'black', role: 'bottomRight' },
     ],
   },
 ];
