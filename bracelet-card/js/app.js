@@ -6,6 +6,7 @@ import {
   formatSolarBirthLine,
   getSupplementAdvice,
 } from './card-builder.mjs';
+import { downloadBothCards, downloadCardSide } from './card-export.mjs';
 
 const TIME_LABELS = {
   0: '早子時 (00:00–01:00)',
@@ -88,9 +89,52 @@ function initDefaults() {
   renderCards();
 }
 
+async function withDownloadButton(button, task) {
+  if (!document.querySelector('#cardPreview .print-card-front')) {
+    alert('請先產生圖卡');
+    return;
+  }
+
+  const original = button.textContent;
+  button.disabled = true;
+  button.textContent = '產生圖片中…';
+
+  try {
+    await task();
+  } catch (err) {
+    console.error(err);
+    alert('圖片產生失敗，請稍後再試或改用列印匯出。');
+  } finally {
+    button.disabled = false;
+    button.textContent = original;
+  }
+}
+
+function getDownloadMeta() {
+  return {
+    displayName: $('#displayName').value.trim(),
+    date: $('#birthDate').value || 'card',
+  };
+}
+
 function bindEvents() {
   $('#generateBtn').addEventListener('click', renderCards);
   $('#printBtn').addEventListener('click', () => window.print());
+  $('#downloadFrontBtn').addEventListener('click', (e) => {
+    withDownloadButton(e.currentTarget, () => downloadCardSide({
+      side: 'front',
+      ...getDownloadMeta(),
+    }));
+  });
+  $('#downloadBackBtn').addEventListener('click', (e) => {
+    withDownloadButton(e.currentTarget, () => downloadCardSide({
+      side: 'back',
+      ...getDownloadMeta(),
+    }));
+  });
+  $('#downloadBothBtn').addEventListener('click', (e) => {
+    withDownloadButton(e.currentTarget, () => downloadBothCards(getDownloadMeta()));
+  });
   $('#toggleBleed').addEventListener('change', (e) => {
     document.body.classList.toggle('show-bleed', e.target.checked);
   });

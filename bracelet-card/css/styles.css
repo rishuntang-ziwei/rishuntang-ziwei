@@ -115,6 +115,34 @@ a {
   margin-top: 8px;
 }
 
+.btn-row-download {
+  margin-top: 10px;
+}
+
+.download-hint {
+  margin: 10px 0 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.export-capture-root {
+  position: fixed;
+  left: -10000px;
+  top: 0;
+  z-index: -1;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.export-capture-root .print-card {
+  transform: none !important;
+  width: var(--art-w) !important;
+  height: var(--art-h) !important;
+  margin: 0 !important;
+  box-shadow: none !important;
+}
+
 button {
   font: inherit;
   cursor: pointer;

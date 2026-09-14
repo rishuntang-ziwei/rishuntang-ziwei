@@ -57,6 +57,12 @@
           <button type="button" class="btn-primary" id="generateBtn">產生圖卡</button>
           <button type="button" class="btn-secondary" id="printBtn">列印 / 匯出 PDF</button>
         </div>
+        <div class="btn-row btn-row-download">
+          <button type="button" class="btn-secondary" id="downloadFrontBtn">下載正面 PNG</button>
+          <button type="button" class="btn-secondary" id="downloadBackBtn">下載背面 PNG</button>
+          <button type="button" class="btn-secondary" id="downloadBothBtn">下載雙面 PNG</button>
+        </div>
+        <p class="download-hint no-print">PNG 為 779×779 px（66 mm 含出血 · 300 DPI），可直接送印或分享。</p>
         <div class="toggle-row">
           <label><input type="checkbox" id="toggleBleed" /> 顯示裁切線（成品 6×6 cm）</label>
           <label><input type="checkbox" id="toggleBack" checked /> 預覽背面</label>
@@ -89,7 +95,7 @@
           </div>
           <div>
             <dt>解析度</dt>
-            <dd>300 DPI → <strong>709 × 709 px</strong>（含出血 <strong>779 × 779 px</strong>）</dd>
+            <dd>300 DPI → <strong>709 × 709 px</strong>（含出血 <strong>779 × 779 px</strong>）· 可直接下載 PNG</dd>
           </div>
           <div>
             <dt>色彩模式</dt>
