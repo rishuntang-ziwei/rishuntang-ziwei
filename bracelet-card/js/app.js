@@ -2,7 +2,8 @@ import {
   buildBraceletCardPair,
   countBaziElements,
   dayMasterElement,
-  formatBazi,
+  formatLunarBirthLine,
+  formatSolarBirthLine,
   getSupplementAdvice,
 } from './card-builder.mjs';
 
@@ -59,7 +60,8 @@ function renderCards() {
   const counts = countBaziElements(chineseDate);
   const tieBreaker = dayMasterElement(chineseDate);
   const advice = getSupplementAdvice(counts, tieBreaker);
-  const baziText = formatBazi(chineseDate);
+  const solarBirthLine = formatSolarBirthLine(date, timeIndex);
+  const lunarBirthLine = formatLunarBirthLine(astrolabe, timeIndex);
   const [y, m, d] = date.split('-');
   const birthLabel = `${y}年${Number(m)}月${Number(d)}日（國曆）`;
   const timeLabel = TIME_LABELS[timeIndex] ?? '';
@@ -68,7 +70,8 @@ function renderCards() {
     counts,
     advice,
     displayName,
-    baziText,
+    solarBirthLine,
+    lunarBirthLine,
     birthLabel,
     timeLabel,
     markerId: `bracelet-wuxing-${Date.now()}`,

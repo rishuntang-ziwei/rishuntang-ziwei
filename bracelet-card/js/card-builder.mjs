@@ -25,6 +25,35 @@ export function formatBazi(chineseDate) {
   return keys.map((key) => chineseDate[key] || '　').join(' ');
 }
 
+const TIME_BRANCH = {
+  0: '早子',
+  1: '丑',
+  2: '寅',
+  3: '卯',
+  4: '辰',
+  5: '巳',
+  6: '午',
+  7: '未',
+  8: '申',
+  9: '酉',
+  10: '戌',
+  11: '亥',
+  12: '晚子',
+};
+
+export function formatSolarBirthLine(date, timeIndex) {
+  const [y, m, d] = date.split('-');
+  const branch = TIME_BRANCH[timeIndex] ?? '';
+  return `生辰 西元 ${Number(y)}年${Number(m)}月${Number(d)}日${branch}時`;
+}
+
+export function formatLunarBirthLine(astrolabe, timeIndex) {
+  let lunar = astrolabe?.lunarDate?.trim() ?? '';
+  if (lunar && !lunar.endsWith('日')) lunar += '日';
+  const branch = TIME_BRANCH[timeIndex] ?? astrolabe?.rawDates?.chineseDate?.hourly?.[1] ?? '';
+  return `農曆 ${lunar}${branch}時`;
+}
+
 /** 乾天、坤地：卦象＋意象圖案，淡化置於背景 */
 function buildQiankunBackground(prefix) {
   const rays = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330]
@@ -118,7 +147,8 @@ export function buildBraceletCardFront(data) {
     advice,
     markerId = 'bracelet-wuxing-arrow',
     displayName = '',
-    baziText = '',
+    solarBirthLine = '',
+    lunarBirthLine = '',
   } = data;
 
   const wuxingHtml = buildWuxingPanel(counts, {
@@ -158,19 +188,49 @@ export function buildBraceletCardFront(data) {
             <div class="card-wuxing">${wuxingHtml}</div>
           </div>
           <footer class="card-footer">
-            <p class="card-bazi">${baziText}</p>
+            <p class="card-birth-solar">${solarBirthLine}</p>
+            <p class="card-birth-lunar">${lunarBirthLine}</p>
           </footer>
         </div>
       </div>
     </article>`;
 }
 
-/** 背面僅保留邊框與乾坤背景，中央留給文字與印章 */
+/** 背面中央：雙圓環＋五行色珠（襯托加持印章，不含太極以免重疊） */
+function buildBackWuxingRing() {
+  const cx = 33;
+  const cy = 37.5;
+  const ringR = 13.2;
+  const beads = [
+    { color: '#1a1a1a', stroke: '#333', angle: -90 },
+    { color: '#2db84a', stroke: '#1a1a1a', angle: -18 },
+    { color: '#e53935', stroke: '#1a1a1a', angle: 54 },
+    { color: '#9a7b4f', stroke: '#1a1a1a', angle: 126 },
+    { color: '#ffffff', stroke: '#1a1a1a', angle: 198 },
+  ]
+    .map(({ color, stroke, angle }) => {
+      const rad = (angle * Math.PI) / 180;
+      const x = cx + Math.cos(rad) * ringR;
+      const y = cy + Math.sin(rad) * ringR;
+      return `<circle cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r="1.35" fill="${color}" stroke="${stroke}" stroke-width="0.22" />`;
+    })
+    .join('');
+
+  return `
+      <g class="back-wuxing-ring" opacity="0.92">
+        <circle cx="${cx}" cy="${cy}" r="${ringR}" fill="none" stroke="#1a1208" stroke-width="0.24" opacity="0.42" />
+        <circle cx="${cx}" cy="${cy}" r="${(ringR - 2.8).toFixed(1)}" fill="none" stroke="#1a1208" stroke-width="0.2"
+          stroke-dasharray="0.7 0.9" opacity="0.38" />
+        ${beads}
+      </g>`;
+}
+
 function buildBlessingBackArt() {
   return `
     <svg class="back-art" viewBox="0 0 66 66" aria-hidden="true" preserveAspectRatio="xMidYMid meet">
       <rect width="66" height="66" fill="#fffef8" />
       ${buildQiankunBackground('back-qk')}
+      ${buildBackWuxingRing()}
       <rect x="0.4" y="0.4" width="65.2" height="65.2" fill="none" stroke="#c9a227" stroke-width="0.22" opacity="0.55" />
       <g stroke="#c9a227" stroke-width="0.28" fill="none" opacity="0.45">
         <path d="M0 0 L5 0 L0 5" />
@@ -189,6 +249,23 @@ function buildBlessingBackArt() {
     </svg>`;
 }
 
+/** 方形陽刻圓角印：朱文白底 */
+function buildYangSealSvg() {
+  return `
+    <svg class="bless-seal bless-seal-yang" viewBox="0 0 48 48" aria-label="加持" role="img">
+      <rect x="2.2" y="2.2" width="43.6" height="43.6" rx="4.8" ry="4.8"
+        fill="#fffef8" stroke="#b71c1c" stroke-width="3.4" />
+      <rect x="6.2" y="6.2" width="35.6" height="35.6" rx="3.2" ry="3.2"
+        fill="none" stroke="#b71c1c" stroke-width="0.9" opacity="0.5" />
+      <text x="24" y="20.5" text-anchor="middle" dominant-baseline="middle"
+        font-family="DFKai-SB, BiauKai, KaiTi, STKaiti, serif"
+        font-size="14.5" font-weight="700" fill="#b71c1c">加</text>
+      <text x="24" y="34.5" text-anchor="middle" dominant-baseline="middle"
+        font-family="DFKai-SB, BiauKai, KaiTi, STKaiti, serif"
+        font-size="14.5" font-weight="700" fill="#b71c1c">持</text>
+    </svg>`;
+}
+
 export function buildBraceletCardBack() {
   return `
     <article class="print-card print-card-back print-card-blessing" data-side="back">
@@ -197,8 +274,8 @@ export function buildBraceletCardBack() {
       <div class="back-blessing-copy">
         <p class="bless-line bless-line-primary">玉旨清道院觀世音菩薩</p>
         <p class="bless-line bless-line-secondary">三清道祖</p>
-        <div class="bless-seal" aria-label="加持">
-          <span class="bless-seal-inner">加持</span>
+        <div class="bless-seal-wrap">
+          ${buildYangSealSvg()}
         </div>
         <p class="bless-line bless-line-master">道旨日舜堂姜太公子牙</p>
         <p class="bless-line bless-line-consecrate">道旨仁居士導師開光</p>
