@@ -43,28 +43,90 @@ function beadHtml(element, role) {
     </div>`;
 }
 
-/** 乾坤融入方形邊框：上乾下坤，作為圖卡外框的一部分 */
+/** 乾天、坤地：卦象＋意象圖案，淡化置於背景 */
+function buildQiankunBackground(prefix) {
+  const rays = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330]
+    .map((deg) => {
+      const rad = (deg * Math.PI) / 180;
+      const x2 = 33 + Math.cos(rad) * 14;
+      const y2 = 14 + Math.sin(rad) * 9;
+      return `<line x1="33" y1="14" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" />`;
+    })
+    .join('');
+
+  return `
+      <defs>
+        <linearGradient id="${prefix}sky" x1="33" y1="3" x2="33" y2="33" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#c9a227" stop-opacity="0.14" />
+          <stop offset="100%" stop-color="#fffef8" stop-opacity="0" />
+        </linearGradient>
+        <linearGradient id="${prefix}earth" x1="33" y1="63" x2="33" y2="33" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#8b6914" stop-opacity="0.16" />
+          <stop offset="100%" stop-color="#fffef8" stop-opacity="0" />
+        </linearGradient>
+        <clipPath id="${prefix}trim">
+          <rect x="3" y="3" width="60" height="60" rx="1.6" ry="1.6" />
+        </clipPath>
+      </defs>
+      <g clip-path="url(#${prefix}trim)" class="qk-bg">
+        <rect x="3" y="3" width="60" height="30" fill="url(#${prefix}sky)" />
+        <rect x="3" y="33" width="60" height="30" fill="url(#${prefix}earth)" />
+        <g opacity="0.11" stroke="#c9a227" stroke-width="0.22" fill="none">
+          ${rays}
+        </g>
+        <circle cx="33" cy="14" r="4.2" fill="#c9a227" opacity="0.07" />
+        <g opacity="0.09" fill="#1a1208">
+          <ellipse cx="22" cy="20" rx="5.5" ry="2.2" />
+          <ellipse cx="30" cy="19" rx="4.5" ry="1.8" />
+          <ellipse cx="40" cy="20.5" rx="5" ry="2" />
+        </g>
+        <g opacity="0.12" stroke="#1a1208" stroke-width="0.85" stroke-linecap="round">
+          <line x1="22" y1="11.5" x2="44" y2="11.5" />
+          <line x1="22" y1="15.5" x2="44" y2="15.5" />
+          <line x1="22" y1="19.5" x2="44" y2="19.5" />
+        </g>
+        <g opacity="0.1" fill="#8b6914">
+          <path d="M3 54 Q14 49 24 52 Q33 55 42 51 Q52 48 63 53 L63 63 L3 63 Z" />
+          <path d="M3 58 Q18 54 33 57 Q48 60 63 56 L63 63 L3 63 Z" opacity="0.7" />
+        </g>
+        <g opacity="0.09" stroke="#5c4033" stroke-width="0.35" fill="none">
+          <path d="M6 56 H60" />
+          <path d="M6 59 H60" />
+          <path d="M6 62 H60" />
+        </g>
+        <g opacity="0.12" stroke="#1a1208" stroke-width="0.85" stroke-linecap="round">
+          <line x1="22" y1="47.5" x2="29" y2="47.5" />
+          <line x1="37" y1="47.5" x2="44" y2="47.5" />
+          <line x1="22" y1="51.5" x2="44" y2="51.5" />
+          <line x1="22" y1="55.5" x2="29" y2="55.5" />
+          <line x1="37" y1="55.5" x2="44" y2="55.5" />
+        </g>
+      </g>`;
+}
+
+/** 66×66 畫布（含 3mm 出血）；邊框與底色延伸至裁切外 */
 function buildSquareFrameSvg() {
   return `
-    <svg class="square-frame" viewBox="0 0 240 240" aria-hidden="true">
-      <rect x="6" y="6" width="228" height="228" rx="4" ry="4"
-        fill="none" stroke="#1a1208" stroke-width="2.4" />
-      <rect x="12" y="12" width="216" height="216" rx="2" ry="2"
-        fill="none" stroke="#c9a227" stroke-width="1" />
-      <g stroke="#1a1208" stroke-width="1.2" fill="none" opacity="0.85">
-        <path d="M12 12 L28 12 L12 28" />
-        <path d="M228 12 L212 12 L228 28" />
-        <path d="M12 228 L28 228 L12 212" />
-        <path d="M228 228 L212 228 L228 212" />
+    <svg class="square-frame" viewBox="0 0 66 66" aria-hidden="true">
+      <rect width="66" height="66" fill="#fffef8" />
+      ${buildQiankunBackground('front-qk')}
+      <rect x="0.4" y="0.4" width="65.2" height="65.2" fill="none" stroke="#c9a227" stroke-width="0.22" opacity="0.55" />
+      <g stroke="#c9a227" stroke-width="0.28" fill="none" opacity="0.45">
+        <path d="M0 0 L5 0 L0 5" />
+        <path d="M66 0 L61 0 L66 5" />
+        <path d="M0 66 L5 66 L0 61" />
+        <path d="M66 66 L61 66 L66 61" />
       </g>
-      <g font-family="DFKai-SB, BiauKai, KaiTi, serif" fill="#1a1208" text-anchor="middle">
-        <text x="120" y="27" font-size="13" font-weight="700">☰ 乾 · 天</text>
-        <text x="120" y="234" font-size="13" font-weight="700">☷ 坤 · 地</text>
+      <rect x="3" y="3" width="60" height="60" rx="1.6" ry="1.6"
+        fill="none" stroke="#1a1208" stroke-width="0.55" />
+      <rect x="4.2" y="4.2" width="57.6" height="57.6" rx="1.2" ry="1.2"
+        fill="none" stroke="#c9a227" stroke-width="0.28" />
+      <g stroke="#1a1208" stroke-width="0.32" fill="none" opacity="0.85">
+        <path d="M4.2 4.2 L8.5 4.2 L4.2 8.5" />
+        <path d="M61.8 4.2 L57.5 4.2 L61.8 8.5" />
+        <path d="M4.2 61.8 L8.5 61.8 L4.2 57.5" />
+        <path d="M61.8 61.8 L57.5 61.8 L61.8 57.5" />
       </g>
-      <line x1="48" y1="18" x2="92" y2="18" stroke="#c9a227" stroke-width="0.8" opacity="0.7" />
-      <line x1="148" y1="18" x2="192" y2="18" stroke="#c9a227" stroke-width="0.8" opacity="0.7" />
-      <line x1="48" y1="222" x2="92" y2="222" stroke="#c9a227" stroke-width="0.8" opacity="0.7" />
-      <line x1="148" y1="222" x2="192" y2="222" stroke="#c9a227" stroke-width="0.8" opacity="0.7" />
     </svg>`;
 }
 
@@ -104,7 +166,7 @@ export function buildBraceletCardFront(data) {
 
   return `
     <article class="print-card print-card-front" data-side="front">
-      <div class="card-bleed-guide" aria-hidden="true"></div>
+      <div class="card-trim-guide" aria-hidden="true"></div>
       <div class="card-frame-wrap">
         ${buildSquareFrameSvg()}
         <div class="card-inner">
@@ -133,47 +195,43 @@ function buildBlessingBackArt() {
   const wxDots = wxAngles
     .map((deg, i) => {
       const rad = (deg * Math.PI) / 180;
-      const cx = 150 + Math.cos(rad) * 52;
-      const cy = 150 + Math.sin(rad) * 52;
-      return `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="5" fill="${wxColors[i]}" />`;
+      const cx = 33 + Math.cos(rad) * 11.5;
+      const cy = 33 + Math.sin(rad) * 11.5;
+      return `<circle cx="${cx.toFixed(2)}" cy="${cy.toFixed(2)}" r="1.1" fill="${wxColors[i]}" />`;
     })
     .join('');
 
   return `
-    <svg class="back-art" viewBox="0 0 300 300" aria-hidden="true" preserveAspectRatio="xMidYMid meet">
+    <svg class="back-art" viewBox="0 0 66 66" aria-hidden="true" preserveAspectRatio="xMidYMid meet">
       <defs>
         <linearGradient id="back-gold" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stop-color="#e8c547" />
           <stop offset="100%" stop-color="#8b6914" />
         </linearGradient>
       </defs>
-      <rect x="0" y="0" width="300" height="300" fill="#fffef8" />
-      <rect x="10" y="10" width="280" height="280" rx="6" ry="6"
-        fill="none" stroke="#1a1208" stroke-width="2.4" />
-      <rect x="16" y="16" width="268" height="268" rx="4" ry="4"
-        fill="none" stroke="url(#back-gold)" stroke-width="1.2" />
-      <g fill="none" stroke="#1a1208" stroke-width="0.8" opacity="0.5">
-        <circle cx="150" cy="150" r="78" />
-        <circle cx="150" cy="150" r="58" stroke-dasharray="3 4" />
+      <rect width="66" height="66" fill="#fffef8" />
+      ${buildQiankunBackground('back-qk')}
+      <rect x="0.4" y="0.4" width="65.2" height="65.2" fill="none" stroke="#c9a227" stroke-width="0.22" opacity="0.55" />
+      <rect x="3" y="3" width="60" height="60" rx="1.6" fill="none" stroke="#1a1208" stroke-width="0.55" />
+      <rect x="4.2" y="4.2" width="57.6" height="57.6" rx="1.2" fill="none" stroke="url(#back-gold)" stroke-width="0.28" />
+      <g fill="none" stroke="#1a1208" stroke-width="0.22" opacity="0.5">
+        <circle cx="33" cy="33" r="17.2" />
+        <circle cx="33" cy="33" r="12.8" stroke-dasharray="0.8 1" />
       </g>
       ${wxDots}
-      <g transform="translate(150 150)">
-        <circle r="24" fill="#fffef8" stroke="#1a1208" stroke-width="1.4" />
-        <path d="M0 -24 A24 24 0 0 1 0 24 A12 12 0 0 1 0 0 A12 12 0 0 0 0 -24 Z" fill="#1a1a1a" />
-        <path d="M0 24 A24 24 0 0 1 0 -24 A12 12 0 0 1 0 0 A12 12 0 0 0 0 24 Z" fill="#f5f5f5" />
-        <circle r="3" fill="#b71c1c" />
+      <g transform="translate(33 33)">
+        <circle r="5.3" fill="#fffef8" stroke="#1a1208" stroke-width="0.32" />
+        <path d="M0 -5.3 A5.3 5.3 0 0 1 0 5.3 A2.65 2.65 0 0 1 0 0 A2.65 2.65 0 0 0 0 -5.3 Z" fill="#1a1a1a" />
+        <path d="M0 5.3 A5.3 5.3 0 0 1 0 -5.3 A2.65 2.65 0 0 1 0 0 A2.65 2.65 0 0 0 0 5.3 Z" fill="#f5f5f5" />
+        <circle r="0.65" fill="#b71c1c" />
       </g>
-      <text x="150" y="28" text-anchor="middle" font-family="DFKai-SB, BiauKai, KaiTi, serif"
-        font-size="12" font-weight="700" fill="#1a1208">☰ 乾 · 天</text>
-      <text x="150" y="284" text-anchor="middle" font-family="DFKai-SB, BiauKai, KaiTi, serif"
-        font-size="12" font-weight="700" fill="#1a1208">☷ 坤 · 地</text>
     </svg>`;
 }
 
 export function buildBraceletCardBack() {
   return `
     <article class="print-card print-card-back print-card-blessing" data-side="back">
-      <div class="card-bleed-guide" aria-hidden="true"></div>
+      <div class="card-trim-guide" aria-hidden="true"></div>
       ${buildBlessingBackArt()}
       <div class="back-blessing-copy">
         <p class="bless-line bless-line-primary">玉旨清道院觀世音菩薩</p>
