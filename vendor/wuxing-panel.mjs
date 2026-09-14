@@ -460,6 +460,7 @@ export function buildWuxingPanel(counts, options = {}) {
     highlightFrom = null,
     highlightTo = null,
     dimOthers = false,
+    vivid = false,
   } = options;
 
   const cx = 130;
@@ -504,7 +505,7 @@ export function buildWuxingPanel(counts, options = {}) {
   const nodes = GENERATING_CYCLE.map((name) => {
     const point = positions[name];
     const count = counts[name] || 0;
-    const active = count > 0;
+    const active = vivid || count > 0;
     const style = NODE_STYLE[name];
     const isCenter = name === '土';
     const r = isCenter ? centerR : outerR;
