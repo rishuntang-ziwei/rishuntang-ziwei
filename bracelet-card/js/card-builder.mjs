@@ -249,20 +249,22 @@ function buildBlessingBackArt() {
     </svg>`;
 }
 
-/** 方形陽刻圓角印：朱文白底 */
-function buildYangSealSvg() {
+/** 圓形朱文印：開光加持（右列開光、左列加持，由右而左讀） */
+function buildCircularSealSvg() {
+  const sealFont = 'DFKai-SB, BiauKai, KaiTi, STKaiti, serif';
+  const sealFill = '#b71c1c';
   return `
-    <svg class="bless-seal bless-seal-yang" viewBox="0 0 48 48" aria-label="加持" role="img">
-      <rect x="2.2" y="2.2" width="43.6" height="43.6" rx="4.8" ry="4.8"
-        fill="#fffef8" stroke="#b71c1c" stroke-width="3.4" />
-      <rect x="6.2" y="6.2" width="35.6" height="35.6" rx="3.2" ry="3.2"
-        fill="none" stroke="#b71c1c" stroke-width="0.9" opacity="0.5" />
-      <text x="24" y="20.5" text-anchor="middle" dominant-baseline="middle"
-        font-family="DFKai-SB, BiauKai, KaiTi, STKaiti, serif"
-        font-size="14.5" font-weight="700" fill="#b71c1c">加</text>
-      <text x="24" y="34.5" text-anchor="middle" dominant-baseline="middle"
-        font-family="DFKai-SB, BiauKai, KaiTi, STKaiti, serif"
-        font-size="14.5" font-weight="700" fill="#b71c1c">持</text>
+    <svg class="bless-seal bless-seal-circle" viewBox="0 0 48 48" aria-label="開光加持" role="img">
+      <circle cx="24" cy="24" r="22" fill="#fffef8" stroke="${sealFill}" stroke-width="2.6" />
+      <circle cx="24" cy="24" r="18.2" fill="none" stroke="${sealFill}" stroke-width="0.7" opacity="0.45" />
+      <text x="31.5" y="19.5" text-anchor="middle" dominant-baseline="middle"
+        font-family="${sealFont}" font-size="11.5" font-weight="700" fill="${sealFill}">開</text>
+      <text x="31.5" y="33.5" text-anchor="middle" dominant-baseline="middle"
+        font-family="${sealFont}" font-size="11.5" font-weight="700" fill="${sealFill}">光</text>
+      <text x="16.5" y="19.5" text-anchor="middle" dominant-baseline="middle"
+        font-family="${sealFont}" font-size="11.5" font-weight="700" fill="${sealFill}">加</text>
+      <text x="16.5" y="33.5" text-anchor="middle" dominant-baseline="middle"
+        font-family="${sealFont}" font-size="11.5" font-weight="700" fill="${sealFill}">持</text>
     </svg>`;
 }
 
@@ -275,7 +277,7 @@ export function buildBraceletCardBack() {
         <p class="bless-line bless-line-primary">玉旨清道院觀世音菩薩</p>
         <p class="bless-line bless-line-secondary">三清道祖</p>
         <div class="bless-seal-wrap">
-          ${buildYangSealSvg()}
+          ${buildCircularSealSvg()}
         </div>
         <p class="bless-line bless-line-master">道旨日舜堂姜太公子牙</p>
         <p class="bless-line bless-line-consecrate">道旨仁居士導師開光</p>
