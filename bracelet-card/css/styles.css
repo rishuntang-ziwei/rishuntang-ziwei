@@ -489,7 +489,8 @@ body.show-bleed .card-trim-guide {
   position: relative;
   width: 26mm;
   height: 26mm;
-  margin: 0.5mm 0;
+  margin: 1.2mm 0 0.3mm;
+  transform: translateY(1.8mm);
   display: grid;
   place-items: center;
   flex-shrink: 0;
@@ -508,6 +509,8 @@ body.show-bleed .card-trim-guide {
   font-size: 0.48rem;
   max-width: 94%;
   line-height: 1.35;
+  margin-top: 1.2mm;
+  transform: translateY(1.8mm);
 }
 
 .bless-line-consecrate {

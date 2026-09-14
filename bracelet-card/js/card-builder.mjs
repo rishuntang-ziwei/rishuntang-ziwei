@@ -199,7 +199,7 @@ export function buildBraceletCardFront(data) {
 /** 背面中央：雙圓環＋五行色珠（襯托加持印章，不含太極以免重疊） */
 function buildBackWuxingRing() {
   const cx = 33;
-  const cy = 37.5;
+  const cy = 34.5;
   const ringR = 13.2;
   const beads = [
     { color: '#1a1a1a', stroke: '#333', angle: -90 },
@@ -256,7 +256,6 @@ function buildCircularSealSvg() {
   return `
     <svg class="bless-seal bless-seal-circle" viewBox="0 0 48 48" aria-label="開光加持" role="img">
       <circle cx="24" cy="24" r="22" fill="#fffef8" stroke="${sealFill}" stroke-width="2.6" />
-      <circle cx="24" cy="24" r="18.2" fill="none" stroke="${sealFill}" stroke-width="0.7" opacity="0.45" />
       <text x="31.5" y="19.5" text-anchor="middle" dominant-baseline="middle"
         font-family="${sealFont}" font-size="11.5" font-weight="700" fill="${sealFill}">開</text>
       <text x="31.5" y="33.5" text-anchor="middle" dominant-baseline="middle"
