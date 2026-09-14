@@ -54,64 +54,25 @@ export function formatLunarBirthLine(astrolabe, timeIndex) {
   return `農曆 ${lunar}${branch}時`;
 }
 
-/** 乾天、坤地：卦象＋意象圖案，淡化置於背景 */
-function buildQiankunBackground(prefix) {
-  const rays = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330]
-    .map((deg) => {
-      const rad = (deg * Math.PI) / 180;
-      const x2 = 33 + Math.cos(rad) * 14;
-      const y2 = 14 + Math.sin(rad) * 9;
-      return `<line x1="33" y1="14" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" />`;
-    })
-    .join('');
+const QIANKUN_BG = './assets/qiankun-bg.png';
 
+/** 乾天、坤地：乾坤圖淡化置於背景 */
+function buildQiankunBackground(prefix) {
   return `
       <defs>
-        <linearGradient id="${prefix}sky" x1="33" y1="3" x2="33" y2="33" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stop-color="#c9a227" stop-opacity="0.14" />
-          <stop offset="100%" stop-color="#fffef8" stop-opacity="0" />
-        </linearGradient>
-        <linearGradient id="${prefix}earth" x1="33" y1="63" x2="33" y2="33" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stop-color="#8b6914" stop-opacity="0.16" />
-          <stop offset="100%" stop-color="#fffef8" stop-opacity="0" />
-        </linearGradient>
-        <clipPath id="${prefix}trim">
+        <clipPath id="${prefix}-trim">
           <rect x="3" y="3" width="60" height="60" rx="1.6" ry="1.6" />
         </clipPath>
+        <linearGradient id="${prefix}-veil" x1="33" y1="3" x2="33" y2="63" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#fffef8" stop-opacity="0.68" />
+          <stop offset="42%" stop-color="#fffef8" stop-opacity="0.48" />
+          <stop offset="100%" stop-color="#fffef8" stop-opacity="0.72" />
+        </linearGradient>
       </defs>
-      <g clip-path="url(#${prefix}trim)" class="qk-bg">
-        <rect x="3" y="3" width="60" height="30" fill="url(#${prefix}sky)" />
-        <rect x="3" y="33" width="60" height="30" fill="url(#${prefix}earth)" />
-        <g opacity="0.11" stroke="#c9a227" stroke-width="0.22" fill="none">
-          ${rays}
-        </g>
-        <circle cx="33" cy="14" r="4.2" fill="#c9a227" opacity="0.07" />
-        <g opacity="0.09" fill="#1a1208">
-          <ellipse cx="22" cy="20" rx="5.5" ry="2.2" />
-          <ellipse cx="30" cy="19" rx="4.5" ry="1.8" />
-          <ellipse cx="40" cy="20.5" rx="5" ry="2" />
-        </g>
-        <g opacity="0.12" stroke="#1a1208" stroke-width="0.85" stroke-linecap="round">
-          <line x1="22" y1="11.5" x2="44" y2="11.5" />
-          <line x1="22" y1="15.5" x2="44" y2="15.5" />
-          <line x1="22" y1="19.5" x2="44" y2="19.5" />
-        </g>
-        <g opacity="0.1" fill="#8b6914">
-          <path d="M3 54 Q14 49 24 52 Q33 55 42 51 Q52 48 63 53 L63 63 L3 63 Z" />
-          <path d="M3 58 Q18 54 33 57 Q48 60 63 56 L63 63 L3 63 Z" opacity="0.7" />
-        </g>
-        <g opacity="0.09" stroke="#5c4033" stroke-width="0.35" fill="none">
-          <path d="M6 56 H60" />
-          <path d="M6 59 H60" />
-          <path d="M6 62 H60" />
-        </g>
-        <g opacity="0.12" stroke="#1a1208" stroke-width="0.85" stroke-linecap="round">
-          <line x1="22" y1="47.5" x2="29" y2="47.5" />
-          <line x1="37" y1="47.5" x2="44" y2="47.5" />
-          <line x1="22" y1="51.5" x2="44" y2="51.5" />
-          <line x1="22" y1="55.5" x2="29" y2="55.5" />
-          <line x1="37" y1="55.5" x2="44" y2="55.5" />
-        </g>
+      <g clip-path="url(#${prefix}-trim)" class="qk-bg">
+        <image href="${QIANKUN_BG}" x="3" y="3" width="60" height="60"
+          preserveAspectRatio="xMidYMid slice" opacity="0.82" />
+        <rect x="3" y="3" width="60" height="60" fill="url(#${prefix}-veil)" />
       </g>`;
 }
 
@@ -199,7 +160,7 @@ export function buildBraceletCardFront(data) {
 /** 背面中央：雙圓環＋五行色珠（襯托加持印章，不含太極以免重疊） */
 function buildBackWuxingRing() {
   const cx = 33;
-  const cy = 34.5;
+  const cy = 33;
   const ringR = 13.2;
   const beads = [
     { color: '#1a1a1a', stroke: '#333', angle: -90 },
@@ -257,13 +218,13 @@ function buildCircularSealSvg() {
     <svg class="bless-seal bless-seal-circle" viewBox="0 0 48 48" aria-label="開光加持" role="img">
       <circle cx="24" cy="24" r="22" fill="#fffef8" stroke="${sealFill}" stroke-width="2.6" />
       <text x="31.5" y="19.5" text-anchor="middle" dominant-baseline="middle"
-        font-family="${sealFont}" font-size="11.5" font-weight="700" fill="${sealFill}">開</text>
+        font-family="${sealFont}" font-size="12.2" font-weight="700" fill="${sealFill}">開</text>
       <text x="31.5" y="33.5" text-anchor="middle" dominant-baseline="middle"
-        font-family="${sealFont}" font-size="11.5" font-weight="700" fill="${sealFill}">光</text>
+        font-family="${sealFont}" font-size="12.2" font-weight="700" fill="${sealFill}">光</text>
       <text x="16.5" y="19.5" text-anchor="middle" dominant-baseline="middle"
-        font-family="${sealFont}" font-size="11.5" font-weight="700" fill="${sealFill}">加</text>
+        font-family="${sealFont}" font-size="12.2" font-weight="700" fill="${sealFill}">加</text>
       <text x="16.5" y="33.5" text-anchor="middle" dominant-baseline="middle"
-        font-family="${sealFont}" font-size="11.5" font-weight="700" fill="${sealFill}">持</text>
+        font-family="${sealFont}" font-size="12.2" font-weight="700" fill="${sealFill}">持</text>
     </svg>`;
 }
 
@@ -273,13 +234,19 @@ export function buildBraceletCardBack() {
       <div class="card-trim-guide" aria-hidden="true"></div>
       ${buildBlessingBackArt()}
       <div class="back-blessing-copy">
-        <p class="bless-line bless-line-primary">玉旨清道院觀世音菩薩</p>
-        <p class="bless-line bless-line-secondary">三清道祖</p>
-        <div class="bless-seal-wrap">
-          ${buildCircularSealSvg()}
+        <header class="bless-head">
+          <p class="bless-line bless-line-primary">玉旨清道院觀世音菩薩</p>
+          <p class="bless-line bless-line-secondary">三清道祖</p>
+        </header>
+        <div class="bless-mid">
+          <div class="bless-seal-wrap">
+            ${buildCircularSealSvg()}
+          </div>
+          <p class="bless-line bless-line-master">道旨日舜堂姜太公子牙</p>
         </div>
-        <p class="bless-line bless-line-master">道旨日舜堂姜太公子牙</p>
-        <p class="bless-line bless-line-consecrate">道旨仁居士導師開光</p>
+        <footer class="bless-foot">
+          <p class="bless-line bless-line-consecrate">道旨仁居士導師開光</p>
+        </footer>
       </div>
     </article>`;
 }
