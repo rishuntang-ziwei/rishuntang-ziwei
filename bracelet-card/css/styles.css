@@ -255,7 +255,7 @@ body.show-bleed .card-trim-guide {
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: calc(7mm + var(--bleed)) calc(4.5mm + var(--bleed)) calc(4.5mm + var(--bleed));
+  padding: calc(4mm + var(--bleed)) calc(4mm + var(--bleed)) calc(3mm + var(--bleed));
   text-align: center;
 }
 
@@ -265,38 +265,45 @@ body.show-bleed .card-trim-guide {
   flex-shrink: 0;
 }
 
+.card-footer {
+  padding-top: 0.3mm;
+}
+
 .card-header .card-phrase {
-  margin-top: 2mm;
+  margin-top: 0.6mm;
 }
 
 .card-header .card-subtitle {
-  margin-bottom: 1mm;
+  margin-bottom: 0.4mm;
 }
 
 .card-brand {
   margin: 0;
   font-family: var(--font-kai);
-  font-size: 0.95rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.14em;
   color: var(--card-ink);
+  line-height: 1.15;
 }
 
 .card-tagline {
-  margin: 1px 0 0;
+  margin: 0;
   font-family: var(--font-kai);
-  font-size: 0.58rem;
-  letter-spacing: 0.14em;
+  font-size: 0.44rem;
+  letter-spacing: 0.1em;
   color: var(--card-gold);
   font-weight: 700;
+  line-height: 1.2;
 }
 
 .card-name {
-  margin: 2px 0 0;
+  margin: 0.3mm 0 0;
   font-family: var(--font-kai);
-  font-size: 0.72rem;
+  font-size: 0.56rem;
   font-weight: 700;
   color: var(--card-ink);
+  line-height: 1.15;
 }
 
 .card-diagram {
@@ -306,25 +313,25 @@ body.show-bleed .card-trim-guide {
   align-items: center;
   justify-content: flex-start;
   min-height: 0;
-  padding: 1.5mm 0 0;
+  padding: 0;
 }
 
 .card-phrase {
   margin: 0;
   font-family: var(--font-kai);
-  font-size: 1.05rem;
+  font-size: 0.8rem;
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.1em;
   color: var(--card-accent);
-  line-height: 1.2;
+  line-height: 1.15;
 }
 
 .card-subtitle {
-  margin: 1px 0 0;
-  font-size: 0.52rem;
+  margin: 0;
+  font-size: 0.42rem;
   font-weight: 600;
   color: var(--card-ink);
-  line-height: 1.3;
+  line-height: 1.25;
   max-width: 95%;
 }
 
@@ -335,13 +342,14 @@ body.show-bleed .card-trim-guide {
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding-top: 0.5mm;
+  padding: 0;
+  margin-bottom: 1mm;
 }
 
 .card-wuxing .wuxing-svg {
   width: 100%;
   height: auto;
-  max-height: 30mm;
+  max-height: 34mm;
   display: block;
 }
 
@@ -414,13 +422,12 @@ body.show-bleed .card-trim-guide {
 }
 
 .card-bazi {
-  margin: 1mm 0 0;
+  margin: 0;
   font-family: var(--font-kai);
-  font-size: 0.46rem;
-  letter-spacing: 0.04em;
+  font-size: 0.42rem;
+  letter-spacing: 0.03em;
   color: #444;
-  line-height: 1.2;
-  transform: scale(0.95);
+  line-height: 1.15;
 }
 
 .print-card-blessing {
@@ -446,9 +453,9 @@ body.show-bleed .card-trim-guide {
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  gap: 1.2mm;
+  gap: 1mm;
   height: 100%;
-  padding: calc(4mm + var(--bleed)) calc(4mm + var(--bleed)) calc(5mm + var(--bleed));
+  padding: calc(3.5mm + var(--bleed)) calc(4mm + var(--bleed)) calc(4mm + var(--bleed));
   text-align: center;
 }
 
@@ -462,47 +469,53 @@ body.show-bleed .card-trim-guide {
 }
 
 .bless-line-primary {
-  font-size: 0.62rem;
+  font-size: 0.5rem;
   color: var(--card-accent);
+  line-height: 1.3;
+  max-width: 96%;
 }
 
 .bless-line-secondary {
-  font-size: 0.68rem;
+  font-size: 0.52rem;
+  line-height: 1.3;
 }
 
 .bless-seal {
-  width: 14mm;
-  height: 14mm;
-  margin: 1.5mm 0;
+  width: 11mm;
+  height: 11mm;
+  margin: 1mm 0 0.5mm;
   border-radius: 50%;
   display: grid;
   place-items: center;
   background: radial-gradient(circle at 35% 30%, #e53935, #b71c1c 60%, #7f0000 100%);
-  border: 2px solid var(--card-gold);
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+  border: 1.5px solid var(--card-gold);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
 }
 
 .bless-seal-inner {
   font-family: var(--font-kai);
-  font-size: 0.72rem;
+  font-size: 0.58rem;
   font-weight: 700;
   color: #fff;
-  letter-spacing: 0.18em;
-  text-indent: 0.18em;
+  letter-spacing: 0.16em;
+  text-indent: 0.16em;
 }
 
 .bless-line-master {
-  font-size: 0.56rem;
+  font-size: 0.48rem;
   max-width: 94%;
+  line-height: 1.35;
 }
 
 .bless-line-consecrate {
   margin-top: auto;
-  font-size: 0.54rem;
+  font-size: 0.46rem;
   color: var(--card-gold);
-  border-top: 1.5px solid var(--card-ink);
-  padding-top: 2mm;
+  border-top: 1px solid var(--card-ink);
+  padding-top: 1.5mm;
   width: 88%;
+  line-height: 1.35;
 }
 
 .spec-panel {

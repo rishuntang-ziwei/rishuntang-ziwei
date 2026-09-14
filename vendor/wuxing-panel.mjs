@@ -464,7 +464,7 @@ export function buildWuxingPanel(counts, options = {}) {
   } = options;
 
   const cx = 130;
-  const cy = 128;
+  const cy = 128 + (options.centerYOffset ?? 0);
   const scale = options.scale ?? 1;
   const textScale = options.textScale ?? 1;
   const { outerDist, outerR, centerR } = resolveLayout(options);

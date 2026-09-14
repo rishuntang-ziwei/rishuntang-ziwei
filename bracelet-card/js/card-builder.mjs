@@ -127,8 +127,9 @@ export function buildBraceletCardFront(data) {
     numbersOnly: false,
     equalCenterRadius: false,
     showCycleLabels: false,
-    scale: 0.88,
-    textScale: 0.86,
+    scale: 1.06,
+    textScale: 0.92,
+    centerYOffset: -16,
     highlightFrom: advice.parent,
     highlightTo: advice.lacking,
     dimOthers: !advice.balanced,
@@ -164,41 +165,26 @@ export function buildBraceletCardFront(data) {
     </article>`;
 }
 
+/** 背面僅保留邊框與乾坤背景，中央留給文字與印章 */
 function buildBlessingBackArt() {
-  const wxColors = ['#2db84a', '#e53935', '#9a7b4f', '#e8c547', '#1a1a1a'];
-  const wxAngles = [-90, -18, 54, 126, 198];
-  const wxDots = wxAngles
-    .map((deg, i) => {
-      const rad = (deg * Math.PI) / 180;
-      const cx = 33 + Math.cos(rad) * 10;
-      const cy = 36 + Math.sin(rad) * 10;
-      return `<circle cx="${cx.toFixed(2)}" cy="${cy.toFixed(2)}" r="1.1" fill="${wxColors[i]}" />`;
-    })
-    .join('');
-
   return `
     <svg class="back-art" viewBox="0 0 66 66" aria-hidden="true" preserveAspectRatio="xMidYMid meet">
-      <defs>
-        <linearGradient id="back-gold" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#e8c547" />
-          <stop offset="100%" stop-color="#8b6914" />
-        </linearGradient>
-      </defs>
       <rect width="66" height="66" fill="#fffef8" />
       ${buildQiankunBackground('back-qk')}
       <rect x="0.4" y="0.4" width="65.2" height="65.2" fill="none" stroke="#c9a227" stroke-width="0.22" opacity="0.55" />
-      <rect x="3" y="3" width="60" height="60" rx="1.6" fill="none" stroke="#1a1208" stroke-width="0.55" />
-      <rect x="4.2" y="4.2" width="57.6" height="57.6" rx="1.2" fill="none" stroke="url(#back-gold)" stroke-width="0.28" />
-      <g fill="none" stroke="#1a1208" stroke-width="0.22" opacity="0.5">
-        <circle cx="33" cy="33" r="17.2" />
-        <circle cx="33" cy="33" r="12.8" stroke-dasharray="0.8 1" />
+      <g stroke="#c9a227" stroke-width="0.28" fill="none" opacity="0.45">
+        <path d="M0 0 L5 0 L0 5" />
+        <path d="M66 0 L61 0 L66 5" />
+        <path d="M0 66 L5 66 L0 61" />
+        <path d="M66 66 L61 66 L66 61" />
       </g>
-      ${wxDots}
-      <g transform="translate(33 33)">
-        <circle r="5.3" fill="#fffef8" stroke="#1a1208" stroke-width="0.32" />
-        <path d="M0 -5.3 A5.3 5.3 0 0 1 0 5.3 A2.65 2.65 0 0 1 0 0 A2.65 2.65 0 0 0 0 -5.3 Z" fill="#1a1a1a" />
-        <path d="M0 5.3 A5.3 5.3 0 0 1 0 -5.3 A2.65 2.65 0 0 1 0 0 A2.65 2.65 0 0 0 0 5.3 Z" fill="#f5f5f5" />
-        <circle r="0.65" fill="#b71c1c" />
+      <rect x="3" y="3" width="60" height="60" rx="1.6" fill="none" stroke="#1a1208" stroke-width="0.55" />
+      <rect x="4.2" y="4.2" width="57.6" height="57.6" rx="1.2" fill="none" stroke="#c9a227" stroke-width="0.28" />
+      <g stroke="#1a1208" stroke-width="0.32" fill="none" opacity="0.85">
+        <path d="M4.2 4.2 L8.5 4.2 L4.2 8.5" />
+        <path d="M61.8 4.2 L57.5 4.2 L61.8 8.5" />
+        <path d="M4.2 61.8 L8.5 61.8 L4.2 57.5" />
+        <path d="M61.8 61.8 L57.5 61.8 L61.8 57.5" />
       </g>
     </svg>`;
 }
