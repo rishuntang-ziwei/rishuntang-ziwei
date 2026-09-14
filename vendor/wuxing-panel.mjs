@@ -37,7 +37,64 @@ const BRANCH_ELEMENT = {
 };
 
 /** 相生循環：水→木→火→土→金→水 */
-const GENERATING_CYCLE = ['水', '木', '火', '土', '金'];
+export const GENERATING_CYCLE = ['水', '木', '火', '土', '金'];
+
+/** 缺某行時，以相生上一環補之（例：缺水 → 補金生水） */
+export const GENERATING_PARENT = {
+  木: '水',
+  火: '木',
+  土: '火',
+  金: '土',
+  水: '金',
+};
+
+const GENERATING_EDGES = [
+  { from: '水', to: '木', fromR: 'outer', toR: 'outer' },
+  { from: '木', to: '火', fromR: 'outer', toR: 'outer' },
+  { from: '火', to: '土', fromR: 'outer', toR: 'center' },
+  { from: '土', to: '金', fromR: 'center', toR: 'outer' },
+  { from: '金', to: '水', fromR: 'outer', toR: 'outer' },
+];
+
+export function findWeakestElement(counts, tieBreaker = null) {
+  const min = Math.min(...WUXING_ORDER.map((name) => counts[name] ?? 0));
+  const tied = WUXING_ORDER.filter((name) => (counts[name] ?? 0) === min);
+  if (tied.length === 1) return tied[0];
+  if (tieBreaker && tied.includes(tieBreaker)) return tieBreaker;
+  return tied[0];
+}
+
+export function getSupplementAdvice(counts, tieBreaker = null) {
+  const values = WUXING_ORDER.map((name) => counts[name] ?? 0);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const balanced = min === max;
+
+  if (balanced) {
+    const focus = tieBreaker && WUXING_ORDER.includes(tieBreaker) ? tieBreaker : '土';
+    return {
+      balanced: true,
+      lacking: focus,
+      parent: GENERATING_PARENT[focus],
+      phrase: '五行均衡',
+      subtitle: `五行分布均衡，建議以${focus}行穩定氣場`,
+      braceletPrimary: focus,
+      braceletSecondary: GENERATING_PARENT[focus],
+    };
+  }
+
+  const lacking = findWeakestElement(counts, tieBreaker);
+  const parent = GENERATING_PARENT[lacking];
+  return {
+    balanced: false,
+    lacking,
+    parent,
+    phrase: `補${parent}生${lacking}`,
+    subtitle: `命盤${lacking}行偏弱，宜以${parent}生之`,
+    braceletPrimary: parent,
+    braceletSecondary: lacking,
+  };
+}
 
 const NODE_STYLE = {
   木: { fill: '#2db84a', inactive: '#b8e6c1', stroke: '#1e8a35', text: '#fff', inactiveText: '#4a7a52' },
@@ -400,6 +457,9 @@ export function buildWuxingPanel(counts, options = {}) {
     summaryRows = null,
     showCycleLabels = false,
     cycleLabelScale = 1,
+    highlightFrom = null,
+    highlightTo = null,
+    dimOthers = false,
   } = options;
 
   const cx = 130;
@@ -426,18 +486,20 @@ export function buildWuxingPanel(counts, options = {}) {
     contentZoom: options.contentZoom ?? (options.size === 'center' ? 1 : 1),
   });
 
-  const generatingEdges = [
-    edgeLine(positions.水, positions.木, outerR, outerR),
-    edgeLine(positions.木, positions.火, outerR, outerR),
-    edgeLine(positions.火, positions.土, outerR, centerR),
-    edgeLine(positions.土, positions.金, centerR, outerR),
-    edgeLine(positions.金, positions.水, outerR, outerR),
-  ]
-    .map(
-      (e) =>
-        `<line x1="${e.x1.toFixed(1)}" y1="${e.y1.toFixed(1)}" x2="${e.x2.toFixed(1)}" y2="${e.y2.toFixed(1)}" class="wuxing-edge" marker-end="url(#${markerId})" />`,
-    )
-    .join('');
+  const generatingEdges = GENERATING_EDGES.map(({ from, to, fromR, toR }) => {
+    const e = edgeLine(
+      positions[from],
+      positions[to],
+      fromR === 'center' ? centerR : outerR,
+      toR === 'center' ? centerR : outerR,
+    );
+    const highlighted = highlightFrom === from && highlightTo === to;
+    const dimmed = dimOthers && highlightFrom && !highlighted;
+    const edgeClass = `wuxing-edge${highlighted ? ' is-highlight' : ''}${dimmed ? ' is-dimmed' : ''}`;
+    const strokeW = (highlighted ? 3.4 : 1.6) * scale;
+    const markerEnd = highlighted ? `url(#${markerId}-hi)` : `url(#${markerId})`;
+    return `<line x1="${e.x1.toFixed(1)}" y1="${e.y1.toFixed(1)}" x2="${e.x2.toFixed(1)}" y2="${e.y2.toFixed(1)}" class="${edgeClass}" stroke-width="${strokeW}" marker-end="${markerEnd}" />`;
+  }).join('');
 
   const nodes = GENERATING_CYCLE.map((name) => {
     const point = positions[name];
@@ -446,17 +508,21 @@ export function buildWuxingPanel(counts, options = {}) {
     const style = NODE_STYLE[name];
     const isCenter = name === '土';
     const r = isCenter ? centerR : outerR;
-    const fill = active ? style.fill : style.inactive;
-    const textFill = active ? style.text : style.inactiveText;
-    const strokeW = (name === '金' ? 2.5 : active ? 2 : 1.5) * scale;
+    const onPath = name === highlightFrom || name === highlightTo || name === '土';
+    const dimmed = dimOthers && highlightFrom && !onPath;
+    const pathFocus = name === highlightFrom || name === highlightTo;
+    const fill = dimmed ? style.inactive : active ? style.fill : style.inactive;
+    const textFill = dimmed ? style.inactiveText : active ? style.text : style.inactiveText;
+    const strokeW = (pathFocus ? 3 : name === '金' ? 2.5 : active ? 2 : 1.5) * scale;
     const numbersOnly = options.numbersOnly ?? options.size === 'center';
+    const nodeClass = `wuxing-node${active ? ' is-active' : ''}${pathFocus ? ' is-path' : ''}${dimmed ? ' is-dimmed' : ''}`;
 
     if (numbersOnly) {
       const countFont = countFontSize(count, r) * textScale;
       return `
-      <g class="wuxing-node${active ? ' is-active' : ''}" data-element="${name}">
+      <g class="${nodeClass}" data-element="${name}">
         <circle cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="${r}"
-          fill="${fill}" stroke="${style.stroke}" stroke-width="${strokeW}" />
+          fill="${fill}" stroke="${pathFocus ? '#8b6914' : style.stroke}" stroke-width="${strokeW}" />
         <text x="${point.x.toFixed(1)}" y="${point.y.toFixed(1)}"
           text-anchor="middle" dominant-baseline="central" class="wuxing-node-count"
           font-size="${countFont.toFixed(1)}" fill="${textFill}">${count}</text>
@@ -469,9 +535,9 @@ export function buildWuxingPanel(counts, options = {}) {
     const countOffset = countFont * 1.05;
 
     return `
-      <g class="wuxing-node${active ? ' is-active' : ''}" data-element="${name}">
+      <g class="${nodeClass}" data-element="${name}">
         <circle cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="${r}"
-          fill="${fill}" stroke="${style.stroke}" stroke-width="${strokeW}" />
+          fill="${fill}" stroke="${pathFocus ? '#8b6914' : style.stroke}" stroke-width="${strokeW}" />
         <text x="${point.x.toFixed(1)}" y="${(point.y - nameOffset).toFixed(1)}"
           text-anchor="middle" dominant-baseline="middle" class="wuxing-node-name"
           font-size="${nameFont.toFixed(1)}" fill="${textFill}">${name}</text>
@@ -509,6 +575,9 @@ export function buildWuxingPanel(counts, options = {}) {
       <defs>
         <marker id="${markerId}" markerWidth="7" markerHeight="7" refX="5.5" refY="3.5" orient="auto" markerUnits="userSpaceOnUse">
           <polygon points="0 0, 7 3.5, 0 7" fill="#333" />
+        </marker>
+        <marker id="${markerId}-hi" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto" markerUnits="userSpaceOnUse">
+          <polygon points="0 0, 9 4.5, 0 9" fill="#8b6914" />
         </marker>
       </defs>
       ${generatingEdges}

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>五行手環補運圖卡 · 設計稿</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./css/styles.css" />
+</head>
+<body>
+  <div class="page-shell">
+    <header class="page-header">
+      <h1>五行顏色手環 · 補運圖卡設計稿</h1>
+      <p>輸入生辰即可產生個人化「補 X 生 Y」相生示意圖，含乾天、坤地定位。正面為五行補運主視覺，背面為加持開光圖卡（固定版，適合批量印刷）。</p>
+    </header>
+
+    <div class="workspace">
+      <aside class="panel no-print">
+        <h2>生辰輸入</h2>
+        <div class="field">
+          <label for="displayName">姓名（選填）</label>
+          <input id="displayName" type="text" placeholder="例：王小明" maxlength="24" />
+        </div>
+        <div class="field">
+          <label for="birthDate">出生日期（國曆）</label>
+          <input id="birthDate" type="date" min="1900-01-01" max="2100-12-31" />
+        </div>
+        <div class="field">
+          <label for="birthTime">出生時辰</label>
+          <select id="birthTime">
+            <option value="">請選擇時辰</option>
+            <option value="0">早子時 (00:00–01:00)</option>
+            <option value="1">丑時 (01:00–03:00)</option>
+            <option value="2">寅時 (03:00–05:00)</option>
+            <option value="3">卯時 (05:00–07:00)</option>
+            <option value="4">辰時 (07:00–09:00)</option>
+            <option value="5">巳時 (09:00–11:00)</option>
+            <option value="6">午時 (11:00–13:00)</option>
+            <option value="7">未時 (13:00–15:00)</option>
+            <option value="8">申時 (15:00–17:00)</option>
+            <option value="9">酉時 (17:00–19:00)</option>
+            <option value="10">戌時 (19:00–21:00)</option>
+            <option value="11">亥時 (21:00–23:00)</option>
+            <option value="12">晚子時 (23:00–00:00)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="gender">性別</label>
+          <select id="gender">
+            <option value="男">男</option>
+            <option value="女">女</option>
+          </select>
+        </div>
+        <div class="btn-row">
+          <button type="button" class="btn-primary" id="generateBtn">產生圖卡</button>
+          <button type="button" class="btn-secondary" id="printBtn">列印 / 匯出 PDF</button>
+        </div>
+        <div class="toggle-row">
+          <label><input type="checkbox" id="toggleBleed" /> 顯示出血線（3 mm）</label>
+          <label><input type="checkbox" id="toggleBack" checked /> 預覽背面</label>
+        </div>
+        <p class="result-summary hidden" id="resultSummary"></p>
+      </aside>
+
+      <section class="panel preview-panel">
+        <div class="preview-toolbar no-print">
+          <span>預覽比例：A6（105 × 148 mm）</span>
+          <span>· 正面（個人化）＋ 背面（加持開光）</span>
+        </div>
+        <div class="preview-stage" id="cardPreview"></div>
+      </section>
+
+      <aside class="panel spec-panel no-print">
+        <h2>印刷規格</h2>
+        <dl>
+          <div>
+            <dt>成品尺寸</dt>
+            <dd>A6 直式：<strong>105 × 148 mm</strong></dd>
+          </div>
+          <div>
+            <dt>出血（Bleed）</dt>
+            <dd>四向各 <strong>3 mm</strong> → 送印檔 <strong>111 × 154 mm</strong></dd>
+          </div>
+          <div>
+            <dt>安全區（Safe Zone）</dt>
+            <dd>距裁切線 <strong>5 mm</strong> 內避免放置重要文字與 Logo</dd>
+          </div>
+          <div>
+            <dt>解析度</dt>
+            <dd>300 DPI → <strong>1240 × 1748 px</strong>（含出血）</dd>
+          </div>
+          <div>
+            <dt>色彩模式</dt>
+            <dd>螢幕預覽 RGB · 印刷送稿 CMYK（金行白珠留白或特別色銀）</dd>
+          </div>
+          <div>
+            <dt>紙材建議</dt>
+            <dd>350g 圓角名片紙或 300g 棉紋紙 · 覆哑膜</dd>
+          </div>
+          <div>
+            <dt>字體</dt>
+            <dd>
+              標題／卦象：<strong>標楷體 DFKai-SB</strong><br />
+              內文說明：<strong>Noto Serif TC</strong>
+            </dd>
+          </div>
+        </dl>
+
+        <h2 style="margin-top: 22px;">五行色票</h2>
+        <table class="color-table">
+          <thead>
+            <tr>
+              <th>五行</th>
+              <th>手環色</th>
+              <th>RGB</th>
+              <th>用途</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>木</td>
+              <td><span class="swatch" style="background:#2db84a"></span>綠</td>
+              <td>#2DB84A</td>
+              <td>生機、成長</td>
+            </tr>
+            <tr>
+              <td>火</td>
+              <td><span class="swatch" style="background:#e53935"></span>紅</td>
+              <td>#E53935</td>
+              <td>能量、行動</td>
+            </tr>
+            <tr>
+              <td>土</td>
+              <td><span class="swatch" style="background:#9a7b4f"></span>褐</td>
+              <td>#9A7B4F</td>
+              <td>穩定、承載</td>
+            </tr>
+            <tr>
+              <td>金</td>
+              <td><span class="swatch" style="background:#ffffff;border-color:#666"></span>白／銀</td>
+              <td>#FFFFFF</td>
+              <td>精煉、收斂</td>
+            </tr>
+            <tr>
+              <td>水</td>
+              <td><span class="swatch" style="background:#1a1a1a"></span>黑</td>
+              <td>#1A1A1A</td>
+              <td>流動、智慧</td>
+            </tr>
+            <tr>
+              <td>乾</td>
+              <td><span class="swatch" style="background:#c9a227"></span>金黃</td>
+              <td>#C9A227</td>
+              <td>天、陽、始</td>
+            </tr>
+            <tr>
+              <td>坤</td>
+              <td><span class="swatch" style="background:#8b6914"></span>土金</td>
+              <td>#8B6914</td>
+              <td>地、陰、承</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p style="margin-top: 16px; color: var(--muted); font-size: 0.82rem;">
+          列印時請在瀏覽器選擇「實際大小」、關閉頁首頁尾，即可輸出 A6 PDF 送印。
+        </p>
+      </aside>
+    </div>
+  </div>
+
+  <script src="../vendor/iztro.min.js"></script>
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>
