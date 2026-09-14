@@ -265,6 +265,14 @@ body.show-bleed .card-trim-guide {
   flex-shrink: 0;
 }
 
+.card-header .card-phrase {
+  margin-top: 2mm;
+}
+
+.card-header .card-subtitle {
+  margin-bottom: 1mm;
+}
+
 .card-brand {
   margin: 0;
   font-family: var(--font-kai);
@@ -296,9 +304,9 @@ body.show-bleed .card-trim-guide {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   min-height: 0;
-  padding: 0.5mm 0;
+  padding: 1.5mm 0 0;
 }
 
 .card-phrase {
@@ -325,13 +333,15 @@ body.show-bleed .card-trim-guide {
   flex: 1;
   min-height: 0;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 0.5mm;
 }
 
 .card-wuxing .wuxing-svg {
   width: 100%;
   height: auto;
-  max-height: 28mm;
+  max-height: 30mm;
   display: block;
 }
 
@@ -435,9 +445,10 @@ body.show-bleed .card-trim-guide {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: 1.2mm;
   height: 100%;
-  padding: calc(8mm + var(--bleed)) calc(4mm + var(--bleed)) calc(5mm + var(--bleed));
+  padding: calc(4mm + var(--bleed)) calc(4mm + var(--bleed)) calc(5mm + var(--bleed));
   text-align: center;
 }
 
@@ -462,6 +473,7 @@ body.show-bleed .card-trim-guide {
 .bless-seal {
   width: 14mm;
   height: 14mm;
+  margin: 1.5mm 0;
   border-radius: 50%;
   display: grid;
   place-items: center;
@@ -485,6 +497,7 @@ body.show-bleed .card-trim-guide {
 }
 
 .bless-line-consecrate {
+  margin-top: auto;
   font-size: 0.54rem;
   color: var(--card-gold);
   border-top: 1.5px solid var(--card-ink);

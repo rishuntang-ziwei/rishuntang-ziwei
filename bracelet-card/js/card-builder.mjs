@@ -11,14 +11,6 @@ const STEM_ELEMENT = {
   己: '土', 庚: '金', 辛: '金', 壬: '水', 癸: '水',
 };
 
-const BRACELET_LABELS = {
-  木: '綠色珠',
-  火: '紅色珠',
-  土: '褐色珠',
-  金: '銀白珠',
-  水: '黑色珠',
-};
-
 export { countBaziElements, getSupplementAdvice, WUXING_COLORS, WUXING_ORDER };
 
 export function dayMasterElement(chineseDate) {
@@ -31,16 +23,6 @@ export function formatBazi(chineseDate) {
   if (!chineseDate) return '';
   const keys = ['yearly', 'monthly', 'daily', 'hourly'];
   return keys.map((key) => chineseDate[key] || '　').join(' ');
-}
-
-function beadHtml(element, role) {
-  const color = WUXING_COLORS[element];
-  return `
-    <div class="bead-item bead-${role}">
-      <span class="bead-dot" style="--bead-color:${color}"></span>
-      <span class="bead-label">${element} · ${BRACELET_LABELS[element]}</span>
-      <span class="bead-role">${role === 'primary' ? '主珠' : '輔珠'}</span>
-    </div>`;
 }
 
 /** 乾天、坤地：卦象＋意象圖案，淡化置於背景 */
@@ -154,12 +136,6 @@ export function buildBraceletCardFront(data) {
     markerId,
   });
 
-  const beads = `
-    <div class="bead-row">
-      ${beadHtml(advice.braceletPrimary, 'primary')}
-      ${beadHtml(advice.braceletSecondary, 'secondary')}
-    </div>`;
-
   const nameLine = displayName
     ? `<p class="card-name">${displayName}</p>`
     : '';
@@ -174,14 +150,13 @@ export function buildBraceletCardFront(data) {
             <p class="card-brand">日舜堂</p>
             <p class="card-tagline">五行相生補運</p>
             ${nameLine}
-          </header>
-          <div class="card-diagram">
             <p class="card-phrase">${advice.phrase}</p>
             <p class="card-subtitle">${advice.subtitle}</p>
+          </header>
+          <div class="card-diagram">
             <div class="card-wuxing">${wuxingHtml}</div>
           </div>
           <footer class="card-footer">
-            ${beads}
             <p class="card-bazi">${baziText}</p>
           </footer>
         </div>
@@ -195,8 +170,8 @@ function buildBlessingBackArt() {
   const wxDots = wxAngles
     .map((deg, i) => {
       const rad = (deg * Math.PI) / 180;
-      const cx = 33 + Math.cos(rad) * 11.5;
-      const cy = 33 + Math.sin(rad) * 11.5;
+      const cx = 33 + Math.cos(rad) * 10;
+      const cy = 36 + Math.sin(rad) * 10;
       return `<circle cx="${cx.toFixed(2)}" cy="${cy.toFixed(2)}" r="1.1" fill="${wxColors[i]}" />`;
     })
     .join('');
