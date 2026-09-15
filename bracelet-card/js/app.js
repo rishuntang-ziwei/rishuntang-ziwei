@@ -1,12 +1,12 @@
 import {
-  buildBraceletCardPair,
+  buildBraceletCard,
   countBaziElements,
   dayMasterElement,
   formatLunarBirthLine,
   formatSolarBirthLine,
   getSupplementAdvice,
 } from './card-builder.mjs';
-import { downloadBothCards, downloadCardSide } from './card-export.mjs';
+import { downloadCard } from './card-export.mjs';
 
 const TIME_LABELS = {
   0: '早子時 (00:00–01:00)',
@@ -63,9 +63,6 @@ function renderCards() {
   const advice = getSupplementAdvice(counts, tieBreaker);
   const solarBirthLine = formatSolarBirthLine(date, timeIndex);
   const lunarBirthLine = formatLunarBirthLine(astrolabe, timeIndex);
-  const [y, m, d] = date.split('-');
-  const birthLabel = `${y}年${Number(m)}月${Number(d)}日（國曆）`;
-  const timeLabel = TIME_LABELS[timeIndex] ?? '';
 
   const data = {
     counts,
@@ -73,12 +70,10 @@ function renderCards() {
     displayName,
     solarBirthLine,
     lunarBirthLine,
-    birthLabel,
-    timeLabel,
     markerId: `bracelet-wuxing-${Date.now()}`,
   };
 
-  $('#cardPreview').innerHTML = buildBraceletCardPair(data);
+  $('#cardPreview').innerHTML = buildBraceletCard(data);
   $('#resultSummary').textContent = `${advice.phrase} · ${advice.subtitle}`;
   $('#resultSummary').classList.remove('hidden');
 }
@@ -90,7 +85,7 @@ function initDefaults() {
 }
 
 async function withDownloadButton(button, task) {
-  if (!document.querySelector('#cardPreview .print-card-front')) {
+  if (!document.querySelector('#cardPreview .print-card-landscape')) {
     alert('請先產生圖卡');
     return;
   }
@@ -120,26 +115,11 @@ function getDownloadMeta() {
 function bindEvents() {
   $('#generateBtn').addEventListener('click', renderCards);
   $('#printBtn').addEventListener('click', () => window.print());
-  $('#downloadFrontBtn').addEventListener('click', (e) => {
-    withDownloadButton(e.currentTarget, () => downloadCardSide({
-      side: 'front',
-      ...getDownloadMeta(),
-    }));
-  });
-  $('#downloadBackBtn').addEventListener('click', (e) => {
-    withDownloadButton(e.currentTarget, () => downloadCardSide({
-      side: 'back',
-      ...getDownloadMeta(),
-    }));
-  });
-  $('#downloadBothBtn').addEventListener('click', (e) => {
-    withDownloadButton(e.currentTarget, () => downloadBothCards(getDownloadMeta()));
+  $('#downloadBtn').addEventListener('click', (e) => {
+    withDownloadButton(e.currentTarget, () => downloadCard(getDownloadMeta()));
   });
   $('#toggleBleed').addEventListener('change', (e) => {
     document.body.classList.toggle('show-bleed', e.target.checked);
-  });
-  $('#toggleBack').addEventListener('change', (e) => {
-    document.body.classList.toggle('hide-back', !e.target.checked);
   });
 }
 

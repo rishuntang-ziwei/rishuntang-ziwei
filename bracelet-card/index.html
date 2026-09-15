@@ -13,7 +13,7 @@
   <div class="page-shell">
     <header class="page-header">
       <h1>五行顏色手環 · 補運圖卡設計稿</h1>
-      <p>輸入生辰即可產生 6×6 cm 正方形個人化圖卡。乾天、坤地以乾坤圖淡化融入背景，正面為五行補運，背面為加持開光（固定版）。</p>
+      <p>輸入生辰即可產生 8×16 cm 橫式長方形圖卡。左側為五行相生補運個人化內容，右側為道院開光法壇與加持文字。</p>
     </header>
 
     <div class="workspace">
@@ -58,14 +58,11 @@
           <button type="button" class="btn-secondary" id="printBtn">列印 / 匯出 PDF</button>
         </div>
         <div class="btn-row btn-row-download">
-          <button type="button" class="btn-secondary" id="downloadFrontBtn">下載正面 PNG</button>
-          <button type="button" class="btn-secondary" id="downloadBackBtn">下載背面 PNG</button>
-          <button type="button" class="btn-secondary" id="downloadBothBtn">下載雙面 PNG</button>
+          <button type="button" class="btn-secondary" id="downloadBtn">下載 PNG 圖檔</button>
         </div>
-        <p class="download-hint no-print">PNG 為 779×779 px（66 mm 含出血 · 300 DPI），可直接送印或分享。</p>
+        <p class="download-hint no-print">PNG 為 1961×1016 px（166×86 mm 含出血 · 300 DPI），可直接送印或分享。</p>
         <div class="toggle-row">
-          <label><input type="checkbox" id="toggleBleed" /> 顯示裁切線（成品 6×6 cm）</label>
-          <label><input type="checkbox" id="toggleBack" checked /> 預覽背面</label>
+          <label><input type="checkbox" id="toggleBleed" /> 顯示裁切線（成品 16×8 cm）</label>
         </div>
         <p class="result-summary hidden" id="resultSummary"></p>
       </aside>
@@ -73,7 +70,7 @@
       <section class="panel preview-panel">
         <div class="preview-toolbar no-print">
           <span>螢幕預覽：依螢幕自動縮放 · 上下排列</span>
-          <span>列印仍為 6 × 6 cm 實寸</span>
+          <span>列印仍為 16 × 8 cm 實寸</span>
         </div>
         <div class="preview-stage" id="cardPreview"></div>
       </section>
@@ -83,11 +80,11 @@
         <dl>
           <div>
             <dt>成品尺寸</dt>
-            <dd>正方形：<strong>60 × 60 mm（6 × 6 cm）</strong></dd>
+            <dd>橫式長方形：<strong>160 × 80 mm（16 × 8 cm）</strong> · 左右各 <strong>80 × 80 mm</strong></dd>
           </div>
           <div>
             <dt>出血（Bleed）</dt>
-            <dd>四向各 <strong>3 mm</strong>，已融入圖卡底色與邊框 → 送印檔 <strong>66 × 66 mm</strong></dd>
+            <dd>四向各 <strong>3 mm</strong>，已融入圖卡底色與邊框 → 送印檔 <strong>166 × 86 mm</strong></dd>
           </div>
           <div>
             <dt>安全區（Safe Zone）</dt>
@@ -95,7 +92,7 @@
           </div>
           <div>
             <dt>解析度</dt>
-            <dd>300 DPI → <strong>709 × 709 px</strong>（含出血 <strong>779 × 779 px</strong>）· 可直接下載 PNG</dd>
+            <dd>300 DPI → <strong>1889 × 945 px</strong>（含出血 <strong>1961 × 1016 px</strong>）· 可直接下載 PNG</dd>
           </div>
           <div>
             <dt>色彩模式</dt>
@@ -103,7 +100,7 @@
           </div>
           <div>
             <dt>紙材建議</dt>
-            <dd>350g 正方形名片紙 · 圓角 R3 · 覆哑膜</dd>
+            <dd>350g 名片紙 · 圓角 R3 · 覆哑膜</dd>
           </div>
           <div>
             <dt>字體</dt>
@@ -171,7 +168,7 @@
         </table>
 
         <p style="margin-top: 16px; color: var(--muted); font-size: 0.82rem;">
-          列印時請在瀏覽器選擇「實際大小」、關閉頁首頁尾，即可輸出 6×6 cm PDF 送印。
+          列印時請在瀏覽器選擇「實際大小」、關閉頁首頁尾，即可輸出 16×8 cm PDF 送印。
         </p>
       </aside>
     </div>

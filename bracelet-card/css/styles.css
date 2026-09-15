@@ -5,19 +5,23 @@
   --text: #f6eedb;
   --muted: #c9b896;
   --accent: #c9a227;
-  --card-bg: #fffef8;
+  --card-bg: #faf3e6;
+  --card-bg-left: #fff8ee;
+  --card-bg-right: #f5e8d0;
   --card-border: #1a1208;
   --card-ink: #1a1208;
   --card-accent: #b71c1c;
-  --card-gold: #a67c00;
+  --card-gold: #9a6b00;
   --font-kai: 'DFKai-SB', 'BiauKai', 'KaiTi', serif;
   --font-body: 'Noto Serif TC', 'PMingLiU', serif;
-  --card-w: 60mm;
-  --card-h: 60mm;
+  --card-w: 160mm;
+  --card-h: 80mm;
+  --panel-w: 80mm;
   --bleed: 3mm;
   --art-w: calc(var(--card-w) + var(--bleed) * 2);
   --art-h: calc(var(--card-h) + var(--bleed) * 2);
-  --preview-scale: 2.5;
+  --art-ratio: calc(var(--art-w) / var(--art-h));
+  --preview-scale: 1.15;
 }
 
 *,
@@ -227,6 +231,7 @@ button {
   margin-bottom: calc(var(--art-h) * (var(--preview-scale) - 1) + 18px);
 }
 
+/* ── 8×16 橫式圖卡 ── */
 .print-card {
   position: relative;
   width: var(--art-w);
@@ -235,6 +240,13 @@ button {
   color: var(--card-ink);
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
   overflow: hidden;
+}
+
+.print-card-landscape {
+  background: linear-gradient(90deg, var(--card-bg-left) 0%, var(--card-bg-left) 50%, var(--card-bg-right) 50%, var(--card-bg-right) 100%);
+  border: 0.45mm solid var(--card-border);
+  outline: 0.25mm solid #c9a227;
+  outline-offset: -0.7mm;
 }
 
 .card-trim-guide {
@@ -264,311 +276,212 @@ body.show-bleed .card-trim-guide {
   display: block;
 }
 
-.card-frame-wrap {
-  position: relative;
-  width: 100%;
-  height: 100%;
-}
-
-.square-frame {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-
-.card-inner {
-  position: relative;
-  z-index: 1;
+.card-split {
   display: flex;
-  flex-direction: column;
+  width: 100%;
   height: 100%;
-  padding: calc(4mm + var(--bleed)) calc(4mm + var(--bleed)) calc(3mm + var(--bleed));
-  text-align: center;
+  padding: var(--bleed);
 }
 
-.card-header,
-.card-footer {
-  text-align: center;
-  flex-shrink: 0;
+.card-divider {
+  flex: 0 0 0.35mm;
+  background: linear-gradient(180deg, #e8c96a, #c9a227 45%, #8b6914);
+  opacity: 0.85;
 }
 
-.card-footer {
-  padding-top: 0.3mm;
-}
-
-.card-header .card-phrase {
-  margin-top: 0.6mm;
-}
-
-.card-header .card-subtitle {
-  margin-bottom: 0.4mm;
-}
-
-.card-brand {
-  margin: 0;
-  font-family: var(--font-kai);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  color: var(--card-ink);
-  line-height: 1.15;
-}
-
-.card-tagline {
-  margin: 0;
-  font-family: var(--font-kai);
-  font-size: 0.44rem;
-  letter-spacing: 0.1em;
-  color: var(--card-gold);
-  font-weight: 700;
-  line-height: 1.2;
-}
-
-.card-name {
-  margin: 0.3mm 0 0;
-  font-family: var(--font-kai);
-  font-size: 0.56rem;
-  font-weight: 700;
-  color: var(--card-ink);
-  line-height: 1.15;
-}
-
-.card-diagram {
-  flex: 1;
+.card-panel {
+  flex: 1 1 0;
+  width: calc((100% - 0.35mm) / 2);
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  min-height: 0;
-  padding: 0;
+  text-align: center;
+  padding: 2.8mm 2.6mm 2.6mm;
+  min-width: 0;
 }
 
-.card-phrase {
+/* 左欄：五行 */
+.card-panel-wuxing {
+  background: rgba(255, 248, 238, 0.72);
+}
+
+.panel-head,
+.panel-foot,
+.bless-head,
+.bless-foot {
+  flex-shrink: 0;
+  width: 100%;
+}
+
+.panel-brand {
   margin: 0;
   font-family: var(--font-kai);
-  font-size: 0.8rem;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--card-ink);
+  line-height: 1.2;
+}
+
+.panel-tagline {
+  margin: 0.6mm 0 0;
+  font-family: var(--font-kai);
+  font-size: 0.5rem;
   font-weight: 700;
   letter-spacing: 0.1em;
-  color: var(--card-accent);
-  line-height: 1.15;
-}
-
-.card-subtitle {
-  margin: 0;
-  font-size: 0.42rem;
-  font-weight: 600;
-  color: var(--card-ink);
+  color: var(--card-gold);
   line-height: 1.25;
-  max-width: 95%;
 }
 
-.card-wuxing {
-  width: 100%;
+.panel-phrase {
+  margin: 0.5mm 0 0;
+  font-family: var(--font-kai);
+  font-size: 0.52rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--card-accent);
+  line-height: 1.2;
+}
+
+.panel-diagram {
   flex: 1;
-  min-height: 0;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  padding: 0;
-  margin-bottom: 1mm;
+  width: 100%;
+  min-height: 0;
+  padding: 0.5mm 0;
 }
 
-.card-wuxing .wuxing-svg {
+.panel-wuxing {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.panel-wuxing .wuxing-svg {
   width: 100%;
   height: auto;
-  max-height: 34mm;
+  max-height: 42mm;
   display: block;
 }
 
-.card-wuxing .wuxing-edge {
+.panel-wuxing .wuxing-edge {
   stroke: #1a1208;
   fill: none;
 }
 
-.card-wuxing .wuxing-edge.is-highlight {
+.panel-wuxing .wuxing-edge.is-highlight {
   stroke: #b71c1c;
 }
 
-.card-wuxing .wuxing-edge.is-dimmed {
+.panel-wuxing .wuxing-edge.is-dimmed {
   opacity: 0.35;
   stroke: #888;
 }
 
-.card-wuxing .wuxing-node.is-dimmed {
+.panel-wuxing .wuxing-node.is-dimmed {
   opacity: 0.5;
 }
 
-.card-wuxing .wuxing-node.is-path circle {
-  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.35));
+.panel-wuxing .wuxing-node.is-path circle {
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
 }
 
-.card-wuxing .wuxing-node-name,
-.card-wuxing .wuxing-node-count {
+.panel-wuxing .wuxing-node-name,
+.panel-wuxing .wuxing-node-count {
   font-family: var(--font-kai);
   font-weight: 700;
 }
 
-.bead-row {
-  display: flex;
-  justify-content: center;
-  gap: 6px;
-  margin: 1mm 0 0;
+.panel-foot {
+  padding-top: 0.4mm;
 }
 
-.bead-item {
-  display: grid;
-  justify-items: center;
-  gap: 1px;
-  min-width: 0;
-  flex: 1;
-  max-width: 22mm;
-  padding: 2px 4px;
-  border-radius: 4px;
-  background: #fff;
-  border: 1.5px solid var(--card-ink);
-}
-
-.bead-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--bead-color);
-  border: 1.5px solid var(--card-ink);
-}
-
-.bead-label,
-.bead-role {
-  font-size: 0.46rem;
-  line-height: 1.15;
-  font-weight: 700;
-  color: var(--card-ink);
-}
-
-.bead-role {
-  color: var(--card-accent);
-}
-
-.card-birth-solar,
-.card-birth-lunar {
+.panel-birth-solar,
+.panel-birth-lunar {
   margin: 0;
   font-family: var(--font-kai);
-  font-size: 0.4rem;
+  font-size: 0.38rem;
   letter-spacing: 0.02em;
   color: #444;
-  line-height: 1.2;
+  line-height: 1.25;
 }
 
-.card-birth-lunar {
-  margin-top: 0.4mm;
+.panel-birth-lunar {
+  margin-top: 0.35mm;
 }
 
-.print-card-blessing {
-  position: relative;
-  padding: 0;
-  overflow: hidden;
-  background: var(--card-bg);
-}
-
-.print-card-blessing .back-art {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  display: block;
-  pointer-events: none;
-}
-
-.back-blessing-copy {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+/* 右欄：開光 */
+.card-panel-bless {
+  background: rgba(245, 232, 208, 0.55);
   justify-content: space-between;
-  height: 100%;
-  padding: calc(3mm + var(--bleed)) calc(3.5mm + var(--bleed)) calc(3.5mm + var(--bleed));
-  text-align: center;
+  gap: 1mm;
 }
 
 .bless-head,
-.bless-mid,
 .bless-foot {
-  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-}
-
-.bless-mid {
-  flex: 1;
-  justify-content: center;
-  gap: 0;
-  min-height: 0;
+  gap: 0.4mm;
 }
 
 .bless-line {
   margin: 0;
   font-family: var(--font-kai);
-  line-height: 1.35;
-  color: var(--card-ink);
-  letter-spacing: 0.08em;
+  line-height: 1.3;
   font-weight: 700;
-  text-shadow: 0 0 0.6mm rgba(255, 254, 248, 0.85), 0 0 1.2mm rgba(255, 254, 248, 0.55);
+  letter-spacing: 0.06em;
+  text-shadow: 0 0 0.5mm rgba(250, 243, 230, 0.9);
 }
 
 .bless-line-primary {
-  font-size: 0.62rem;
+  font-size: 0.48rem;
   color: var(--card-accent);
-  line-height: 1.3;
-  max-width: 96%;
 }
 
 .bless-line-secondary {
-  font-size: 0.64rem;
-  line-height: 1.3;
-  margin-top: 0.3mm;
+  font-size: 0.46rem;
+  color: var(--card-ink);
 }
 
-.bless-seal-wrap {
-  position: relative;
-  width: 26mm;
-  height: 26mm;
-  margin: 0;
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
+.bless-photo-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 0;
+  padding: 0.5mm 1mm;
 }
 
-.bless-seal-circle {
-  position: relative;
-  z-index: 2;
-  width: 12.5mm;
-  height: 12.5mm;
-  display: block;
-  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.14));
+.bless-photo {
+  width: 100%;
+  max-height: 100%;
+  height: auto;
+  object-fit: cover;
+  aspect-ratio: 4 / 3;
+  border: 0.35mm solid #c9a227;
+  border-radius: 1.2mm;
+  box-shadow: 0 1px 4px rgba(26, 18, 8, 0.18);
+  background: #1a1208;
 }
 
 .bless-line-master {
-  font-size: 0.58rem;
-  max-width: 94%;
-  line-height: 1.35;
-  margin-top: 3.8mm;
-}
-
-.bless-foot {
-  padding-top: 0.5mm;
+  font-size: 0.4rem;
+  color: var(--card-ink);
+  max-width: 98%;
 }
 
 .bless-line-consecrate {
-  margin: 0;
-  font-size: 0.56rem;
+  font-size: 0.4rem;
   color: var(--card-gold);
-  border-top: 1px solid var(--card-ink);
-  padding-top: 1.5mm;
-  width: 88%;
-  line-height: 1.35;
+  border-top: 0.25mm solid rgba(26, 18, 8, 0.35);
+  padding-top: 0.8mm;
+  width: 92%;
 }
 
 .spec-panel {
@@ -618,10 +531,6 @@ body.show-bleed .card-trim-guide {
   vertical-align: -2px;
   margin-right: 6px;
   border: 1px solid rgba(255, 255, 255, 0.25);
-}
-
-body.hide-back .print-card-back {
-  display: none;
 }
 
 @media (max-width: 1100px) {
@@ -720,7 +629,7 @@ body.hide-back .print-card-back {
       calc(100vw - 24px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px))
     );
     height: auto;
-    aspect-ratio: 1;
+    aspect-ratio: 166 / 86;
     margin-bottom: 16px;
   }
 
@@ -742,7 +651,7 @@ body.hide-back .print-card-back {
 
 @media print {
   @page {
-    size: 66mm 66mm;
+    size: 166mm 86mm;
     margin: 0;
   }
 
