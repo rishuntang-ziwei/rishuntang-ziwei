@@ -11,6 +11,7 @@ function preloadAssets() {
     await document.fonts.ready;
     const urls = [
       './assets/temple-altar.png',
+      './assets/rishuntang-logo.png',
     ];
     await Promise.all(urls.map(async (path) => {
       const img = new Image();

@@ -14,6 +14,7 @@ const STEM_ELEMENT = {
 export { countBaziElements, getSupplementAdvice, WUXING_COLORS, WUXING_ORDER };
 
 const TEMPLE_PHOTO = './assets/temple-altar.png';
+const RISHUNTANG_LOGO = './assets/rishuntang-logo.png';
 
 export function dayMasterElement(chineseDate) {
   const daily = chineseDate?.daily;
@@ -72,14 +73,22 @@ function buildWuxingHalf(data) {
     numbersOnly: false,
     equalCenterRadius: false,
     showCycleLabels: false,
-    scale: 0.88,
-    textScale: 0.86,
-    centerYOffset: -10,
+    scale: 1.04,
+    textScale: 1.0,
+    centerYOffset: -8,
     highlightFrom: advice.parent,
     highlightTo: advice.lacking,
     dimOthers: !advice.balanced,
     vivid: true,
     markerId,
+    nodeStyleOverrides: {
+      水: {
+        fill: '#151515',
+        stroke: '#0a0a0a',
+        inactive: '#7a7a7a',
+        text: '#fff',
+      },
+    },
   });
 
   const nameSuffix = displayName ? ` ${displayName}` : '';
@@ -87,9 +96,16 @@ function buildWuxingHalf(data) {
   return `
     <div class="card-panel card-panel-wuxing">
       <header class="panel-head">
-        <p class="panel-brand">國際日舜堂</p>
-        <p class="panel-tagline">五行相生補運${nameSuffix}</p>
-        <p class="panel-phrase">五行相生局</p>
+        <div class="panel-head-row">
+          <div class="panel-logo-wrap">
+            <img class="panel-logo" src="${RISHUNTANG_LOGO}" alt="日舜堂" />
+          </div>
+          <div class="panel-head-text">
+            <p class="panel-brand">國際日舜堂</p>
+            <p class="panel-tagline">五行相生補運${nameSuffix}</p>
+            <p class="panel-phrase">五行相生局</p>
+          </div>
+        </div>
       </header>
       <div class="panel-diagram">
         <div class="panel-wuxing">${wuxingHtml}</div>

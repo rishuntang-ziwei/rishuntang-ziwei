@@ -461,6 +461,7 @@ export function buildWuxingPanel(counts, options = {}) {
     highlightTo = null,
     dimOthers = false,
     vivid = false,
+    nodeStyleOverrides = {},
   } = options;
 
   const cx = 130;
@@ -506,7 +507,7 @@ export function buildWuxingPanel(counts, options = {}) {
     const point = positions[name];
     const count = counts[name] || 0;
     const active = vivid || count > 0;
-    const style = NODE_STYLE[name];
+    const style = { ...NODE_STYLE[name], ...(nodeStyleOverrides[name] || {}) };
     const isCenter = name === '土';
     const r = isCenter ? centerR : outerR;
     const onPath = name === highlightFrom || name === highlightTo || name === '土';
