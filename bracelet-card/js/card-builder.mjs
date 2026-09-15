@@ -83,29 +83,34 @@ function buildWuxingHalf(data) {
     markerId,
     nodeStyleOverrides: {
       水: {
-        fill: '#151515',
-        stroke: '#0a0a0a',
-        inactive: '#7a7a7a',
-        text: '#fff',
+        fill: '#ffffff',
+        stroke: '#1a1a1a',
+        inactive: '#e8e8e8',
+        text: '#1a1a1a',
+        inactiveText: '#555',
+      },
+      木: {
+        fill: '#ffffff',
+        stroke: '#2db84a',
+        inactive: '#e8f5eb',
+        text: '#2db84a',
+        inactiveText: '#4a7a52',
       },
     },
   });
 
-  const nameSuffix = displayName ? ` ${displayName}` : '';
+  const nameLine = displayName
+    ? `<p class="panel-name">${displayName}</p>`
+    : '<p class="panel-name panel-name-empty" aria-hidden="true">　</p>';
 
   return `
     <div class="card-panel card-panel-wuxing">
+      <img class="panel-logo" src="${RISHUNTANG_LOGO}" alt="日舜堂" />
       <header class="panel-head">
-        <div class="panel-head-row">
-          <div class="panel-logo-wrap">
-            <img class="panel-logo" src="${RISHUNTANG_LOGO}" alt="日舜堂" />
-          </div>
-          <div class="panel-head-text">
-            <p class="panel-brand">國際日舜堂</p>
-            <p class="panel-tagline">五行相生補運${nameSuffix}</p>
-            <p class="panel-phrase">五行相生局</p>
-          </div>
-        </div>
+        <p class="panel-brand">國際日舜堂</p>
+        <p class="panel-tagline">五行相生補運</p>
+        ${nameLine}
+        <p class="panel-phrase">五行相生局</p>
       </header>
       <div class="panel-diagram">
         <div class="panel-wuxing">${wuxingHtml}</div>
