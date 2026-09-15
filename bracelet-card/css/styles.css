@@ -299,6 +299,7 @@ body.show-bleed .card-trim-guide {
   text-align: center;
   padding: 2.2mm 2.2mm 2.2mm;
   min-width: 0;
+  overflow: hidden;
 }
 
 /* 左欄：五行 */
@@ -321,21 +322,20 @@ body.show-bleed .card-trim-guide {
 
 .panel-head-row {
   display: flex;
-  align-items: stretch;
+  align-items: center;
   gap: 1.2mm;
   max-width: 100%;
 }
 
 .panel-logo-wrap {
   flex: 0 0 auto;
-  display: flex;
+  line-height: 0;
 }
 
 .panel-logo {
   display: block;
-  height: 100%;
-  width: auto;
-  aspect-ratio: 1;
+  width: 8.5mm;
+  height: 8.5mm;
   margin: 0;
   object-fit: contain;
   border-radius: 0.6mm;
