@@ -4,7 +4,7 @@ import {
   buildWuxingPanel,
   countBaziElements,
   getSupplementAdvice,
-} from '../../vendor/wuxing-panel.mjs';
+} from '../../vendor/wuxing-panel.mjs?v=20260917';
 
 const STEM_ELEMENT = {
   甲: '木', 乙: '木', 丙: '火', 丁: '火', 戊: '土',
