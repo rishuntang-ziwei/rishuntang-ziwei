@@ -4,9 +4,9 @@ import {
   dayMasterElement,
   formatLunarBirthLine,
   formatSolarBirthLine,
-  getSupplementAdvice,
-} from './card-builder.mjs?v=20260917';
-import { downloadCard } from './card-export.mjs?v=20260917';
+  getFormationAdvice,
+} from './card-builder.mjs?v=20260919';
+import { downloadCard } from './card-export.mjs?v=20260919';
 
 const TIME_LABELS = {
   0: '早子時 (00:00–01:00)',
@@ -60,7 +60,7 @@ function renderCards() {
   const chineseDate = astrolabe.rawDates.chineseDate;
   const counts = countBaziElements(chineseDate);
   const tieBreaker = dayMasterElement(chineseDate);
-  const advice = getSupplementAdvice(counts, tieBreaker);
+  const advice = getFormationAdvice(counts, tieBreaker);
   const solarBirthLine = formatSolarBirthLine(date, timeIndex);
   const lunarBirthLine = formatLunarBirthLine(astrolabe, timeIndex);
 

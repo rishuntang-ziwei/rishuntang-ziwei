@@ -48,6 +48,141 @@ export const GENERATING_PARENT = {
   水: '金',
 };
 
+/** 相生：from 生 to（例：土生金） */
+export const GENERATING_CHILD = {
+  金: '水',
+  水: '木',
+  木: '火',
+  火: '土',
+  土: '金',
+};
+
+/** 相剋：from 克 to（例：水克火） */
+export const CONTROLS = {
+  木: '土',
+  火: '金',
+  土: '水',
+  金: '木',
+  水: '火',
+};
+
+export const FORMATION_PAIRS = [
+  { from: '金', to: '水' },
+  { from: '水', to: '木' },
+  { from: '木', to: '火' },
+  { from: '火', to: '土' },
+  { from: '土', to: '金' },
+];
+
+export const BRACELET_COLOR_LABELS = {
+  金: '銀白色',
+  水: '黑色',
+  木: '綠色',
+  火: '紅色',
+  土: '土黃色',
+};
+
+function countRange(counts) {
+  const values = WUXING_ORDER.map((name) => counts[name] ?? 0);
+  return {
+    min: Math.min(...values),
+    max: Math.max(...values),
+    values,
+  };
+}
+
+function isExcess(counts, name, { max, threshold = 3 } = {}) {
+  const value = counts[name] ?? 0;
+  const peak = max ?? countRange(counts).max;
+  return value >= threshold && value >= peak;
+}
+
+/**
+ * 評估某一相生局的分數。
+ * 法器成局後，若連鎖中的中間行在命盤為 0，視為虛生、不計入後續相生副作用。
+ */
+function scoreFormation(from, to, counts) {
+  const { max } = countRange(counts);
+  let score = 0;
+
+  if ((counts[from] ?? 0) === 0) score += 10;
+  if ((counts[to] ?? 0) === 0) score += 8;
+
+  if (isExcess(counts, to, { max })) score -= 15;
+  if (isExcess(counts, from, { max })) score -= 5;
+
+  const controlled = CONTROLS[to];
+  if (controlled && isExcess(counts, controlled, { max })) score += 12;
+
+  const directNext = GENERATING_CHILD[to];
+  if (directNext && isExcess(counts, directNext, { max })) score -= 20;
+
+  const indirect = GENERATING_CHILD[directNext];
+  if (
+    directNext
+    && indirect
+    && isExcess(counts, indirect, { max })
+    && (counts[directNext] ?? 0) > 0
+  ) {
+    score -= 12;
+  }
+
+  return score;
+}
+
+function buildFormationResult(from, to, { balanced = false, subtitle = null } = {}) {
+  const primaryColor = BRACELET_COLOR_LABELS[from];
+  const secondaryColor = BRACELET_COLOR_LABELS[to];
+  const phrase = `${from}生${to}局`;
+  return {
+    balanced,
+    from,
+    to,
+    parent: from,
+    lacking: to,
+    phrase,
+    subtitle: subtitle ?? `建議同時配戴${primaryColor}與${secondaryColor}手環`,
+    braceletPrimary: from,
+    braceletSecondary: to,
+    braceletColors: [primaryColor, secondaryColor],
+  };
+}
+
+/** 依命盤五行選最佳相生局（法器雙色配戴，非單純提補） */
+export function getFormationAdvice(counts, tieBreaker = null) {
+  const { min, max } = countRange(counts);
+  const balanced = min === max;
+  const zeros = WUXING_ORDER.filter((name) => (counts[name] ?? 0) === 0);
+
+  if (balanced) {
+    const focus = tieBreaker && WUXING_ORDER.includes(tieBreaker) ? tieBreaker : '土';
+    const to = GENERATING_CHILD[focus];
+    return buildFormationResult(focus, to, {
+      balanced: true,
+      subtitle: `五行分布均衡，建議${BRACELET_COLOR_LABELS[focus]}與${BRACELET_COLOR_LABELS[to]}手環成${focus}生${to}局`,
+    });
+  }
+
+  if (zeros.length === 1) {
+    const from = zeros[0];
+    const to = GENERATING_CHILD[from];
+    return buildFormationResult(from, to);
+  }
+
+  let best = null;
+  let bestScore = -Infinity;
+
+  for (const { from, to } of FORMATION_PAIRS) {
+    const score = scoreFormation(from, to, counts);
+    if (score > bestScore) {
+      bestScore = score;
+      best = { from, to };
+    }
+  }
+
+  return buildFormationResult(best.from, best.to);
+}
+
 const GENERATING_EDGES = [
   { from: '水', to: '木', fromR: 'outer', toR: 'outer' },
   { from: '木', to: '火', fromR: 'outer', toR: 'outer' },
@@ -64,36 +199,9 @@ export function findWeakestElement(counts, tieBreaker = null) {
   return tied[0];
 }
 
+/** @deprecated 改用 getFormationAdvice */
 export function getSupplementAdvice(counts, tieBreaker = null) {
-  const values = WUXING_ORDER.map((name) => counts[name] ?? 0);
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const balanced = min === max;
-
-  if (balanced) {
-    const focus = tieBreaker && WUXING_ORDER.includes(tieBreaker) ? tieBreaker : '土';
-    return {
-      balanced: true,
-      lacking: focus,
-      parent: GENERATING_PARENT[focus],
-      phrase: '五行均衡',
-      subtitle: `五行分布均衡，建議以${focus}行穩定氣場`,
-      braceletPrimary: focus,
-      braceletSecondary: GENERATING_PARENT[focus],
-    };
-  }
-
-  const lacking = findWeakestElement(counts, tieBreaker);
-  const parent = GENERATING_PARENT[lacking];
-  return {
-    balanced: false,
-    lacking,
-    parent,
-    phrase: `補${parent}生${lacking}`,
-    subtitle: `命盤${lacking}行偏弱，宜以${parent}生之`,
-    braceletPrimary: parent,
-    braceletSecondary: lacking,
-  };
+  return getFormationAdvice(counts, tieBreaker);
 }
 
 const NODE_STYLE = {

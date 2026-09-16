@@ -3,15 +3,15 @@ import {
   WUXING_ORDER,
   buildWuxingPanel,
   countBaziElements,
-  getSupplementAdvice,
-} from '../../vendor/wuxing-panel.mjs?v=20260917';
+  getFormationAdvice,
+} from '../../vendor/wuxing-panel.mjs?v=20260919';
 
 const STEM_ELEMENT = {
   甲: '木', 乙: '木', 丙: '火', 丁: '火', 戊: '土',
   己: '土', 庚: '金', 辛: '金', 壬: '水', 癸: '水',
 };
 
-export { countBaziElements, getSupplementAdvice, WUXING_COLORS, WUXING_ORDER };
+export { countBaziElements, getFormationAdvice, WUXING_COLORS, WUXING_ORDER };
 
 const TEMPLE_PHOTO = './assets/temple-altar.png';
 const RISHUNTANG_LOGO = './assets/rishuntang-logo.png';
@@ -76,8 +76,8 @@ function buildWuxingHalf(data) {
     scale: 1.04,
     textScale: 1.0,
     centerYOffset: -8,
-    highlightFrom: advice.parent,
-    highlightTo: advice.lacking,
+    highlightFrom: advice.from,
+    highlightTo: advice.to,
     dimOthers: false,
     vivid: true,
     markerId,
@@ -105,9 +105,9 @@ function buildWuxingHalf(data) {
       <img class="panel-logo" src="${RISHUNTANG_LOGO}" alt="日舜堂" />
       <header class="panel-head">
         <p class="panel-brand">國際日舜堂</p>
-        <p class="panel-tagline">五行相生補運</p>
+        <p class="panel-tagline">五行相生開運手環</p>
         ${nameLine}
-        <p class="panel-phrase">五行相生局</p>
+        <p class="panel-phrase">${advice.phrase}</p>
       </header>
       <div class="panel-diagram">
         <div class="panel-wuxing">${wuxingHtml}</div>

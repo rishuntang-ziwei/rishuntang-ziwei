@@ -71,7 +71,7 @@ a {
 
 .workspace {
   display: grid;
-  grid-template-columns: minmax(260px, 320px) minmax(320px, 1fr) minmax(260px, 340px);
+  grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
   gap: 20px;
   align-items: start;
 }
@@ -203,6 +203,9 @@ button {
 
 .preview-panel {
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .preview-toolbar {
@@ -322,8 +325,8 @@ body.show-bleed .card-trim-guide {
   left: 0.6mm;
   z-index: 2;
   display: block;
-  width: 10mm;
-  height: 10mm;
+  width: 15mm;
+  height: 15mm;
   margin: 0;
   object-fit: contain;
   border-radius: 0.6mm;
@@ -526,12 +529,38 @@ body.show-bleed .card-trim-guide {
 .spec-panel {
   font-size: 0.88rem;
   line-height: 1.6;
+  width: 100%;
+  padding-top: 4px;
+  border-top: 1px solid rgba(201, 162, 39, 0.22);
+}
+
+.spec-panel__body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px 24px;
+  align-items: flex-start;
+}
+
+.spec-panel__specs {
+  flex: 2 1 520px;
+  min-width: 0;
+}
+
+.spec-panel__colors {
+  flex: 1 1 360px;
+  min-width: 0;
 }
 
 .spec-panel dl {
   margin: 0;
-  display: grid;
-  gap: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+}
+
+.spec-panel dl > div {
+  flex: 1 1 220px;
+  min-width: 180px;
 }
 
 .spec-panel dt {
@@ -544,10 +573,21 @@ body.show-bleed .card-trim-guide {
   color: var(--muted);
 }
 
+.spec-panel__colors h2 {
+  margin-top: 0;
+}
+
+.spec-panel__note {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
 .color-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 10px;
+  margin-top: 0;
   font-size: 0.8rem;
 }
 
@@ -676,6 +716,14 @@ body.show-bleed .card-trim-guide {
     font-size: 0.84rem;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+  }
+
+  .spec-panel__body {
+    flex-direction: column;
+  }
+
+  .spec-panel dl > div {
+    flex-basis: 100%;
   }
 
   .color-table {
