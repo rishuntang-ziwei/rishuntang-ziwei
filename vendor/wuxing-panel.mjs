@@ -462,6 +462,8 @@ export function buildWuxingPanel(counts, options = {}) {
     dimOthers = false,
     vivid = false,
     nodeStyleOverrides = {},
+    nodeTextOverrides = {},
+    highlightNodeStroke = true,
   } = options;
 
   const cx = 130;
@@ -515,7 +517,14 @@ export function buildWuxingPanel(counts, options = {}) {
     const pathFocus = name === highlightFrom || name === highlightTo;
     const fill = dimmed ? style.inactive : active ? style.fill : style.inactive;
     const textFill = dimmed ? style.inactiveText : active ? style.text : style.inactiveText;
-    const strokeW = (pathFocus ? 3 : name === '金' ? 2.5 : active ? 2 : 1.5) * scale;
+    const textOverride = nodeTextOverrides[name];
+    const useTextOverride = Boolean(textOverride);
+    const nodeTextFill = useTextOverride ? textOverride.fill : textFill;
+    const nodeTextStrokeAttrs = useTextOverride && textOverride.stroke
+      ? ` stroke="${textOverride.stroke}" stroke-width="${textOverride.strokeWidth ?? 1}" paint-order="stroke fill"`
+      : '';
+    const nodeStroke = pathFocus && highlightNodeStroke ? '#8b6914' : style.stroke;
+    const strokeW = (pathFocus && highlightNodeStroke ? 3 : name === '金' ? 2.5 : active ? 2 : 1.5) * scale;
     const numbersOnly = options.numbersOnly ?? options.size === 'center';
     const nodeClass = `wuxing-node${active ? ' is-active' : ''}${pathFocus ? ' is-path' : ''}${dimmed ? ' is-dimmed' : ''}`;
 
@@ -524,10 +533,10 @@ export function buildWuxingPanel(counts, options = {}) {
       return `
       <g class="${nodeClass}" data-element="${name}">
         <circle cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="${r}"
-          fill="${fill}" stroke="${pathFocus ? '#8b6914' : style.stroke}" stroke-width="${strokeW}" />
+          fill="${fill}" stroke="${nodeStroke}" stroke-width="${strokeW}" />
         <text x="${point.x.toFixed(1)}" y="${point.y.toFixed(1)}"
           text-anchor="middle" dominant-baseline="central" class="wuxing-node-count"
-          font-size="${countFont.toFixed(1)}" fill="${textFill}">${count}</text>
+          font-size="${countFont.toFixed(1)}" fill="${nodeTextFill}"${nodeTextStrokeAttrs}>${count}</text>
       </g>`;
     }
 
@@ -539,13 +548,13 @@ export function buildWuxingPanel(counts, options = {}) {
     return `
       <g class="${nodeClass}" data-element="${name}">
         <circle cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="${r}"
-          fill="${fill}" stroke="${pathFocus ? '#8b6914' : style.stroke}" stroke-width="${strokeW}" />
+          fill="${fill}" stroke="${nodeStroke}" stroke-width="${strokeW}" />
         <text x="${point.x.toFixed(1)}" y="${(point.y - nameOffset).toFixed(1)}"
           text-anchor="middle" dominant-baseline="middle" class="wuxing-node-name"
-          font-size="${nameFont.toFixed(1)}" fill="${textFill}">${name}</text>
+          font-size="${nameFont.toFixed(1)}" fill="${nodeTextFill}"${nodeTextStrokeAttrs}>${name}</text>
         <text x="${point.x.toFixed(1)}" y="${(point.y + countOffset).toFixed(1)}"
           text-anchor="middle" dominant-baseline="middle" class="wuxing-node-count"
-          font-size="${countFont.toFixed(1)}" fill="${textFill}">${count}</text>
+          font-size="${countFont.toFixed(1)}" fill="${nodeTextFill}"${nodeTextStrokeAttrs}>${count}</text>
       </g>`;
   }).join('');
 

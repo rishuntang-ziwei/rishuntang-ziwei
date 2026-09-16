@@ -318,16 +318,17 @@ body.show-bleed .card-trim-guide {
 
 .panel-logo {
   position: absolute;
-  top: 1.6mm;
-  left: 1.6mm;
+  top: 0.6mm;
+  left: 0.6mm;
   z-index: 2;
   display: block;
-  width: 7mm;
-  height: 7mm;
+  width: 10mm;
+  height: 10mm;
   margin: 0;
   object-fit: contain;
   border-radius: 0.6mm;
   filter: drop-shadow(0 0.5px 1px rgba(26, 18, 8, 0.12));
+  pointer-events: none;
 }
 
 .panel-head {
@@ -495,11 +496,13 @@ body.show-bleed .card-trim-guide {
 }
 
 .bless-photo {
-  width: 100%;
+  display: block;
+  max-width: 100%;
   max-height: 100%;
+  width: auto;
   height: auto;
-  object-fit: cover;
-  aspect-ratio: 4 / 3;
+  object-fit: contain;
+  object-position: center;
   border: 0.35mm solid #c9a227;
   border-radius: 1.2mm;
   box-shadow: 0 1px 4px rgba(26, 18, 8, 0.18);

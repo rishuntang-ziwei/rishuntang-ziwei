@@ -78,23 +78,20 @@ function buildWuxingHalf(data) {
     centerYOffset: -8,
     highlightFrom: advice.parent,
     highlightTo: advice.lacking,
-    dimOthers: !advice.balanced,
+    dimOthers: false,
     vivid: true,
     markerId,
-    nodeStyleOverrides: {
+    highlightNodeStroke: false,
+    nodeTextOverrides: {
       水: {
-        fill: '#ffffff',
-        stroke: '#1a1a1a',
-        inactive: '#e8e8e8',
-        text: '#1a1a1a',
-        inactiveText: '#555',
+        fill: '#1a1a1a',
+        stroke: '#ffffff',
+        strokeWidth: 1.4,
       },
       木: {
-        fill: '#ffffff',
-        stroke: '#2db84a',
-        inactive: '#e8f5eb',
-        text: '#2db84a',
-        inactiveText: '#4a7a52',
+        fill: '#2db84a',
+        stroke: '#ffffff',
+        strokeWidth: 1,
       },
     },
   });
