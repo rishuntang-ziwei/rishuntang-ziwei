@@ -4,7 +4,7 @@ import {
   buildWuxingPanel,
   countBaziElements,
   getFormationAdvice,
-} from '../../vendor/wuxing-panel.mjs?v=20260923b';
+} from '../../vendor/wuxing-panel.mjs?v=20260924b';
 
 const STEM_ELEMENT = {
   甲: '木', 乙: '木', 丙: '火', 丁: '火', 戊: '土',
@@ -44,17 +44,58 @@ const TIME_BRANCH = {
   12: '晚子',
 };
 
-export function formatSolarBirthLine(date, timeIndex) {
+export function formatSolarBirthParts(date, timeIndex) {
   const [y, m, d] = date.split('-');
   const branch = TIME_BRANCH[timeIndex] ?? '';
-  return `生辰 西元 ${Number(y)}年${Number(m)}月${Number(d)}日${branch}時`;
+  return {
+    label: '生辰 西元',
+    year: `${Number(y)}年`,
+    md: `${String(Number(m)).padStart(2, '0')}月${String(Number(d)).padStart(2, '0')}日`,
+    time: `${branch}時`,
+  };
 }
 
-export function formatLunarBirthLine(astrolabe, timeIndex) {
+export function formatLunarBirthParts(astrolabe, timeIndex) {
   let lunar = astrolabe?.lunarDate?.trim() ?? '';
   if (lunar && !lunar.endsWith('日')) lunar += '日';
   const branch = TIME_BRANCH[timeIndex] ?? astrolabe?.rawDates?.chineseDate?.hourly?.[1] ?? '';
-  return `農曆 ${lunar}${branch}時`;
+  const yearMatch = lunar.match(/^(.+?年)/);
+  const year = yearMatch?.[1] ?? '';
+  const md = year ? lunar.slice(year.length) : lunar;
+  return {
+    label: '農曆',
+    year,
+    md,
+    time: `${branch}時`,
+  };
+}
+
+export function formatSolarBirthLine(date, timeIndex) {
+  const { label, year, md, time } = formatSolarBirthParts(date, timeIndex);
+  return `${label} ${year}${md}${time}`;
+}
+
+export function formatLunarBirthLine(astrolabe, timeIndex) {
+  const { label, year, md, time } = formatLunarBirthParts(astrolabe, timeIndex);
+  return `${label} ${year}${md}${time}`;
+}
+
+function renderBirthBlock(solarBirth, lunarBirth) {
+  return `
+      <div class="panel-birth-block">
+        <p class="panel-birth-row">
+          <span class="panel-birth-label">${solarBirth.label}</span>
+          <span class="panel-birth-year">${solarBirth.year}</span>
+          <span class="panel-birth-md">${solarBirth.md}</span>
+          <span class="panel-birth-time">${solarBirth.time}</span>
+        </p>
+        <p class="panel-birth-row">
+          <span class="panel-birth-label">${lunarBirth.label}</span>
+          <span class="panel-birth-year">${lunarBirth.year}</span>
+          <span class="panel-birth-md">${lunarBirth.md}</span>
+          <span class="panel-birth-time">${lunarBirth.time}</span>
+        </p>
+      </div>`;
 }
 
 function buildWuxingHalf(data) {
@@ -63,8 +104,8 @@ function buildWuxingHalf(data) {
     advice,
     markerId = 'bracelet-wuxing-arrow',
     displayName = '',
-    solarBirthLine = '',
-    lunarBirthLine = '',
+    solarBirth,
+    lunarBirth,
   } = data;
 
   const wuxingHtml = buildWuxingPanel(counts, {
@@ -83,16 +124,8 @@ function buildWuxingHalf(data) {
     markerId,
     highlightNodeStroke: false,
     nodeTextOverrides: {
-      水: {
-        fill: '#1a1a1a',
-        stroke: '#ffffff',
-        strokeWidth: 1.4,
-      },
-      木: {
-        fill: '#2db84a',
-        stroke: '#ffffff',
-        strokeWidth: 1,
-      },
+      水: { fill: '#1a1a1a' },
+      木: { fill: '#2db84a' },
     },
   });
 
@@ -103,10 +136,7 @@ function buildWuxingHalf(data) {
   return `
     <div class="card-panel card-panel-wuxing">
       <img class="panel-logo" src="${RISHUNTANG_LOGO}" alt="日舜堂" />
-      <div class="panel-birth-block">
-        <p class="panel-birth-solar">${solarBirthLine}</p>
-        <p class="panel-birth-lunar">${lunarBirthLine}</p>
-      </div>
+      ${renderBirthBlock(solarBirth, lunarBirth)}
       <header class="panel-head">
         <p class="panel-brand">國際日舜堂</p>
         <p class="panel-tagline">五行相生開運手環</p>

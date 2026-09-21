@@ -339,8 +339,20 @@ body.show-bleed .card-trim-guide {
   top: 16.2mm;
   left: 0.6mm;
   z-index: 2;
-  width: 17mm;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35mm;
+  width: max-content;
   text-align: left;
+}
+
+.panel-birth-row {
+  display: grid;
+  grid-template-columns: 14.5mm 17mm 15mm 6.5mm;
+  column-gap: 0.3mm;
+  align-items: baseline;
+  margin: 0;
+  white-space: nowrap;
 }
 
 .panel-head {
@@ -447,24 +459,31 @@ body.show-bleed .card-trim-guide {
 .panel-wuxing .wuxing-node-count {
   font-family: var(--font-kai);
   font-weight: 700;
+  stroke: none;
+  paint-order: normal;
 }
 
 .panel-foot {
   padding-top: 0.4mm;
 }
 
-.panel-birth-block .panel-birth-solar,
-.panel-birth-block .panel-birth-lunar {
-  margin: 0;
+.panel-birth-row span {
   font-family: var(--font-kai);
-  font-size: 0.42rem;
-  letter-spacing: 0.01em;
+  font-size: 0.4rem;
+  letter-spacing: 0;
   color: #444;
-  line-height: 1.3;
+  line-height: 1.25;
+  white-space: nowrap;
 }
 
-.panel-birth-block .panel-birth-lunar {
-  margin-top: 0.35mm;
+.panel-birth-label {
+  letter-spacing: 0.01em;
+}
+
+.panel-birth-year,
+.panel-birth-md,
+.panel-birth-time {
+  letter-spacing: 0.02em;
 }
 
 .panel-wear-guide {

@@ -2,11 +2,11 @@ import {
   buildBraceletCard,
   countBaziElements,
   dayMasterElement,
-  formatLunarBirthLine,
-  formatSolarBirthLine,
+  formatLunarBirthParts,
+  formatSolarBirthParts,
   getFormationAdvice,
-} from './card-builder.mjs?v=20260923b';
-import { downloadCard } from './card-export.mjs?v=20260923b';
+} from './card-builder.mjs?v=20260924c';
+import { downloadCard } from './card-export.mjs?v=20260924c';
 
 const TIME_LABELS = {
   0: '早子時 (00:00–01:00)',
@@ -61,15 +61,15 @@ function renderCards() {
   const counts = countBaziElements(chineseDate);
   const tieBreaker = dayMasterElement(chineseDate);
   const advice = getFormationAdvice(counts, tieBreaker);
-  const solarBirthLine = formatSolarBirthLine(date, timeIndex);
-  const lunarBirthLine = formatLunarBirthLine(astrolabe, timeIndex);
+  const solarBirth = formatSolarBirthParts(date, timeIndex);
+  const lunarBirth = formatLunarBirthParts(astrolabe, timeIndex);
 
   const data = {
     counts,
     advice,
     displayName,
-    solarBirthLine,
-    lunarBirthLine,
+    solarBirth,
+    lunarBirth,
     markerId: `bracelet-wuxing-${Date.now()}`,
   };
 
