@@ -4,7 +4,7 @@ import {
   buildWuxingPanel,
   countBaziElements,
   getFormationAdvice,
-} from '../../vendor/wuxing-panel.mjs?v=20260919';
+} from '../../vendor/wuxing-panel.mjs?v=20260923b';
 
 const STEM_ELEMENT = {
   甲: '木', 乙: '木', 丙: '火', 丁: '火', 戊: '土',
@@ -103,18 +103,21 @@ function buildWuxingHalf(data) {
   return `
     <div class="card-panel card-panel-wuxing">
       <img class="panel-logo" src="${RISHUNTANG_LOGO}" alt="日舜堂" />
+      <div class="panel-birth-block">
+        <p class="panel-birth-solar">${solarBirthLine}</p>
+        <p class="panel-birth-lunar">${lunarBirthLine}</p>
+      </div>
       <header class="panel-head">
         <p class="panel-brand">國際日舜堂</p>
         <p class="panel-tagline">五行相生開運手環</p>
         ${nameLine}
-        <p class="panel-phrase">${advice.phrase}</p>
+        <p class="panel-phrase panel-phrase-empty" aria-hidden="true">　</p>
       </header>
       <div class="panel-diagram">
         <div class="panel-wuxing">${wuxingHtml}</div>
       </div>
       <footer class="panel-foot">
-        <p class="panel-birth-solar">${solarBirthLine}</p>
-        <p class="panel-birth-lunar">${lunarBirthLine}</p>
+        <p class="panel-wear-guide">本靈能手環可全天配戴或睡眠時配戴，忌水，請洗手或洗澡時先取下，並且不可與其他任何物品(如手錶或其他手環)戴在同一隻手上。先戴<span class="panel-wear-blank">　　　</span>色，再戴<span class="panel-wear-blank">　　　</span>色。</p>
       </footer>
     </div>`;
 }
@@ -127,7 +130,8 @@ function buildBlessingHalf() {
         <p class="bless-line bless-line-secondary">三清道祖</p>
       </header>
       <div class="bless-photo-wrap">
-        <img class="bless-photo" src="${TEMPLE_PHOTO}" alt="道院開光法壇" />
+        <img class="bless-photo" src="${TEMPLE_PHOTO}" alt="道院開光法壇（左）" />
+        <img class="bless-photo" src="${TEMPLE_PHOTO}" alt="道院開光法壇（右）" />
       </div>
       <footer class="bless-foot">
         <p class="bless-line bless-line-master">道旨日舜堂祖師爺姜太公子牙</p>
