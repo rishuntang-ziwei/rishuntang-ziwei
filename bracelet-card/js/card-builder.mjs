@@ -4,7 +4,7 @@ import {
   buildWuxingPanel,
   countBaziElements,
   getFormationAdvice,
-} from '../../vendor/wuxing-panel.mjs?v=20260924b';
+} from '../../vendor/wuxing-panel.mjs?v=20260927';
 
 const STEM_ELEMENT = {
   甲: '木', 乙: '木', 丙: '火', 丁: '火', 戊: '土',
@@ -81,19 +81,17 @@ export function formatLunarBirthLine(astrolabe, timeIndex) {
 }
 
 function renderBirthBlock(solarBirth, lunarBirth) {
+  const solarValue = `${solarBirth.year}${solarBirth.md}${solarBirth.time}`;
+  const lunarValue = `${lunarBirth.year}${lunarBirth.md}${lunarBirth.time}`;
   return `
       <div class="panel-birth-block">
         <p class="panel-birth-row">
           <span class="panel-birth-label">${solarBirth.label}</span>
-          <span class="panel-birth-year">${solarBirth.year}</span>
-          <span class="panel-birth-md">${solarBirth.md}</span>
-          <span class="panel-birth-time">${solarBirth.time}</span>
+          <span class="panel-birth-value">${solarValue}</span>
         </p>
         <p class="panel-birth-row">
           <span class="panel-birth-label">${lunarBirth.label}</span>
-          <span class="panel-birth-year">${lunarBirth.year}</span>
-          <span class="panel-birth-md">${lunarBirth.md}</span>
-          <span class="panel-birth-time">${lunarBirth.time}</span>
+          <span class="panel-birth-value">${lunarValue}</span>
         </p>
       </div>`;
 }
@@ -123,10 +121,6 @@ function buildWuxingHalf(data) {
     vivid: true,
     markerId,
     highlightNodeStroke: false,
-    nodeTextOverrides: {
-      水: { fill: '#1a1a1a' },
-      木: { fill: '#2db84a' },
-    },
   });
 
   const nameLine = displayName
