@@ -4,7 +4,7 @@ import {
   buildWuxingPanel,
   countBaziElements,
   getFormationAdvice,
-} from '../../vendor/wuxing-panel.mjs?v=20260928j';
+} from '../../vendor/wuxing-panel.mjs?v=20260928k';
 
 const STEM_ELEMENT = {
   甲: '木', 乙: '木', 丙: '火', 丁: '火', 戊: '土',
@@ -136,7 +136,7 @@ function buildWuxingHalf(data) {
           <div class="panel-wuxing">${wuxingHtml}</div>
         </div>
         <aside class="panel-aside">
-          <p class="panel-phrase panel-phrase-large"><span class="panel-phrase-blank"></span>生</p>
+          <p class="panel-phrase panel-phrase-large"><span class="panel-phrase-blank"></span>生<span class="panel-phrase-blank"></span></p>
           <div class="panel-foot">
             <p class="panel-wear-guide">本靈能手環可全天配戴或睡眠時配戴，忌水，請洗手或洗澡時先取下，並且不可與其他任何物品(如手錶或其他手環)戴在同一隻手上。</p>
             <div class="panel-wear-colors-block">

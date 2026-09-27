@@ -565,11 +565,10 @@ body.show-bleed .card-trim-guide {
 }
 
 .bless-title-grid {
-  display: grid;
-  grid-template-columns: auto auto minmax(0, 1fr);
+  display: flex;
   align-items: center;
   width: 100%;
-  column-gap: 0.35mm;
+  gap: 0.35mm;
 }
 
 .bless-title-right {
@@ -578,6 +577,7 @@ body.show-bleed .card-trim-guide {
   align-items: flex-start;
   justify-content: center;
   gap: 0.35mm;
+  flex: 0 0 auto;
   min-width: 0;
 }
 
@@ -592,7 +592,8 @@ body.show-bleed .card-trim-guide {
 }
 
 .bless-line-place {
-  font-size: calc(0.92rem * 2);
+  flex: 0 0 auto;
+  font-size: calc(0.92rem * 1.55);
   line-height: 1.1;
   letter-spacing: 0.08em;
   color: var(--card-accent);
@@ -611,10 +612,11 @@ body.show-bleed .card-trim-guide {
 }
 
 .bless-line-power {
-  justify-self: end;
-  align-self: center;
-  font-size: 0.92rem;
-  letter-spacing: 0.18em;
+  flex: 0 0 auto;
+  margin-left: auto;
+  padding-left: 0.8mm;
+  font-size: 0.8rem;
+  letter-spacing: 0.14em;
   color: var(--card-gold);
   text-align: right;
   white-space: nowrap;
