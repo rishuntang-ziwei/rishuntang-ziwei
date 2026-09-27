@@ -335,6 +335,7 @@ body.show-bleed .card-trim-guide {
   width: 100%;
   text-align: center;
   padding-top: 0.2mm;
+  min-height: 7mm;
 }
 
 .panel-brand-row {
@@ -366,31 +367,32 @@ body.show-bleed .card-trim-guide {
   line-height: 1.25;
 }
 
-.panel-name {
-  margin: 0.6mm 0 0;
+.panel-identity-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.6mm 1.4mm;
+  margin: 1.6mm 0 0;
   font-family: var(--font-kai);
-  font-size: 0.92rem;
+  font-size: 1.05rem;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   color: var(--card-ink);
-  line-height: 1.2;
-}
-
-.panel-name-empty {
-  visibility: hidden;
-}
-
-.panel-birth-compact {
-  margin: 0.35mm 0 0;
-  font-family: var(--font-kai);
-  font-size: 0.52rem;
-  letter-spacing: 0.02em;
-  color: #444;
   line-height: 1.25;
 }
 
-.panel-birth-compact-empty {
+.panel-identity-row-empty {
   visibility: hidden;
+}
+
+.panel-name-inline {
+  letter-spacing: 0.12em;
+}
+
+.panel-birth-inline {
+  letter-spacing: 0.04em;
+  color: #333;
 }
 
 .panel-body {
@@ -426,7 +428,8 @@ body.show-bleed .card-trim-guide {
 .panel-phrase-large {
   font-size: 1.35rem;
   text-align: center;
-  margin-bottom: 1.2mm;
+  margin-top: 1.8mm;
+  margin-bottom: 1.4mm;
 }
 
 .panel-phrase-blank {
@@ -517,6 +520,13 @@ body.show-bleed .card-trim-guide {
   text-justify: inter-ideograph;
 }
 
+.panel-wear-colors-block {
+  display: flex;
+  flex-direction: column;
+  gap: 1.6mm;
+  margin-top: 0.4mm;
+}
+
 .panel-wear-colors {
   margin: 0;
   padding: 0;
@@ -525,13 +535,14 @@ body.show-bleed .card-trim-guide {
   font-weight: 700;
   letter-spacing: 0.12em;
   color: var(--card-ink);
-  line-height: 1.2;
+  line-height: 1.8;
   text-align: left;
 }
 
 .panel-wear-blank {
   display: inline-block;
-  min-width: 7mm;
+  min-width: 9mm;
+  min-height: 3.2mm;
   border-bottom: 0.2mm solid rgba(26, 18, 8, 0.45);
   vertical-align: baseline;
   line-height: 1;
@@ -555,16 +566,16 @@ body.show-bleed .card-trim-guide {
 
 .bless-title-grid {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: auto auto minmax(0, 1fr);
   align-items: center;
   width: 100%;
-  column-gap: 1mm;
+  column-gap: 0.35mm;
 }
 
 .bless-title-right {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: flex-start;
   justify-content: center;
   gap: 0.35mm;
   min-width: 0;
@@ -591,12 +602,22 @@ body.show-bleed .card-trim-guide {
 
 .bless-line-primary {
   color: var(--card-accent);
-  text-align: right;
+  text-align: left;
 }
 
 .bless-line-secondary {
   color: var(--card-ink);
+  text-align: left;
+}
+
+.bless-line-power {
+  justify-self: end;
+  align-self: center;
+  font-size: 0.92rem;
+  letter-spacing: 0.18em;
+  color: var(--card-gold);
   text-align: right;
+  white-space: nowrap;
 }
 
 .bless-photo-wrap {
@@ -993,7 +1014,17 @@ body.show-bleed .card-trim-guide {
 
   .panel-phrase-large {
     font-size: 1.25rem;
-    margin-bottom: 1mm;
+    margin-top: 1.5mm;
+    margin-bottom: 1.2mm;
+  }
+
+  .panel-identity-row {
+    font-size: 1rem;
+    margin-top: 1.4mm;
+  }
+
+  .panel-wear-colors-block {
+    gap: 1.4mm;
   }
 
   .panel-wear-guide {

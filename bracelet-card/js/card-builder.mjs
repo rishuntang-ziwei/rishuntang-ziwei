@@ -4,7 +4,7 @@ import {
   buildWuxingPanel,
   countBaziElements,
   getFormationAdvice,
-} from '../../vendor/wuxing-panel.mjs?v=20260928i';
+} from '../../vendor/wuxing-panel.mjs?v=20260928j';
 
 const STEM_ELEMENT = {
   甲: '木', 乙: '木', 丙: '火', 丁: '火', 戊: '土',
@@ -112,13 +112,15 @@ function buildWuxingHalf(data) {
     highlightNodeStroke: false,
   });
 
-  const nameLine = displayName
-    ? `<p class="panel-name">${displayName}</p>`
-    : '<p class="panel-name panel-name-empty" aria-hidden="true">　</p>';
-
-  const birthLine = solarBirth
-    ? `<p class="panel-birth-compact">${formatSolarBirthCompact(solarBirth)}</p>`
-    : '<p class="panel-birth-compact panel-birth-compact-empty" aria-hidden="true">　</p>';
+  const identityName = displayName
+    ? `<span class="panel-name-inline">${displayName}</span>`
+    : '';
+  const identityBirth = solarBirth
+    ? `<span class="panel-birth-inline">${formatSolarBirthCompact(solarBirth)}</span>`
+    : '';
+  const identityRow = (identityName || identityBirth)
+    ? `<p class="panel-identity-row">${identityName}${identityBirth}</p>`
+    : '<p class="panel-identity-row panel-identity-row-empty" aria-hidden="true">　</p>';
 
   return `
     <div class="card-panel card-panel-wuxing">
@@ -127,18 +129,20 @@ function buildWuxingHalf(data) {
           <span class="panel-brand">國際日舜堂</span>
           <span class="panel-tagline">五行相生開運手環</span>
         </p>
-        ${nameLine}
-        ${birthLine}
+        ${identityRow}
       </header>
       <div class="panel-body">
         <div class="panel-diagram">
           <div class="panel-wuxing">${wuxingHtml}</div>
         </div>
         <aside class="panel-aside">
-          <p class="panel-phrase panel-phrase-large"><span class="panel-phrase-blank"></span>生<span class="panel-phrase-blank"></span>局</p>
+          <p class="panel-phrase panel-phrase-large"><span class="panel-phrase-blank"></span>生</p>
           <div class="panel-foot">
             <p class="panel-wear-guide">本靈能手環可全天配戴或睡眠時配戴，忌水，請洗手或洗澡時先取下，並且不可與其他任何物品(如手錶或其他手環)戴在同一隻手上。</p>
-            <p class="panel-wear-colors">先戴<span class="panel-wear-blank">　　　</span>色，再戴<span class="panel-wear-blank">　　　</span>色。</p>
+            <div class="panel-wear-colors-block">
+              <p class="panel-wear-colors">先戴<span class="panel-wear-blank">　　　</span>色，</p>
+              <p class="panel-wear-colors">再戴<span class="panel-wear-blank">　　　</span>色。</p>
+            </div>
           </div>
         </aside>
       </div>
@@ -155,6 +159,7 @@ function buildBlessingHalf() {
             <p class="bless-line bless-line-primary">觀世音菩薩</p>
             <p class="bless-line bless-line-secondary">三清道祖</p>
           </div>
+          <p class="bless-line bless-line-power">靈能加持</p>
         </div>
       </header>
       <div class="bless-photo-wrap">
