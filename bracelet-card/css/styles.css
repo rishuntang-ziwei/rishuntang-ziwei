@@ -431,8 +431,8 @@ body.show-bleed .card-trim-guide {
 .panel-phrase-large {
   font-size: 1.32rem;
   text-align: center;
-  margin-top: 1.1mm;
-  margin-bottom: 1mm;
+  margin-top: 2.2mm;
+  margin-bottom: 0.8mm;
 }
 
 .panel-phrase-blank {
@@ -1022,8 +1022,8 @@ body.show-bleed .card-trim-guide {
 
   .panel-phrase-large {
     font-size: 1.22rem;
-    margin-top: 1mm;
-    margin-bottom: 0.8mm;
+    margin-top: 2mm;
+    margin-bottom: 0.7mm;
   }
 
   .panel-identity-row {
