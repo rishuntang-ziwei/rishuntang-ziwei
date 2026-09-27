@@ -142,7 +142,8 @@ function buildWuxingHalf(data) {
         <div class="panel-wuxing">${wuxingHtml}</div>
       </div>
       <footer class="panel-foot">
-        <p class="panel-wear-guide">本靈能手環可全天配戴或睡眠時配戴，忌水，請洗手或洗澡時先取下，並且不可與其他任何物品(如手錶或其他手環)戴在同一隻手上。先戴<span class="panel-wear-blank">　　　</span>色，再戴<span class="panel-wear-blank">　　　</span>色。</p>
+        <p class="panel-wear-guide">本靈能手環可全天配戴或睡眠時配戴，忌水，請洗手或洗澡時先取下，並且不可與其他任何物品(如手錶或其他手環)戴在同一隻手上。</p>
+        <p class="panel-wear-colors">先戴<span class="panel-wear-blank">　　　</span>色，再戴<span class="panel-wear-blank">　　　</span>色。</p>
       </footer>
     </div>`;
 }
