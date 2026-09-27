@@ -5,8 +5,8 @@ import {
   formatLunarBirthParts,
   formatSolarBirthParts,
   getFormationAdvice,
-} from './card-builder.mjs?v=20260928o';
-import { downloadCard } from './card-export.mjs?v=20260928o';
+} from './card-builder.mjs?v=20260928p';
+import { downloadCard } from './card-export.mjs?v=20260928p';
 
 const TIME_LABELS = {
   0: '早子時 (00:00–01:00)',
