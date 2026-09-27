@@ -227,7 +227,17 @@ button {
   min-height: 200px;
 }
 
-.preview-stage .print-card {
+.print-sheet {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.print-card-duplicate {
+  display: none;
+}
+
+.preview-stage .print-sheet .print-card {
   flex-shrink: 0;
   transform: scale(var(--preview-scale));
   transform-origin: top center;
@@ -809,19 +819,19 @@ body.show-bleed .card-trim-guide {
 
 @media print {
   @page {
-    size: 166mm 86mm;
+    size: A4 portrait;
     margin: 0;
   }
 
   html,
   body {
-    width: 166mm;
-    height: 86mm;
+    width: auto;
+    height: auto;
     margin: 0 !important;
     padding: 0 !important;
     background: white !important;
     color: black;
-    overflow: hidden !important;
+    overflow: visible !important;
   }
 
   .page-header,
@@ -835,15 +845,43 @@ body.show-bleed .card-trim-guide {
   .workspace,
   .preview-panel,
   .preview-stage {
-    width: 166mm !important;
-    height: 86mm !important;
+    width: auto !important;
+    height: auto !important;
     margin: 0 !important;
     padding: 0 !important;
     display: block !important;
-    overflow: hidden !important;
+    overflow: visible !important;
   }
 
-  .preview-stage .print-card {
+  .print-sheet {
+    position: relative;
+    width: 210mm;
+    height: 297mm;
+    margin: 0 auto;
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    justify-items: center;
+    align-items: center;
+    page-break-after: avoid;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  body.show-bleed .print-sheet::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    border-top: 1px dashed rgba(229, 57, 53, 0.72);
+    pointer-events: none;
+  }
+
+  .print-card-duplicate {
+    display: block !important;
+  }
+
+  .preview-stage .print-sheet .print-card {
     transform: none !important;
     margin: 0 !important;
   }

@@ -166,9 +166,10 @@ function buildBlessingHalf() {
     </div>`;
 }
 
-export function buildBraceletCard(data) {
+export function buildBraceletCard(data, options = {}) {
+  const duplicateClass = options.duplicate ? ' print-card-duplicate' : '';
   return `
-    <article class="print-card print-card-landscape" data-side="card">
+    <article class="print-card print-card-landscape${duplicateClass}" data-side="card">
       <div class="card-trim-guide" aria-hidden="true"></div>
       <div class="card-split">
         ${buildWuxingHalf(data)}
@@ -178,7 +179,17 @@ export function buildBraceletCard(data) {
     </article>`;
 }
 
+/** 螢幕預覽一張；列印時 A4 直式上下各一張 */
+export function buildBraceletPrintSheet(data) {
+  const stamp = Date.now();
+  return `
+    <div class="print-sheet">
+      ${buildBraceletCard({ ...data, markerId: `bracelet-wuxing-${stamp}-1` })}
+      ${buildBraceletCard({ ...data, markerId: `bracelet-wuxing-${stamp}-2` }, { duplicate: true })}
+    </div>`;
+}
+
 /** @deprecated 保留舊名稱供 app 相容 */
 export function buildBraceletCardPair(data) {
-  return buildBraceletCard(data);
+  return buildBraceletPrintSheet(data);
 }

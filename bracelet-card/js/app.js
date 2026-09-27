@@ -1,12 +1,12 @@
 import {
-  buildBraceletCard,
+  buildBraceletPrintSheet,
   countBaziElements,
   dayMasterElement,
   formatLunarBirthParts,
   formatSolarBirthParts,
   getFormationAdvice,
-} from './card-builder.mjs?v=20260927i';
-import { downloadCard } from './card-export.mjs?v=20260927i';
+} from './card-builder.mjs?v=20260928';
+import { downloadCard } from './card-export.mjs?v=20260928';
 
 const TIME_LABELS = {
   0: '早子時 (00:00–01:00)',
@@ -73,7 +73,7 @@ function renderCards() {
     markerId: `bracelet-wuxing-${Date.now()}`,
   };
 
-  $('#cardPreview').innerHTML = buildBraceletCard(data);
+  $('#cardPreview').innerHTML = buildBraceletPrintSheet(data);
   $('#resultSummary').textContent = `${advice.phrase} · ${advice.subtitle}`;
   $('#resultSummary').classList.remove('hidden');
 }
