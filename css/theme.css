@@ -453,6 +453,7 @@ body {
 }
 
 #userBar button,
+#userBar a.user-bar-link,
 .app-toolbar .member-actions button {
   border: 1px solid var(--border);
   background: var(--paper-surface);
@@ -466,7 +467,15 @@ body {
   transition: background 0.2s, border-color 0.2s;
 }
 
+#userBar a.user-bar-link {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
 #userBar button:hover,
+#userBar a.user-bar-link:hover,
 .app-toolbar .member-actions button:hover {
   background: var(--paper-muted);
   border-color: var(--border-strong);

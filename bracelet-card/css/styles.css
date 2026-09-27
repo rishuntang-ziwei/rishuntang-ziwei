@@ -433,7 +433,7 @@ body.show-bleed .card-trim-guide {
 .panel-wuxing .wuxing-svg {
   width: 100%;
   height: auto;
-  max-height: 44mm;
+  max-height: 42mm;
   display: block;
 }
 
@@ -509,11 +509,11 @@ body.show-bleed .card-trim-guide {
   margin: 0;
   padding: 0 0.4mm;
   font-family: var(--font-kai);
-  font-size: 0.6rem;
+  font-size: 0.92rem;
   font-weight: 700;
-  letter-spacing: 0.02em;
-  color: #444;
-  line-height: 1.25;
+  letter-spacing: 0.12em;
+  color: var(--card-ink);
+  line-height: 1.2;
   text-align: center;
 }
 
@@ -874,17 +874,12 @@ body.show-bleed .card-trim-guide {
   }
 
   .panel-wuxing .wuxing-svg {
-    max-height: 41mm;
+    max-height: 39mm;
   }
 
   .panel-foot {
     gap: 0.25mm;
     padding-top: 0;
-  }
-
-  .panel-wear-colors {
-    font-size: 0.55rem;
-    line-height: 1.2;
   }
 
   .bless-photo,

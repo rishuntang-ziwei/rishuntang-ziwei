@@ -112,6 +112,16 @@ export function ChartApp({
                 會員管理
               </button>
             )}
+            {user?.role === 'admin' && (
+              <a
+                href="bracelet-card/index.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="user-bar-btn user-bar-link"
+              >
+                五行手環
+              </a>
+            )}
             <button type="button" className="user-bar-btn" onClick={logout}>
               登出
             </button>
