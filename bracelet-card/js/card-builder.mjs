@@ -13,7 +13,8 @@ const STEM_ELEMENT = {
 
 export { countBaziElements, getFormationAdvice, WUXING_COLORS, WUXING_ORDER };
 
-const TEMPLE_PHOTO = './assets/temple-altar.png';
+const TEMPLE_PHOTO_LEFT = './assets/temple-altar.png';
+const TEMPLE_PHOTO_RIGHT = './assets/temple-sanqing.png';
 const RISHUNTANG_LOGO = './assets/rishuntang-logo.png';
 
 export function dayMasterElement(chineseDate) {
@@ -135,7 +136,7 @@ function buildWuxingHalf(data) {
         <p class="panel-brand">國際日舜堂</p>
         <p class="panel-tagline">五行相生開運手環</p>
         ${nameLine}
-        <p class="panel-phrase panel-phrase-empty" aria-hidden="true">　</p>
+        <p class="panel-phrase"><span class="panel-phrase-blank"></span>生<span class="panel-phrase-blank"></span>局</p>
       </header>
       <div class="panel-diagram">
         <div class="panel-wuxing">${wuxingHtml}</div>
@@ -154,8 +155,8 @@ function buildBlessingHalf() {
         <p class="bless-line bless-line-secondary">三清道祖</p>
       </header>
       <div class="bless-photo-wrap">
-        <img class="bless-photo" src="${TEMPLE_PHOTO}" alt="道院開光法壇（左）" />
-        <img class="bless-photo" src="${TEMPLE_PHOTO}" alt="道院開光法壇（右）" />
+        <img class="bless-photo" src="${TEMPLE_PHOTO_LEFT}" alt="道院開光法壇（左）" />
+        <img class="bless-photo" src="${TEMPLE_PHOTO_RIGHT}" alt="三清道祖法壇（右）" />
       </div>
       <footer class="bless-foot">
         <p class="bless-line bless-line-master">道旨日舜堂祖師爺姜太公子牙</p>
