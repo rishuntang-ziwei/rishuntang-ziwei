@@ -233,10 +233,6 @@ button {
   align-items: center;
 }
 
-.print-sheet-slot-bottom {
-  display: none;
-}
-
 .preview-stage .print-sheet .print-card {
   flex-shrink: 0;
   transform: scale(var(--preview-scale));
@@ -819,19 +815,19 @@ body.show-bleed .card-trim-guide {
 
 @media print {
   @page {
-    size: A4 portrait;
+    size: 166mm 86mm;
     margin: 0;
   }
 
   html,
   body {
-    width: auto;
-    height: auto;
+    width: 166mm;
+    height: 86mm;
     margin: 0 !important;
     padding: 0 !important;
     background: white !important;
     color: black;
-    overflow: visible !important;
+    overflow: hidden !important;
   }
 
   .page-header,
@@ -845,47 +841,26 @@ body.show-bleed .card-trim-guide {
   .workspace,
   .preview-panel,
   .preview-stage {
-    width: auto !important;
-    height: auto !important;
+    width: 166mm !important;
+    height: 86mm !important;
+    max-height: 86mm !important;
+    min-height: 0 !important;
     margin: 0 !important;
     padding: 0 !important;
     display: block !important;
-    overflow: visible !important;
+    overflow: hidden !important;
   }
 
-  .print-sheet {
-    position: relative;
-    width: 210mm;
-    height: 297mm;
-    margin: 0 auto;
-    display: grid;
-    grid-template-rows: 1fr 1fr;
-    justify-items: center;
-    align-items: center;
-    page-break-after: avoid;
-    page-break-inside: avoid;
-    break-inside: avoid;
-  }
-
-  .print-sheet-slot {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
+  .print-sheet,
+  .print-sheet-slot-top {
+    width: 166mm !important;
+    height: 86mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
   .print-sheet-slot-bottom {
-    display: flex;
-  }
-
-  body.show-bleed .print-sheet::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 50%;
-    border-top: 1px dashed rgba(229, 57, 53, 0.72);
-    pointer-events: none;
+    display: none !important;
   }
 
   .preview-stage .print-sheet .print-card {
