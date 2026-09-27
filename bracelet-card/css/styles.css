@@ -319,6 +319,7 @@ body.show-bleed .card-trim-guide {
 /* 左欄：五行 */
 .card-panel-wuxing {
   position: relative;
+  align-items: stretch;
   background: rgba(245, 232, 208, 0.55);
 }
 
@@ -330,46 +331,19 @@ body.show-bleed .card-trim-guide {
   width: 100%;
 }
 
-.panel-logo {
-  position: absolute;
-  top: 0.6mm;
-  left: 0.6mm;
-  z-index: 2;
-  display: block;
-  width: 15mm;
-  height: 15mm;
-  margin: 0;
-  object-fit: contain;
-  border-radius: 0.6mm;
-  filter: drop-shadow(0 0.5px 1px rgba(26, 18, 8, 0.12));
-  pointer-events: none;
-}
-
-.panel-birth-block {
-  position: absolute;
-  top: 16.2mm;
-  left: 0.6mm;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  gap: 0.35mm;
-  width: max-content;
-  text-align: left;
-}
-
-.panel-birth-row {
-  display: grid;
-  grid-template-columns: max-content auto;
-  column-gap: 0.6mm;
-  align-items: baseline;
-  margin: 0;
-  white-space: nowrap;
-}
-
 .panel-head {
   width: 100%;
   text-align: center;
   padding-top: 0.2mm;
+}
+
+.panel-brand-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.6mm 1.2mm;
+  margin: 0;
 }
 
 .panel-brand {
@@ -383,7 +357,7 @@ body.show-bleed .card-trim-guide {
 }
 
 .panel-tagline {
-  margin: 0.8mm 0 0;
+  margin: 0;
   font-family: var(--font-kai);
   font-size: 0.8rem;
   font-weight: 700;
@@ -406,45 +380,88 @@ body.show-bleed .card-trim-guide {
   visibility: hidden;
 }
 
-.panel-phrase {
-  margin: 0.6mm 0 0;
+.panel-birth-compact {
+  margin: 0.35mm 0 0;
   font-family: var(--font-kai);
-  font-size: 0.8rem;
+  font-size: 0.52rem;
+  letter-spacing: 0.02em;
+  color: #444;
+  line-height: 1.25;
+}
+
+.panel-birth-compact-empty {
+  visibility: hidden;
+}
+
+.panel-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 42mm) minmax(0, 1fr);
+  align-items: stretch;
+  width: 100%;
+  min-height: 0;
+  margin-top: 0.4mm;
+  gap: 0.8mm;
+}
+
+.panel-aside {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+  min-width: 0;
+  padding: 0.2mm 0.4mm 0 0;
+  text-align: left;
+}
+
+.panel-phrase {
+  margin: 0;
+  font-family: var(--font-kai);
   font-weight: 700;
   letter-spacing: 0.08em;
   color: var(--card-accent);
-  line-height: 1.25;
+  line-height: 1.2;
+}
+
+.panel-phrase-large {
+  font-size: 1.35rem;
+  text-align: center;
+  margin-bottom: 1.2mm;
 }
 
 .panel-phrase-blank {
   display: inline-block;
-  min-width: 5.5mm;
-  border-bottom: 0.2mm solid rgba(183, 28, 28, 0.55);
+  min-width: 8mm;
+  border-bottom: 0.25mm solid rgba(183, 28, 28, 0.55);
   vertical-align: baseline;
   line-height: 1;
 }
 
+.panel-phrase-large .panel-phrase-blank {
+  min-width: 11mm;
+  border-bottom-width: 0.3mm;
+}
+
 .panel-diagram {
-  flex: 1;
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 100%;
+  justify-content: flex-start;
+  min-width: 0;
   min-height: 0;
-  padding: 0.2mm 0;
+  padding: 0 0 0 0.6mm;
 }
 
 .panel-wuxing {
   width: 100%;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 .panel-wuxing .wuxing-svg {
   width: 100%;
   height: auto;
-  max-height: 42mm;
+  max-height: 44mm;
   display: block;
 }
 
@@ -479,53 +496,37 @@ body.show-bleed .card-trim-guide {
 }
 
 .panel-foot {
+  flex: 1;
   flex-shrink: 0;
-  padding-top: 0.2mm;
+  padding-top: 0;
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 0.5mm;
-}
-
-.panel-birth-row span {
-  font-family: var(--font-kai);
-  font-size: 0.4rem;
-  letter-spacing: 0;
-  color: #444;
-  line-height: 1.25;
-  white-space: nowrap;
-}
-
-.panel-birth-label {
-  letter-spacing: 0.01em;
-}
-
-.panel-birth-value {
-  letter-spacing: 0;
+  gap: 0.8mm;
 }
 
 .panel-wear-guide {
   margin: 0;
-  padding: 0 0.4mm;
+  padding: 0;
   font-family: var(--font-kai);
-  font-size: 0.52rem;
+  font-size: 0.72rem;
   letter-spacing: 0.01em;
   color: #444;
-  line-height: 1.3;
+  line-height: 1.35;
   text-align: justify;
   text-justify: inter-ideograph;
 }
 
 .panel-wear-colors {
   margin: 0;
-  padding: 0 0.4mm;
+  padding: 0;
   font-family: var(--font-kai);
   font-size: 0.92rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   color: var(--card-ink);
   line-height: 1.2;
-  text-align: center;
+  text-align: left;
 }
 
 .panel-wear-blank {
@@ -549,6 +550,24 @@ body.show-bleed .card-trim-guide {
   flex-direction: column;
   align-items: center;
   gap: 0.4mm;
+  width: 100%;
+}
+
+.bless-title-grid {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  width: 100%;
+  column-gap: 1mm;
+}
+
+.bless-title-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0.35mm;
+  min-width: 0;
 }
 
 .bless-line {
@@ -561,12 +580,23 @@ body.show-bleed .card-trim-guide {
   text-shadow: 0 0 0.5mm rgba(250, 243, 230, 0.9);
 }
 
+.bless-line-place {
+  font-size: calc(0.92rem * 2);
+  line-height: 1.1;
+  letter-spacing: 0.08em;
+  color: var(--card-accent);
+  text-align: left;
+  white-space: nowrap;
+}
+
 .bless-line-primary {
   color: var(--card-accent);
+  text-align: right;
 }
 
 .bless-line-secondary {
   color: var(--card-ink);
+  text-align: right;
 }
 
 .bless-photo-wrap {
@@ -596,16 +626,12 @@ body.show-bleed .card-trim-guide {
   background: #1a1208;
 }
 
-.bless-line-master {
-  color: var(--card-ink);
-  max-width: 98%;
-}
-
 .bless-line-consecrate {
   color: var(--card-gold);
   border-top: 0.25mm solid rgba(26, 18, 8, 0.35);
   padding-top: 0.8mm;
   width: 92%;
+  text-align: center;
 }
 
 .spec-panel {
@@ -953,16 +979,28 @@ body.show-bleed .card-trim-guide {
   }
 
   .panel-wuxing .wuxing-svg {
-    max-height: 39mm;
+    max-height: 41mm;
+  }
+
+  .panel-body {
+    gap: 0.6mm;
   }
 
   .panel-foot {
-    gap: 0.25mm;
+    gap: 0.6mm;
     padding-top: 0;
   }
 
-  .bless-photo,
-  .panel-logo {
+  .panel-phrase-large {
+    font-size: 1.25rem;
+    margin-bottom: 1mm;
+  }
+
+  .panel-wear-guide {
+    font-size: 0.68rem;
+  }
+
+  .bless-photo {
     box-shadow: none !important;
     filter: none !important;
   }

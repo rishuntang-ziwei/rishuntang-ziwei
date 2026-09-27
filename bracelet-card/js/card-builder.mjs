@@ -4,7 +4,7 @@ import {
   buildWuxingPanel,
   countBaziElements,
   getFormationAdvice,
-} from '../../vendor/wuxing-panel.mjs?v=20260927';
+} from '../../vendor/wuxing-panel.mjs?v=20260928i';
 
 const STEM_ELEMENT = {
   甲: '木', 乙: '木', 丙: '火', 丁: '火', 戊: '土',
@@ -13,9 +13,8 @@ const STEM_ELEMENT = {
 
 export { countBaziElements, getFormationAdvice, WUXING_COLORS, WUXING_ORDER };
 
-const TEMPLE_PHOTO_LEFT = './assets/temple-altar.png';
+const TEMPLE_PHOTO_LEFT = './assets/temple-guanyin.png';
 const TEMPLE_PHOTO_RIGHT = './assets/temple-sanqing.png';
-const RISHUNTANG_LOGO = './assets/rishuntang-logo.png';
 
 export function dayMasterElement(chineseDate) {
   const daily = chineseDate?.daily;
@@ -81,20 +80,9 @@ export function formatLunarBirthLine(astrolabe, timeIndex) {
   return `${label} ${year}${md}${time}`;
 }
 
-function renderBirthBlock(solarBirth, lunarBirth) {
-  const solarValue = `${solarBirth.year}${solarBirth.md}${solarBirth.time}`;
-  const lunarValue = `${lunarBirth.year}${lunarBirth.md}${lunarBirth.time}`;
-  return `
-      <div class="panel-birth-block">
-        <p class="panel-birth-row">
-          <span class="panel-birth-label">${solarBirth.label}</span>
-          <span class="panel-birth-value">${solarValue}</span>
-        </p>
-        <p class="panel-birth-row">
-          <span class="panel-birth-label">${lunarBirth.label}</span>
-          <span class="panel-birth-value">${lunarValue}</span>
-        </p>
-      </div>`;
+function formatSolarBirthCompact(solarBirth) {
+  if (!solarBirth) return '';
+  return `${solarBirth.year}${solarBirth.md}${solarBirth.time}`;
 }
 
 function buildWuxingHalf(data) {
@@ -104,7 +92,6 @@ function buildWuxingHalf(data) {
     markerId = 'bracelet-wuxing-arrow',
     displayName = '',
     solarBirth,
-    lunarBirth,
   } = data;
 
   const wuxingHtml = buildWuxingPanel(counts, {
@@ -115,6 +102,7 @@ function buildWuxingHalf(data) {
     showCycleLabels: false,
     scale: 1.04,
     textScale: 1.0,
+    centerX: 98,
     centerYOffset: -8,
     highlightFrom: advice.from,
     highlightTo: advice.to,
@@ -128,23 +116,32 @@ function buildWuxingHalf(data) {
     ? `<p class="panel-name">${displayName}</p>`
     : '<p class="panel-name panel-name-empty" aria-hidden="true">　</p>';
 
+  const birthLine = solarBirth
+    ? `<p class="panel-birth-compact">${formatSolarBirthCompact(solarBirth)}</p>`
+    : '<p class="panel-birth-compact panel-birth-compact-empty" aria-hidden="true">　</p>';
+
   return `
     <div class="card-panel card-panel-wuxing">
-      <img class="panel-logo" src="${RISHUNTANG_LOGO}" alt="日舜堂" />
-      ${renderBirthBlock(solarBirth, lunarBirth)}
       <header class="panel-head">
-        <p class="panel-brand">國際日舜堂</p>
-        <p class="panel-tagline">五行相生開運手環</p>
+        <p class="panel-brand-row">
+          <span class="panel-brand">國際日舜堂</span>
+          <span class="panel-tagline">五行相生開運手環</span>
+        </p>
         ${nameLine}
-        <p class="panel-phrase"><span class="panel-phrase-blank"></span>生<span class="panel-phrase-blank"></span>局</p>
+        ${birthLine}
       </header>
-      <div class="panel-diagram">
-        <div class="panel-wuxing">${wuxingHtml}</div>
+      <div class="panel-body">
+        <div class="panel-diagram">
+          <div class="panel-wuxing">${wuxingHtml}</div>
+        </div>
+        <aside class="panel-aside">
+          <p class="panel-phrase panel-phrase-large"><span class="panel-phrase-blank"></span>生<span class="panel-phrase-blank"></span>局</p>
+          <div class="panel-foot">
+            <p class="panel-wear-guide">本靈能手環可全天配戴或睡眠時配戴，忌水，請洗手或洗澡時先取下，並且不可與其他任何物品(如手錶或其他手環)戴在同一隻手上。</p>
+            <p class="panel-wear-colors">先戴<span class="panel-wear-blank">　　　</span>色，再戴<span class="panel-wear-blank">　　　</span>色。</p>
+          </div>
+        </aside>
       </div>
-      <footer class="panel-foot">
-        <p class="panel-wear-guide">本靈能手環可全天配戴或睡眠時配戴，忌水，請洗手或洗澡時先取下，並且不可與其他任何物品(如手錶或其他手環)戴在同一隻手上。</p>
-        <p class="panel-wear-colors">先戴<span class="panel-wear-blank">　　　</span>色，再戴<span class="panel-wear-blank">　　　</span>色。</p>
-      </footer>
     </div>`;
 }
 
@@ -152,16 +149,20 @@ function buildBlessingHalf() {
   return `
     <div class="card-panel card-panel-bless">
       <header class="bless-head">
-        <p class="bless-line bless-line-primary">玉旨清道院觀世音菩薩</p>
-        <p class="bless-line bless-line-secondary">三清道祖</p>
+        <div class="bless-title-grid">
+          <p class="bless-line bless-line-place">玉旨清道院</p>
+          <div class="bless-title-right">
+            <p class="bless-line bless-line-primary">觀世音菩薩</p>
+            <p class="bless-line bless-line-secondary">三清道祖</p>
+          </div>
+        </div>
       </header>
       <div class="bless-photo-wrap">
-        <img class="bless-photo" src="${TEMPLE_PHOTO_LEFT}" alt="道院開光法壇（左）" />
+        <img class="bless-photo" src="${TEMPLE_PHOTO_LEFT}" alt="玉旨清道院觀世音法壇（左）" />
         <img class="bless-photo" src="${TEMPLE_PHOTO_RIGHT}" alt="三清道祖法壇（右）" />
       </div>
       <footer class="bless-foot">
-        <p class="bless-line bless-line-master">道旨日舜堂祖師爺姜太公子牙</p>
-        <p class="bless-line bless-line-consecrate">道旨仁居士導師開光</p>
+        <p class="bless-line bless-line-consecrate">道旨仁居士川益導師開光</p>
       </footer>
     </div>`;
 }

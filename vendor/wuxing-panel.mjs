@@ -574,7 +574,7 @@ export function buildWuxingPanel(counts, options = {}) {
     highlightNodeStroke = true,
   } = options;
 
-  const cx = 130;
+  const cx = options.centerX ?? 130;
   const cy = 128 + (options.centerYOffset ?? 0);
   const scale = options.scale ?? 1;
   const textScale = options.textScale ?? 1;

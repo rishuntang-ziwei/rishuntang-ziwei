@@ -10,7 +10,7 @@ function preloadAssets() {
   assetsReady = (async () => {
     await document.fonts.ready;
     const urls = [
-      './assets/temple-altar.png',
+      './assets/temple-guanyin.png',
       './assets/temple-sanqing.png',
       './assets/rishuntang-logo.png',
     ];
