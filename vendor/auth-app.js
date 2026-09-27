@@ -758,7 +758,10 @@
               '<h2>會員資料庫</h2>' +
               '<p class="admin-member-subtitle">' + tabTitle + ' · 共 ' + members.length + ' 筆</p>' +
             '</div>' +
-            '<button type="button" id="backToAppBtn">返回排盤</button>' +
+            '<div class="admin-header-actions">' +
+              '<a href="bracelet-card/index.html" target="_blank" rel="noopener noreferrer" class="admin-tool-link">五行手環圖卡</a>' +
+              '<button type="button" id="backToAppBtn">返回排盤</button>' +
+            '</div>' +
           '</div>' +
           renderAdminMemberTabs(summary, adminMemberTab) +
           expiringAlert +

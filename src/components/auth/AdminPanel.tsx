@@ -286,6 +286,9 @@ export function AdminPanel({
           </p>
         </div>
         <div className="admin-header-actions">
+          <a href="bracelet-card/index.html" target="_blank" rel="noopener noreferrer" className="admin-tool-link">
+            五行手環圖卡
+          </a>
           <button type="button" onClick={onBack}>
             返回排盤
           </button>

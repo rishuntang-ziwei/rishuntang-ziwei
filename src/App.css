@@ -292,6 +292,8 @@ body {
 }
 
 .admin-header button,
+.admin-header-actions button,
+.admin-header-actions .admin-tool-link,
 .admin-actions button {
   border: 1px solid #bbb;
   background: #fff;
@@ -299,6 +301,13 @@ body {
   border-radius: 6px;
   cursor: pointer;
   font-family: inherit;
+}
+
+.admin-header-actions .admin-tool-link {
+  display: inline-flex;
+  align-items: center;
+  color: inherit;
+  text-decoration: none;
 }
 
 .admin-actions {

@@ -819,17 +819,35 @@ body.show-bleed .card-trim-guide {
     display: block;
   }
 
-  .preview-stage .print-card {
-    transform: none;
-    margin-bottom: 0;
+  .preview-stage {
+    padding: 0 !important;
   }
 
-  .print-card {
+  .preview-stage .print-card {
+    transform: none !important;
+    margin: 0 !important;
+  }
+
+  .print-card,
+  .print-card.print-card-landscape {
     width: var(--art-w);
     height: var(--art-h);
     margin: 0;
-    box-shadow: none;
+    box-shadow: none !important;
+    outline: none !important;
     page-break-after: always;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .bless-photo,
+  .panel-logo {
+    box-shadow: none !important;
+    filter: none !important;
+  }
+
+  .panel-wuxing .wuxing-node.is-path circle {
+    filter: none !important;
   }
 
   .card-trim-guide {
