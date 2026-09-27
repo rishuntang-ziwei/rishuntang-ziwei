@@ -415,7 +415,7 @@ body.show-bleed .card-trim-guide {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  padding: 0 0.2mm 0 0;
+  padding: 5.5mm 0.2mm 0 0;
   text-align: left;
 }
 
@@ -431,8 +431,9 @@ body.show-bleed .card-trim-guide {
 .panel-phrase-large {
   font-size: 1.32rem;
   text-align: center;
-  margin-top: 2.2mm;
+  margin-top: 0;
   margin-bottom: 0.8mm;
+  flex-shrink: 0;
 }
 
 .panel-phrase-blank {
@@ -1015,6 +1016,10 @@ body.show-bleed .card-trim-guide {
     margin-top: 2.2mm;
   }
 
+  .panel-aside {
+    padding-top: 6.5mm !important;
+  }
+
   .panel-foot {
     gap: 0.6mm;
     padding-top: 0;
@@ -1022,7 +1027,7 @@ body.show-bleed .card-trim-guide {
 
   .panel-phrase-large {
     font-size: 1.22rem;
-    margin-top: 2mm;
+    margin-top: 0 !important;
     margin-bottom: 0.7mm;
   }
 
