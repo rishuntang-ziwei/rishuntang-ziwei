@@ -233,7 +233,7 @@ button {
   align-items: center;
 }
 
-.print-card-duplicate {
+.print-sheet-slot-bottom {
   display: none;
 }
 
@@ -867,6 +867,17 @@ body.show-bleed .card-trim-guide {
     break-inside: avoid;
   }
 
+  .print-sheet-slot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .print-sheet-slot-bottom {
+    display: flex;
+  }
+
   body.show-bleed .print-sheet::after {
     content: '';
     position: absolute;
@@ -875,10 +886,6 @@ body.show-bleed .card-trim-guide {
     top: 50%;
     border-top: 1px dashed rgba(229, 57, 53, 0.72);
     pointer-events: none;
-  }
-
-  .print-card-duplicate {
-    display: block !important;
   }
 
   .preview-stage .print-sheet .print-card {
