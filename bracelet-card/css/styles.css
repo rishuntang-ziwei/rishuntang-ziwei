@@ -813,9 +813,15 @@ body.show-bleed .card-trim-guide {
     margin: 0;
   }
 
+  html,
   body {
-    background: white;
+    width: 166mm;
+    height: 86mm;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
     color: black;
+    overflow: hidden !important;
   }
 
   .page-header,
@@ -829,13 +835,12 @@ body.show-bleed .card-trim-guide {
   .workspace,
   .preview-panel,
   .preview-stage {
-    margin: 0;
-    padding: 0;
-    display: block;
-  }
-
-  .preview-stage {
+    width: 166mm !important;
+    height: 86mm !important;
+    margin: 0 !important;
     padding: 0 !important;
+    display: block !important;
+    overflow: hidden !important;
   }
 
   .preview-stage .print-card {
@@ -845,14 +850,41 @@ body.show-bleed .card-trim-guide {
 
   .print-card,
   .print-card.print-card-landscape {
-    width: var(--art-w);
-    height: var(--art-h);
-    margin: 0;
+    width: 166mm !important;
+    height: 86mm !important;
+    max-width: 166mm !important;
+    max-height: 86mm !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
     box-shadow: none !important;
     outline: none !important;
-    page-break-after: always;
+    border: 0.45mm solid var(--card-border) !important;
+    overflow: hidden !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    page-break-before: avoid !important;
+    page-break-after: avoid !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+  }
+
+  .card-split {
+    height: 100%;
+    box-sizing: border-box;
+  }
+
+  .panel-wuxing .wuxing-svg {
+    max-height: 41mm;
+  }
+
+  .panel-foot {
+    gap: 0.25mm;
+    padding-top: 0;
+  }
+
+  .panel-wear-colors {
+    font-size: 0.55rem;
+    line-height: 1.2;
   }
 
   .bless-photo,
