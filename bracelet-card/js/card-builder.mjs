@@ -178,11 +178,14 @@ export function buildBraceletCard(data) {
     </article>`;
 }
 
-/** 螢幕預覽與列印皆為單張圖卡 */
+/** 螢幕預覽一張；列印為 A4 直式單頁，圖卡在上半部 */
 export function buildBraceletPrintSheet(data) {
   return `
     <div class="print-sheet">
-      ${buildBraceletCard({ ...data, markerId: `bracelet-wuxing-${Date.now()}` })}
+      <div class="print-sheet-top">
+        ${buildBraceletCard({ ...data, markerId: `bracelet-wuxing-${Date.now()}` })}
+      </div>
+      <div class="print-sheet-bottom" aria-hidden="true"></div>
     </div>`;
 }
 
