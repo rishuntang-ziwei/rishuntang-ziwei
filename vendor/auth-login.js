@@ -30,11 +30,13 @@
         '<p class="auth-note">請使用 Email 與密碼登入；新會員註冊後即可免費排本命命盤</p>' +
         '<label>Email<input type="email" name="email" required></label>' +
         '<label>密碼<input type="password" name="password" required minlength="8"></label>' +
-        '<label class="auth-trust-device">' +
-          '<input type="checkbox" name="trustDevice" id="trustDevice">' +
-          ' 信任此手機（管理員下次可免密碼登入）' +
-        '</label>' +
-        '<label id="deviceLabelWrap" hidden>裝置名稱（選填）<input type="text" name="deviceLabel" maxlength="80" placeholder="例：川益 iPhone"></label>' +
+        '<div id="trustDeviceSection" hidden>' +
+          '<label class="auth-trust-device">' +
+            '<input type="checkbox" name="trustDevice" id="trustDevice">' +
+            ' 信任此手機（下次可免密碼登入）' +
+          '</label>' +
+          '<label id="deviceLabelWrap" hidden>裝置名稱（選填）<input type="text" name="deviceLabel" maxlength="80" placeholder="例：川益 iPhone"></label>' +
+        '</div>' +
         '<div class="auth-error" id="loginError" hidden></div>' +
         '<button type="submit">登入</button>' +
         '<button type="button" class="auth-link-btn" id="goForgot">忘記密碼？</button>' +
@@ -145,14 +147,63 @@
     document.getElementById('goForgot').addEventListener('click', function () {
       renderAuth('forgot')
     })
+    const form = document.getElementById('loginForm')
+    const emailInput = form.email
+    const trustSection = document.getElementById('trustDeviceSection')
     const trustCheckbox = document.getElementById('trustDevice')
     const deviceLabelWrap = document.getElementById('deviceLabelWrap')
+    let trustOptionsTimer = null
+    let lastTrustOptionsEmail = ''
+
+    function resetTrustDeviceUi() {
+      if (trustSection) trustSection.hidden = true
+      if (trustCheckbox) trustCheckbox.checked = false
+      if (deviceLabelWrap) deviceLabelWrap.hidden = true
+    }
+
+    async function refreshTrustDeviceOptions() {
+      const email = emailInput.value.trim()
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        lastTrustOptionsEmail = ''
+        resetTrustDeviceUi()
+        return
+      }
+      if (email === lastTrustOptionsEmail) return
+      lastTrustOptionsEmail = email
+      try {
+        const data = await auth.api('/api/auth/login-options', {
+          method: 'POST',
+          body: JSON.stringify({ email: email }),
+        })
+        if (emailInput.value.trim() !== email) return
+        if (data.trustDeviceAvailable) {
+          trustSection.hidden = false
+        } else {
+          resetTrustDeviceUi()
+          lastTrustOptionsEmail = email
+        }
+      } catch (_err) {
+        resetTrustDeviceUi()
+      }
+    }
+
+    function scheduleTrustDeviceOptions() {
+      if (trustOptionsTimer) clearTimeout(trustOptionsTimer)
+      trustOptionsTimer = setTimeout(refreshTrustDeviceOptions, 300)
+    }
+
+    emailInput.addEventListener('input', function () {
+      if (emailInput.value.trim() !== lastTrustOptionsEmail) resetTrustDeviceUi()
+      scheduleTrustDeviceOptions()
+    })
+    emailInput.addEventListener('blur', refreshTrustDeviceOptions)
+
     if (trustCheckbox && deviceLabelWrap) {
       trustCheckbox.addEventListener('change', function () {
         deviceLabelWrap.hidden = !trustCheckbox.checked
       })
     }
-    document.getElementById('loginForm').addEventListener('submit', async function (e) {
+    form.addEventListener('submit', async function (e) {
       e.preventDefault()
       const form = e.target
       const errorEl = document.getElementById('loginError')
@@ -162,7 +213,7 @@
           email: form.email.value.trim(),
           password: form.password.value,
         }
-        if (form.trustDevice && form.trustDevice.checked) {
+        if (trustCheckbox && trustSection && !trustSection.hidden && trustCheckbox.checked) {
           payload.trustDevice = true
           payload.deviceId = auth.getOrCreateDeviceId()
           payload.deviceLabel = form.deviceLabel ? form.deviceLabel.value.trim() : ''

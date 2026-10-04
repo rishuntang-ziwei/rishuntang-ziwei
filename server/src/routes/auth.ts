@@ -88,6 +88,16 @@ router.post('/register', async (req, res) => {
   })
 })
 
+router.post('/login-options', async (req, res) => {
+  const email = String(req.body?.email ?? '').trim().toLowerCase()
+  if (!email || !validateEmail(email)) {
+    res.json({ trustDeviceAvailable: false })
+    return
+  }
+  const user = await findUserByEmail(email)
+  res.json({ trustDeviceAvailable: Boolean(user && isAdminUser(user)) })
+})
+
 router.post('/login', async (req, res) => {
   const email = String(req.body?.email ?? '').trim().toLowerCase()
   const password = String(req.body?.password ?? '')
