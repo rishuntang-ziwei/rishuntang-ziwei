@@ -1,5 +1,7 @@
 window.ZiweiAuth = (function () {
   const TOKEN_KEY = 'ziwei_auth_token'
+  const DEVICE_ID_KEY = 'ziwei_device_id'
+  const DEVICE_TOKEN_KEY = 'ziwei_device_token'
   const LOGIN_PAGE = 'index.html'
   const CHART_PAGE = 'chart.html'
 
@@ -16,6 +18,47 @@ window.ZiweiAuth = (function () {
     else localStorage.removeItem(TOKEN_KEY)
   }
 
+  function randomDeviceId() {
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID()
+    return 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2, 12)
+  }
+
+  function getOrCreateDeviceId() {
+    let id = localStorage.getItem(DEVICE_ID_KEY)
+    if (!id) {
+      id = randomDeviceId()
+      localStorage.setItem(DEVICE_ID_KEY, id)
+    }
+    return id
+  }
+
+  function getDeviceToken() {
+    return localStorage.getItem(DEVICE_TOKEN_KEY)
+  }
+
+  function setDeviceToken(token) {
+    if (token) localStorage.setItem(DEVICE_TOKEN_KEY, token)
+    else localStorage.removeItem(DEVICE_TOKEN_KEY)
+  }
+
+  function clearDeviceTrust() {
+    localStorage.removeItem(DEVICE_TOKEN_KEY)
+  }
+
+  function isAdminUser(user) {
+    return user && user.role === 'admin'
+  }
+
+  function isSuperAdminUser(user) {
+    return isAdminUser(user) && Boolean(user.isSuperAdmin)
+  }
+
+  function adminRoleLabel(user) {
+    if (isSuperAdminUser(user)) return '超級管理員'
+    if (isAdminUser(user)) return '管理員'
+    return ''
+  }
+
   async function api(path, options) {
     const headers = Object.assign({ 'Content-Type': 'application/json' }, options && options.headers)
     const token = getToken()
@@ -26,15 +69,16 @@ window.ZiweiAuth = (function () {
     return data
   }
 
-  function statusLabel(status, role) {
-    if (role === 'admin') return '管理員'
+  function statusLabel(status, role, isSuperAdmin) {
+    if (role === 'admin') return isSuperAdmin ? '超級管理員' : '管理員'
     if (status === 'pending') return '待審核'
     if (status === 'approved') return '已開通'
     return '已拒絕'
   }
 
   function membershipTierLabel(user) {
-    if (user.role === 'admin') return '管理員'
+    var adminLabel = adminRoleLabel(user)
+    if (adminLabel) return adminLabel
     if (user.membershipActive) return '付費會員'
     if (user.status === 'pending') return '待審核'
     if (user.status === 'rejected') return '已拒絕'
@@ -42,7 +86,8 @@ window.ZiweiAuth = (function () {
   }
 
   function memberTierDetailedLabel(user) {
-    if (user.role === 'admin') return '管理員'
+    var adminLabel = adminRoleLabel(user)
+    if (adminLabel) return adminLabel
     if (user.status === 'pending') return '待審核'
     if (user.status === 'rejected') return '已拒絕'
     var parts = []
@@ -76,13 +121,33 @@ window.ZiweiAuth = (function () {
     location.href = CHART_PAGE
   }
 
+  async function tryDeviceLogin() {
+    const deviceId = getOrCreateDeviceId()
+    const deviceToken = getDeviceToken()
+    if (!deviceToken) return null
+    return api('/api/auth/device-login', {
+      method: 'POST',
+      body: JSON.stringify({ deviceId: deviceId, deviceToken: deviceToken }),
+    })
+  }
+
   return {
     TOKEN_KEY,
+    DEVICE_ID_KEY,
+    DEVICE_TOKEN_KEY,
     LOGIN_PAGE,
     CHART_PAGE,
     apiBase,
     getToken,
     setToken,
+    getOrCreateDeviceId,
+    getDeviceToken,
+    setDeviceToken,
+    clearDeviceTrust,
+    isAdminUser,
+    isSuperAdminUser,
+    adminRoleLabel,
+    tryDeviceLogin,
     api,
     statusLabel,
     membershipTierLabel,

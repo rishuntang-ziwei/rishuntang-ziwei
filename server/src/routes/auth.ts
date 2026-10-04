@@ -1,7 +1,25 @@
 import { Router } from 'express'
 import bcrypt from 'bcryptjs'
-import { createUser, findUserByEmail, findUserById, updateUserPassword, consumeDailyChartGeneration } from '../db.js'
+import { isAdminUser } from '../adminRoles.js'
+import {
+  countActiveTrustedDevices,
+  createUser,
+  findActiveTrustedDevice,
+  findUserByEmail,
+  findUserById,
+  touchTrustedDevice,
+  updateUserPassword,
+  consumeDailyChartGeneration,
+  upsertTrustedDevice,
+} from '../db.js'
 import { requireAuth, requireApprovedMember, signPasswordResetToken, signToken, verifyPasswordResetToken } from '../middleware.js'
+import {
+  generateDeviceToken,
+  hashDeviceToken,
+  isValidDeviceId,
+  maxTrustedDevicesPerAdmin,
+  verifyDeviceToken,
+} from '../trustedDevices.js'
 import { toPublicUser } from '../db.js'
 import { validateChartPayload } from '../chartPayload.js'
 import { formatBirthDateTime } from '../chartFormat.js'
@@ -90,10 +108,88 @@ router.post('/login', async (req, res) => {
     return
   }
 
+  const publicUser = toPublicUser(user)
   const token = signToken(user.id, user.role)
+  const response: {
+    token: string
+    user: ReturnType<typeof toPublicUser>
+    deviceToken?: string
+    maxTrustedDevices?: number
+  } = { token, user: publicUser }
+
+  const trustDevice = Boolean(req.body?.trustDevice)
+  const deviceId = String(req.body?.deviceId ?? '').trim()
+  const deviceLabel = String(req.body?.deviceLabel ?? '').trim().slice(0, 80)
+
+  if (trustDevice && isAdminUser(publicUser)) {
+    if (!isValidDeviceId(deviceId)) {
+      res.status(400).json({ error: '裝置識別碼格式不正確，請重新整理頁面後再試' })
+      return
+    }
+    const existingForUser = await findActiveTrustedDevice(deviceId)
+    const isSameUserDevice = existingForUser && Number(existingForUser.user_id) === user.id
+    const activeCount = await countActiveTrustedDevices(user.id)
+    const limit = maxTrustedDevicesPerAdmin()
+    if (!isSameUserDevice && activeCount >= limit) {
+      res.status(400).json({
+        error: `此管理員帳號已達信任裝置上限（${limit} 台），請先在管理後台撤銷舊裝置`,
+        maxTrustedDevices: limit,
+      })
+      return
+    }
+    const deviceToken = generateDeviceToken()
+    await upsertTrustedDevice({
+      userId: user.id,
+      deviceId,
+      tokenHash: hashDeviceToken(deviceToken),
+      label: deviceLabel || null,
+      userAgent: String(req.headers['user-agent'] ?? '').slice(0, 500) || null,
+    })
+    response.deviceToken = deviceToken
+    response.maxTrustedDevices = limit
+  }
+
+  res.json(response)
+})
+
+router.post('/device-login', async (req, res) => {
+  const deviceId = String(req.body?.deviceId ?? '').trim()
+  const deviceToken = String(req.body?.deviceToken ?? '').trim()
+
+  if (!deviceId || !deviceToken) {
+    res.status(400).json({ error: '缺少裝置登入資訊' })
+    return
+  }
+  if (!isValidDeviceId(deviceId)) {
+    res.status(401).json({ error: '裝置登入已失效' })
+    return
+  }
+
+  const row = await findActiveTrustedDevice(deviceId)
+  if (!row || String(row.user_role) !== 'admin') {
+    res.status(401).json({ error: '此裝置未獲信任或已撤銷' })
+    return
+  }
+  if (!verifyDeviceToken(deviceToken, String(row.token_hash))) {
+    res.status(401).json({ error: '裝置登入已失效，請使用密碼登入' })
+    return
+  }
+
+  const user = await findUserById(Number(row.user_id))
+  if (!user || !isAdminUser(user)) {
+    res.status(401).json({ error: '管理員帳號不存在或已停用' })
+    return
+  }
+  if (user.status === 'rejected') {
+    res.status(403).json({ error: '帳號已被拒絕，請聯絡管理員' })
+    return
+  }
+
+  await touchTrustedDevice(Number(row.id))
+  const publicUser = toPublicUser(user)
   res.json({
-    token,
-    user: toPublicUser(user),
+    token: signToken(user.id, user.role),
+    user: publicUser,
   })
 })
 

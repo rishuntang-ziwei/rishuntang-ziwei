@@ -45,7 +45,7 @@ export function toSavedChartDetail(row: SavedChartRow): SavedChartDetail {
 }
 
 export function isMembershipActive(row: UserRow): boolean {
-  if (row.role === 'admin') return true
+  if (row.role === 'admin') return true // 含超級管理員
   if (!row.membership_expires_at) return false
   return new Date(row.membership_expires_at).getTime() > Date.now()
 }
@@ -63,6 +63,7 @@ export function toPublicUser(row: UserRow): PublicUser {
     email: row.email,
     status: row.status,
     role: row.role,
+    isSuperAdmin: row.is_super_admin,
     starDrawEnabled: row.star_draw_enabled,
     membershipPlan: row.membership_plan,
     membershipExpiresAt: row.membership_expires_at,
@@ -94,6 +95,7 @@ export function mapUserRow(row: Record<string, unknown>): UserRow {
     password_hash: String(row.password_hash),
     status: row.status as UserRow['status'],
     role: row.role as UserRow['role'],
+    is_super_admin: Boolean(row.is_super_admin),
     star_draw_enabled: Boolean(row.star_draw_enabled),
     membership_plan: row.membership_plan != null ? String(row.membership_plan) : null,
     membership_expires_at: toIsoStringOrNull(row.membership_expires_at),

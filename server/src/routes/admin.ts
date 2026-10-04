@@ -20,7 +20,9 @@ import {
   grantUserMembership,
   listAdminAuditLogs,
   listSavedChartsByUser,
+  listTrustedDevices,
   listUsers,
+  revokeTrustedDevice,
   revokeUserMembership,
   setUserMembershipExpiry,
   updateUserPassword,
@@ -29,7 +31,9 @@ import {
   updateUserStatus,
 } from '../db.js'
 import { isMembershipActive, parseSavedChartPayload } from '../db/shared.js'
-import { requireAdmin, requireAuth } from '../middleware.js'
+import { isAdminUser, isSuperAdminUser } from '../adminRoles.js'
+import { requireAdmin, requireAuth, requireSuperAdmin } from '../middleware.js'
+import { maxTrustedDevicesPerAdmin, type PublicTrustedDevice } from '../trustedDevices.js'
 import { getPaymentPlan, getPlanLabel } from '../paymentPlans.js'
 
 const router = Router()
@@ -70,6 +74,60 @@ router.get('/users', async (_req, res) => {
 router.get('/members/summary', async (_req, res) => {
   const users = await listUsers()
   res.json({ summary: memberSummary(users) })
+})
+
+function mapTrustedDeviceRow(row: Record<string, unknown>): PublicTrustedDevice {
+  return {
+    id: Number(row.id),
+    userId: Number(row.user_id),
+    userName: String(row.user_name),
+    userEmail: String(row.user_email),
+    deviceId: String(row.device_id),
+    label: row.label != null ? String(row.label) : null,
+    userAgent: row.user_agent != null ? String(row.user_agent) : null,
+    lastUsedAt: row.last_used_at != null ? String(row.last_used_at) : null,
+    createdAt: String(row.created_at),
+  }
+}
+
+router.get('/trusted-devices', async (req, res) => {
+  const viewer = req.authUser!
+  const rows = isSuperAdminUser(viewer)
+    ? await listTrustedDevices()
+    : await listTrustedDevices(viewer.id)
+  res.json({
+    devices: rows.map(mapTrustedDeviceRow),
+    maxPerAdmin: maxTrustedDevicesPerAdmin(),
+    canManageAll: isSuperAdminUser(viewer),
+  })
+})
+
+router.delete('/trusted-devices/:id', async (req, res) => {
+  const id = Number(req.params.id)
+  if (!Number.isFinite(id)) {
+    res.status(400).json({ error: '無效的裝置 ID' })
+    return
+  }
+
+  const viewer = req.authUser!
+  const rows = isSuperAdminUser(viewer) ? await listTrustedDevices() : await listTrustedDevices(viewer.id)
+  const target = rows.find((row) => Number(row.id) === id)
+  if (!target) {
+    res.status(404).json({ error: '找不到信任裝置' })
+    return
+  }
+
+  if (!(await revokeTrustedDevice(id))) {
+    res.status(404).json({ error: '找不到信任裝置' })
+    return
+  }
+
+  await recordAudit(req, 'revoke_trusted_device', Number(target.user_id), String(target.user_name), {
+    deviceId: String(target.device_id),
+    label: target.label != null ? String(target.label) : null,
+  })
+
+  res.json({ message: '已撤銷信任裝置' })
 })
 
 router.get('/audit-logs', async (req, res) => {
@@ -231,8 +289,12 @@ router.post('/users/:id/reset-password', async (req, res) => {
   }
 
   const target = await findUserById(id)
-  if (!target || target.role === 'admin') {
+  if (!target) {
     res.status(404).json({ error: '找不到使用者' })
+    return
+  }
+  if (isAdminUser(target) && !isSuperAdminUser(req.authUser!)) {
+    res.status(403).json({ error: '僅超級管理員可重設其他管理員密碼' })
     return
   }
 
@@ -245,7 +307,7 @@ router.post('/users/:id/reset-password', async (req, res) => {
   res.json({ message: '密碼已重設', user })
 })
 
-router.post('/users/:id/make-admin', async (req, res) => {
+router.post('/users/:id/make-admin', requireSuperAdmin, async (req, res) => {
   const id = Number(req.params.id)
   if (!Number.isFinite(id)) {
     res.status(400).json({ error: '無效的使用者 ID' })
@@ -274,7 +336,7 @@ router.post('/users/:id/make-admin', async (req, res) => {
   res.json({ message: '已設為管理員', user })
 })
 
-router.post('/users/:id/revoke-admin', async (req, res) => {
+router.post('/users/:id/revoke-admin', requireSuperAdmin, async (req, res) => {
   const id = Number(req.params.id)
   if (!Number.isFinite(id)) {
     res.status(400).json({ error: '無效的使用者 ID' })
@@ -286,8 +348,12 @@ router.post('/users/:id/revoke-admin', async (req, res) => {
   }
 
   const target = await findUserById(id)
-  if (!target || target.role !== 'admin') {
+  if (!target || !isAdminUser(target)) {
     res.status(404).json({ error: '找不到管理員帳號' })
+    return
+  }
+  if (target.is_super_admin) {
+    res.status(400).json({ error: '無法取消超級管理員權限' })
     return
   }
   if ((await countAdmins()) <= 1) {
@@ -486,7 +552,7 @@ router.delete('/users/:id', async (req, res) => {
     res.status(404).json({ error: '找不到使用者' })
     return
   }
-  if (target.role === 'admin') {
+  if (isAdminUser(target)) {
     res.status(400).json({ error: '請先取消管理員權限，再刪除帳號' })
     return
   }

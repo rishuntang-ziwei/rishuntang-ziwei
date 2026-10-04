@@ -1,3 +1,4 @@
+import { adminRoleLabel } from './adminRoles.js'
 import { getPlanLabel, LIFETIME_MEMBERSHIP_EXPIRY } from './paymentPlans.js'
 import type { PublicUser } from './types.js'
 
@@ -27,7 +28,8 @@ export function daysUntilMembershipExpiry(user: PublicUser): number | null {
 }
 
 export function memberTierDetailedLabel(user: PublicUser): string {
-  if (user.role === 'admin') return '管理員'
+  const adminLabel = adminRoleLabel(user)
+  if (adminLabel) return adminLabel
   if (user.status === 'pending') return '待審核'
   if (user.status === 'rejected') return '已拒絕'
   const parts: string[] = []

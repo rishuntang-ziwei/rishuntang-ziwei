@@ -1,7 +1,7 @@
 import 'dotenv/config'
 import cors from 'cors'
 import express from 'express'
-import { ensureAdminUser, getDbInfo, getDbDriverName, initDb } from './db.js'
+import { ensureAdminUser, ensureSuperAdminUser, getDbInfo, getDbDriverName, initDb } from './db.js'
 import authRoutes from './routes/auth.js'
 import adminRoutes from './routes/admin.js'
 import chartRoutes from './routes/charts.js'
@@ -67,6 +67,7 @@ await initDb()
 const dbInfo = await getDbInfo()
 console.log('[db]', dbInfo)
 await ensureAdminUser()
+await ensureSuperAdminUser()
 
 app.listen(port, '0.0.0.0', () => {
   console.log(`[server] listening on port ${port}`)

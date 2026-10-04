@@ -74,6 +74,9 @@ export async function initDb() {
   if (!userColumns.some((col) => col.name === 'daily_chart_gen_count')) {
     db.exec(`ALTER TABLE users ADD COLUMN daily_chart_gen_count INTEGER NOT NULL DEFAULT 0`)
   }
+  if (!userColumns.some((col) => col.name === 'is_super_admin')) {
+    db.exec(`ALTER TABLE users ADD COLUMN is_super_admin INTEGER NOT NULL DEFAULT 0`)
+  }
 
   db.exec(`
     CREATE TABLE IF NOT EXISTS guest_ai_usage (
@@ -110,6 +113,23 @@ export async function initDb() {
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
     CREATE INDEX IF NOT EXISTS idx_admin_audit_logs_created ON admin_audit_logs(created_at DESC);
+  `)
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS trusted_devices (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      device_id TEXT NOT NULL,
+      token_hash TEXT NOT NULL,
+      label TEXT,
+      user_agent TEXT,
+      last_used_at TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      revoked_at TEXT,
+      UNIQUE(user_id, device_id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_trusted_devices_user ON trusted_devices(user_id);
+    CREATE INDEX IF NOT EXISTS idx_trusted_devices_device ON trusted_devices(device_id);
   `)
 
   if (process.env.RENDER && !process.env.DB_PATH) {
@@ -186,6 +206,7 @@ export async function updateUserStatus(
 
 export async function updateUserPassword(id: number, passwordHash: string): Promise<PublicUser | undefined> {
   db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(passwordHash, id)
+  await revokeAllTrustedDevicesForUser(id)
   const row = await findUserById(id)
   return row ? toPublicUser(row) : undefined
 }
@@ -203,10 +224,110 @@ export async function updateUserRole(id: number, role: 'user' | 'admin'): Promis
        WHERE id = ?`,
     ).run(id)
   } else {
-    db.prepare(`UPDATE users SET role = 'user' WHERE id = ?`).run(id)
+    db.prepare(`UPDATE users SET role = 'user', is_super_admin = 0 WHERE id = ?`).run(id)
+    await revokeAllTrustedDevicesForUser(id)
   }
   const row = await findUserById(id)
   return row ? toPublicUser(row) : undefined
+}
+
+export async function setUserSuperAdmin(id: number, enabled: boolean): Promise<PublicUser | undefined> {
+  db.prepare(
+    `UPDATE users
+     SET role = 'admin', is_super_admin = ?, status = 'approved',
+         approved_at = COALESCE(approved_at, datetime('now'))
+     WHERE id = ?`,
+  ).run(enabled ? 1 : 0, id)
+  const row = await findUserById(id)
+  return row ? toPublicUser(row) : undefined
+}
+
+export async function countActiveTrustedDevices(userId: number): Promise<number> {
+  const row = db
+    .prepare('SELECT COUNT(*) AS count FROM trusted_devices WHERE user_id = ? AND revoked_at IS NULL')
+    .get(userId) as { count: number }
+  return row.count
+}
+
+export async function upsertTrustedDevice(input: {
+  userId: number
+  deviceId: string
+  tokenHash: string
+  label?: string | null
+  userAgent?: string | null
+}): Promise<number> {
+  const existing = db
+    .prepare('SELECT id FROM trusted_devices WHERE user_id = ? AND device_id = ?')
+    .get(input.userId, input.deviceId) as { id: number } | undefined
+  const now = new Date().toISOString()
+  if (existing) {
+    db.prepare(
+      `UPDATE trusted_devices
+       SET token_hash = ?, label = COALESCE(?, label), user_agent = ?, last_used_at = ?, revoked_at = NULL
+       WHERE id = ?`,
+    ).run(input.tokenHash, input.label ?? null, input.userAgent ?? null, now, existing.id)
+    return existing.id
+  }
+  const result = db
+    .prepare(
+      `INSERT INTO trusted_devices (user_id, device_id, token_hash, label, user_agent, last_used_at)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+    )
+    .run(input.userId, input.deviceId, input.tokenHash, input.label ?? null, input.userAgent ?? null, now)
+  return Number(result.lastInsertRowid)
+}
+
+export async function findActiveTrustedDevice(deviceId: string) {
+  const row = db
+    .prepare(
+      `SELECT td.*, u.name AS user_name, u.email AS user_email, u.role AS user_role, u.is_super_admin
+       FROM trusted_devices td
+       JOIN users u ON u.id = td.user_id
+       WHERE td.device_id = ? AND td.revoked_at IS NULL`,
+    )
+    .get(deviceId) as Record<string, unknown> | undefined
+  return row
+}
+
+export async function touchTrustedDevice(id: number) {
+  db.prepare(`UPDATE trusted_devices SET last_used_at = ? WHERE id = ?`).run(new Date().toISOString(), id)
+}
+
+export async function listTrustedDevices(userId?: number) {
+  const rows = userId
+    ? (db
+        .prepare(
+          `SELECT td.*, u.name AS user_name, u.email AS user_email
+           FROM trusted_devices td
+           JOIN users u ON u.id = td.user_id
+           WHERE td.user_id = ? AND td.revoked_at IS NULL
+           ORDER BY td.last_used_at DESC, td.created_at DESC`,
+        )
+        .all(userId) as Record<string, unknown>[])
+    : (db
+        .prepare(
+          `SELECT td.*, u.name AS user_name, u.email AS user_email
+           FROM trusted_devices td
+           JOIN users u ON u.id = td.user_id
+           WHERE td.revoked_at IS NULL
+           ORDER BY td.last_used_at DESC, td.created_at DESC`,
+        )
+        .all() as Record<string, unknown>[])
+  return rows
+}
+
+export async function revokeTrustedDevice(id: number): Promise<boolean> {
+  const result = db
+    .prepare(`UPDATE trusted_devices SET revoked_at = ? WHERE id = ? AND revoked_at IS NULL`)
+    .run(new Date().toISOString(), id)
+  return result.changes > 0
+}
+
+export async function revokeAllTrustedDevicesForUser(userId: number) {
+  db.prepare(`UPDATE trusted_devices SET revoked_at = ? WHERE user_id = ? AND revoked_at IS NULL`).run(
+    new Date().toISOString(),
+    userId,
+  )
 }
 
 export async function updateUserStarDraw(id: number, enabled: boolean): Promise<PublicUser | undefined> {
@@ -525,8 +646,25 @@ export async function ensureAdminUser() {
 
   const passwordHash = await bcrypt.hash(password, 10)
   db.prepare(
-    `INSERT INTO users (name, phone, email, password_hash, status, role, approved_at)
-     VALUES (?, ?, ?, ?, 'approved', 'admin', datetime('now'))`,
+    `INSERT INTO users (name, phone, email, password_hash, status, role, is_super_admin, approved_at)
+     VALUES (?, ?, ?, ?, 'approved', 'admin', 0, datetime('now'))`,
   ).run(name, phone, email, passwordHash)
   console.log(`[auth] 已建立管理員帳號：${email}`)
+}
+
+export async function ensureSuperAdminUser() {
+  const email = (process.env.SUPER_ADMIN_EMAIL || 'estinto0310@gmail.com').trim().toLowerCase()
+  const user = await findUserByEmail(email)
+  if (!user) {
+    console.warn(`[auth] 超級管理員 Email「${email}」尚未註冊，請先建立帳號後再升級`)
+    return
+  }
+  if (user.role === 'admin' && user.is_super_admin) return
+  db.prepare(
+    `UPDATE users
+     SET role = 'admin', is_super_admin = 1, status = 'approved',
+         approved_at = COALESCE(approved_at, datetime('now'))
+     WHERE id = ?`,
+  ).run(user.id)
+  console.log(`[auth] 已設定超級管理員：${email}`)
 }

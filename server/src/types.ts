@@ -9,6 +9,7 @@ export interface UserRow {
   password_hash: string
   status: UserStatus
   role: UserRole
+  is_super_admin: boolean
   star_draw_enabled: boolean
   membership_plan: string | null
   membership_expires_at: string | null
@@ -26,6 +27,7 @@ export interface PublicUser {
   email: string
   status: UserStatus
   role: UserRole
+  isSuperAdmin: boolean
   starDrawEnabled: boolean
   membershipPlan: string | null
   membershipExpiresAt: string | null

@@ -9,6 +9,7 @@ export interface AuthUser {
   email: string
   status: UserStatus
   role: UserRole
+  isSuperAdmin?: boolean
   starDrawEnabled: boolean
   membershipPlan: string | null
   membershipPlanLabel?: string

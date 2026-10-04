@@ -6,6 +6,7 @@ export type AdminAuditAction =
   | 'disable_course'
   | 'approve_user'
   | 'reject_user'
+  | 'revoke_trusted_device'
 
 export interface AdminAuditLogInput {
   adminId: number
@@ -51,6 +52,8 @@ export function auditActionLabel(action: AdminAuditAction): string {
       return '審核通過'
     case 'reject_user':
       return '拒絕申請'
+    case 'revoke_trusted_device':
+      return '撤銷信任裝置'
     default:
       return action
   }

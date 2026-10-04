@@ -100,6 +100,11 @@ export async function initDb() {
   `)
 
   await pool.query(`
+    ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS is_super_admin BOOLEAN NOT NULL DEFAULT FALSE
+  `)
+
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS guest_ai_usage (
       ip TEXT NOT NULL,
       usage_date TEXT NOT NULL,
@@ -137,6 +142,23 @@ export async function initDb() {
   await pool.query(`
     CREATE INDEX IF NOT EXISTS idx_admin_audit_logs_created ON admin_audit_logs(created_at DESC)
   `)
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS trusted_devices (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      device_id TEXT NOT NULL,
+      token_hash TEXT NOT NULL,
+      label TEXT,
+      user_agent TEXT,
+      last_used_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      revoked_at TIMESTAMPTZ,
+      UNIQUE(user_id, device_id)
+    )
+  `)
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_trusted_devices_user ON trusted_devices(user_id)`)
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_trusted_devices_device ON trusted_devices(device_id)`)
 
   console.log('[db] PostgreSQL 就緒')
 }
@@ -207,6 +229,7 @@ export async function updateUserStatus(
 
 export async function updateUserPassword(id: number, passwordHash: string): Promise<PublicUser | undefined> {
   await pool.query('UPDATE users SET password_hash = $1 WHERE id = $2', [passwordHash, id])
+  await revokeAllTrustedDevicesForUser(id)
   const row = await findUserById(id)
   return row ? toPublicUser(row) : undefined
 }
@@ -225,10 +248,111 @@ export async function updateUserRole(id: number, role: 'user' | 'admin'): Promis
       [id],
     )
   } else {
-    await pool.query(`UPDATE users SET role = 'user' WHERE id = $1`, [id])
+    await pool.query(`UPDATE users SET role = 'user', is_super_admin = FALSE WHERE id = $1`, [id])
+    await revokeAllTrustedDevicesForUser(id)
   }
   const row = await findUserById(id)
   return row ? toPublicUser(row) : undefined
+}
+
+export async function setUserSuperAdmin(id: number, enabled: boolean): Promise<PublicUser | undefined> {
+  await pool.query(
+    `UPDATE users
+     SET role = 'admin', is_super_admin = $1, status = 'approved',
+         approved_at = COALESCE(approved_at, NOW())
+     WHERE id = $2`,
+    [enabled, id],
+  )
+  const row = await findUserById(id)
+  return row ? toPublicUser(row) : undefined
+}
+
+export async function countActiveTrustedDevices(userId: number): Promise<number> {
+  const result = await pool.query<{ count: string }>(
+    'SELECT COUNT(*)::text AS count FROM trusted_devices WHERE user_id = $1 AND revoked_at IS NULL',
+    [userId],
+  )
+  return Number(result.rows[0]?.count ?? 0)
+}
+
+export async function upsertTrustedDevice(input: {
+  userId: number
+  deviceId: string
+  tokenHash: string
+  label?: string | null
+  userAgent?: string | null
+}): Promise<number> {
+  const now = new Date().toISOString()
+  const existing = await pool.query<{ id: number }>(
+    'SELECT id FROM trusted_devices WHERE user_id = $1 AND device_id = $2',
+    [input.userId, input.deviceId],
+  )
+  if (existing.rows[0]) {
+    await pool.query(
+      `UPDATE trusted_devices
+       SET token_hash = $1, label = COALESCE($2, label), user_agent = $3, last_used_at = $4, revoked_at = NULL
+       WHERE id = $5`,
+      [input.tokenHash, input.label ?? null, input.userAgent ?? null, now, existing.rows[0].id],
+    )
+    return existing.rows[0].id
+  }
+  const result = await pool.query<{ id: number }>(
+    `INSERT INTO trusted_devices (user_id, device_id, token_hash, label, user_agent, last_used_at)
+     VALUES ($1, $2, $3, $4, $5, $6)
+     RETURNING id`,
+    [input.userId, input.deviceId, input.tokenHash, input.label ?? null, input.userAgent ?? null, now],
+  )
+  return Number(result.rows[0].id)
+}
+
+export async function findActiveTrustedDevice(deviceId: string) {
+  const result = await pool.query(
+    `SELECT td.*, u.name AS user_name, u.email AS user_email, u.role AS user_role, u.is_super_admin
+     FROM trusted_devices td
+     JOIN users u ON u.id = td.user_id
+     WHERE td.device_id = $1 AND td.revoked_at IS NULL`,
+    [deviceId],
+  )
+  return result.rows[0] as Record<string, unknown> | undefined
+}
+
+export async function touchTrustedDevice(id: number) {
+  await pool.query('UPDATE trusted_devices SET last_used_at = NOW() WHERE id = $1', [id])
+}
+
+export async function listTrustedDevices(userId?: number) {
+  const result = userId
+    ? await pool.query(
+        `SELECT td.*, u.name AS user_name, u.email AS user_email
+         FROM trusted_devices td
+         JOIN users u ON u.id = td.user_id
+         WHERE td.user_id = $1 AND td.revoked_at IS NULL
+         ORDER BY td.last_used_at DESC NULLS LAST, td.created_at DESC`,
+        [userId],
+      )
+    : await pool.query(
+        `SELECT td.*, u.name AS user_name, u.email AS user_email
+         FROM trusted_devices td
+         JOIN users u ON u.id = td.user_id
+         WHERE td.revoked_at IS NULL
+         ORDER BY td.last_used_at DESC NULLS LAST, td.created_at DESC`,
+      )
+  return result.rows as Record<string, unknown>[]
+}
+
+export async function revokeTrustedDevice(id: number): Promise<boolean> {
+  const result = await pool.query(
+    'UPDATE trusted_devices SET revoked_at = NOW() WHERE id = $1 AND revoked_at IS NULL',
+    [id],
+  )
+  return (result.rowCount ?? 0) > 0
+}
+
+export async function revokeAllTrustedDevicesForUser(userId: number) {
+  await pool.query(
+    'UPDATE trusted_devices SET revoked_at = NOW() WHERE user_id = $1 AND revoked_at IS NULL',
+    [userId],
+  )
 }
 
 export async function updateUserStarDraw(id: number, enabled: boolean): Promise<PublicUser | undefined> {
@@ -556,4 +680,22 @@ export async function ensureAdminUser() {
     [name, phone, email, passwordHash],
   )
   console.log(`[auth] 已建立管理員帳號：${email}`)
+}
+
+export async function ensureSuperAdminUser() {
+  const email = (process.env.SUPER_ADMIN_EMAIL || 'estinto0310@gmail.com').trim().toLowerCase()
+  const user = await findUserByEmail(email)
+  if (!user) {
+    console.warn(`[auth] 超級管理員 Email「${email}」尚未註冊，請先建立帳號後再升級`)
+    return
+  }
+  if (user.role === 'admin' && user.is_super_admin) return
+  await pool.query(
+    `UPDATE users
+     SET role = 'admin', is_super_admin = TRUE, status = 'approved',
+         approved_at = COALESCE(approved_at, NOW())
+     WHERE id = $1`,
+    [user.id],
+  )
+  console.log(`[auth] 已設定超級管理員：${email}`)
 }

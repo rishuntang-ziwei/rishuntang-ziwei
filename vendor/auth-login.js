@@ -30,6 +30,11 @@
         '<p class="auth-note">請使用 Email 與密碼登入；新會員註冊後即可免費排本命命盤</p>' +
         '<label>Email<input type="email" name="email" required></label>' +
         '<label>密碼<input type="password" name="password" required minlength="8"></label>' +
+        '<label class="auth-trust-device">' +
+          '<input type="checkbox" name="trustDevice" id="trustDevice">' +
+          ' 信任此手機（管理員下次可免密碼登入）' +
+        '</label>' +
+        '<label id="deviceLabelWrap" hidden>裝置名稱（選填）<input type="text" name="deviceLabel" maxlength="80" placeholder="例：川益 iPhone"></label>' +
         '<div class="auth-error" id="loginError" hidden></div>' +
         '<button type="submit">登入</button>' +
         '<button type="button" class="auth-link-btn" id="goForgot">忘記密碼？</button>' +
@@ -140,20 +145,34 @@
     document.getElementById('goForgot').addEventListener('click', function () {
       renderAuth('forgot')
     })
+    const trustCheckbox = document.getElementById('trustDevice')
+    const deviceLabelWrap = document.getElementById('deviceLabelWrap')
+    if (trustCheckbox && deviceLabelWrap) {
+      trustCheckbox.addEventListener('change', function () {
+        deviceLabelWrap.hidden = !trustCheckbox.checked
+      })
+    }
     document.getElementById('loginForm').addEventListener('submit', async function (e) {
       e.preventDefault()
       const form = e.target
       const errorEl = document.getElementById('loginError')
       hideError(errorEl)
       try {
+        const payload = {
+          email: form.email.value.trim(),
+          password: form.password.value,
+        }
+        if (form.trustDevice && form.trustDevice.checked) {
+          payload.trustDevice = true
+          payload.deviceId = auth.getOrCreateDeviceId()
+          payload.deviceLabel = form.deviceLabel ? form.deviceLabel.value.trim() : ''
+        }
         const data = await auth.api('/api/auth/login', {
           method: 'POST',
-          body: JSON.stringify({
-            email: form.email.value.trim(),
-            password: form.password.value,
-          }),
+          body: JSON.stringify(payload),
         })
         auth.setToken(data.token)
+        if (data.deviceToken) auth.setDeviceToken(data.deviceToken)
         auth.redirectToChart()
       } catch (err) {
         showError(errorEl, err.message)
@@ -273,6 +292,18 @@
         }
       } catch (_err) {
         auth.setToken(null)
+      }
+    }
+    if (auth.getDeviceToken()) {
+      try {
+        const data = await auth.tryDeviceLogin()
+        if (data && data.token) {
+          auth.setToken(data.token)
+          auth.redirectToChart()
+          return
+        }
+      } catch (_err) {
+        auth.clearDeviceTrust()
       }
     }
     renderAuth('login')

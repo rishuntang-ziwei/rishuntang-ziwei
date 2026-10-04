@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
+import { isAdminUser, isSuperAdminUser } from './adminRoles.js'
 import { findUserById, toPublicUser } from './db.js'
 import type { JwtPayload } from './types.js'
 
@@ -48,8 +49,16 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
 }
 
 export function requireAdmin(req: Request, res: Response, next: NextFunction) {
-  if (!req.authUser || req.authUser.role !== 'admin') {
+  if (!req.authUser || !isAdminUser(req.authUser)) {
     res.status(403).json({ error: '需要管理員權限' })
+    return
+  }
+  next()
+}
+
+export function requireSuperAdmin(req: Request, res: Response, next: NextFunction) {
+  if (!req.authUser || !isSuperAdminUser(req.authUser)) {
+    res.status(403).json({ error: '需要超級管理員權限' })
     return
   }
   next()
@@ -61,7 +70,7 @@ export function requireActiveMember(req: Request, res: Response, next: NextFunct
     res.status(401).json({ error: '請先登入' })
     return
   }
-  if (user.role === 'admin') {
+  if (isAdminUser(user)) {
     next()
     return
   }
@@ -87,7 +96,7 @@ export function requireApprovedMember(req: Request, res: Response, next: NextFun
     res.status(401).json({ error: '請先登入' })
     return
   }
-  if (user.role === 'admin') {
+  if (isAdminUser(user)) {
     next()
     return
   }

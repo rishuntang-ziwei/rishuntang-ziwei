@@ -27,6 +27,10 @@ services:
         value: 管理員
       - key: ADMIN_PHONE
         value: "0900000000"
+      - key: SUPER_ADMIN_EMAIL
+        value: estinto0310@gmail.com
+      - key: MAX_TRUSTED_DEVICES
+        value: "3"
       - key: PUBLIC_SITE_URL
         value: https://rishuntang.com
       - key: PUBLIC_APP_URL

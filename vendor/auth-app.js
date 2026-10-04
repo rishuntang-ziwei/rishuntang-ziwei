@@ -29,7 +29,7 @@
     const actions = []
 
     if (user.role === 'admin') {
-      if (user.id !== currentUser.id) {
+      if (auth.isSuperAdminUser(currentUser) && user.id !== currentUser.id && !user.isSuperAdmin) {
         actions.push(
           '<button type="button" data-revoke-admin="' + user.id + '" data-name="' + user.name + '">取消管理員</button>',
         )
@@ -45,7 +45,9 @@
         '<button type="button" data-approve="' + user.id + '">開通</button>',
         '<button type="button" data-grant-membership="' + user.id + '" data-name="' + user.name + '">開通付費</button>',
         '<button type="button" class="danger" data-reject="' + user.id + '">拒絕</button>',
-        '<button type="button" data-make-admin="' + user.id + '" data-name="' + user.name + '">設為管理員</button>',
+        (auth.isSuperAdminUser(currentUser)
+          ? '<button type="button" data-make-admin="' + user.id + '" data-name="' + user.name + '">設為管理員</button>'
+          : ''),
       )
     } else if (user.status === 'approved') {
       actions.push(
@@ -59,7 +61,9 @@
           ? '<button type="button" class="danger" data-disable-star-draw="' + user.id + '" data-name="' + user.name + '">取消神牌</button>'
           : '<button type="button" data-enable-star-draw="' + user.id + '" data-name="' + user.name + '">開通神牌</button>',
         '<button type="button" data-reset="' + user.id + '" data-name="' + user.name + '">重設密碼</button>',
-        '<button type="button" data-make-admin="' + user.id + '" data-name="' + user.name + '">設為管理員</button>',
+        (auth.isSuperAdminUser(currentUser)
+          ? '<button type="button" data-make-admin="' + user.id + '" data-name="' + user.name + '">設為管理員</button>'
+          : ''),
       )
     } else {
       actions.push(
@@ -68,9 +72,11 @@
       )
     }
 
-    actions.push(
-      '<button type="button" class="danger" data-delete="' + user.id + '" data-name="' + user.name + '">刪除</button>',
-    )
+    if (user.role !== 'admin') {
+      actions.push(
+        '<button type="button" class="danger" data-delete="' + user.id + '" data-name="' + user.name + '">刪除</button>',
+      )
+    }
 
     return '<div class="admin-actions">' + actions.join('') + '</div>'
   }
@@ -606,7 +612,7 @@
               ? '目前沒有待審核會員'
               : '尚無其他管理員'
       const colspan =
-        tab === 'expiring' ? 10 : tab === 'paid' ? 9 : tab === 'admins' ? 5 : 8
+        tab === 'expiring' ? 10 : tab === 'paid' ? 9 : tab === 'admins' ? 6 : 8
       return '<tr><td colspan="' + colspan + '" class="admin-empty">' + emptyMsg + '</td></tr>'
     }
 
@@ -646,6 +652,7 @@
               '<td>' + user.name + '</td>' +
               '<td>' + user.phone + '</td>' +
               '<td>' + user.email + '</td>' +
+              '<td>' + (auth.adminRoleLabel(user) || '管理員') + '</td>' +
               '<td>' + new Date(user.createdAt).toLocaleString('zh-TW') + '</td>' +
               '<td>' + renderUserActions(user) + '</td>' +
             '</tr>'
@@ -690,7 +697,7 @@
     if (tab === 'admins') {
       return (
         '<table class="admin-member-table">' +
-          '<thead><tr><th>姓名</th><th>電話</th><th>Email</th><th>建立時間</th><th>操作</th></tr></thead>' +
+          '<thead><tr><th>姓名</th><th>電話</th><th>Email</th><th>角色</th><th>建立時間</th><th>操作</th></tr></thead>' +
           '<tbody>' + renderAdminMemberRows(tab, members) + '</tbody>' +
         '</table>'
       )
@@ -720,6 +727,63 @@
     return '系統管理員帳號。'
   }
 
+  function renderTrustedDevicesSection(deviceData) {
+    const devices = deviceData.devices || []
+    const maxPerAdmin = deviceData.maxPerAdmin || 3
+    const canManageAll = Boolean(deviceData.canManageAll)
+    const rows = devices.length
+      ? devices.map(function (device) {
+          const label = device.label || '（未命名）'
+          const lastUsed = device.lastUsedAt
+            ? new Date(device.lastUsedAt).toLocaleString('zh-TW')
+            : '—'
+          return (
+            '<tr>' +
+              (canManageAll
+                ? '<td>' + escapeAdminHtml(device.userName) + '<br><span class="admin-device-email">' + escapeAdminHtml(device.userEmail) + '</span></td>'
+                : '') +
+              '<td>' + escapeAdminHtml(label) + '</td>' +
+              '<td>' + lastUsed + '</td>' +
+              '<td><button type="button" class="danger" data-revoke-device="' + device.id + '" data-label="' + escapeAdminHtml(label) + '">撤銷</button></td>' +
+            '</tr>'
+          )
+        }).join('')
+      : '<tr><td colspan="' + (canManageAll ? 4 : 3) + '" class="admin-empty">目前沒有信任裝置</td></tr>'
+
+    return (
+      '<div class="admin-trusted-devices">' +
+        '<h3>信任裝置（免密碼登入）</h3>' +
+        '<p class="admin-member-note">每位管理員最多 ' + maxPerAdmin + ' 台。首次以密碼登入並勾選「信任此手機」即可綁定；撤銷後該手機需重新輸入密碼。</p>' +
+        '<div class="admin-table-wrap">' +
+          '<table class="admin-member-table">' +
+            '<thead><tr>' +
+              (canManageAll ? '<th>管理員</th>' : '') +
+              '<th>裝置名稱</th><th>最近使用</th><th>操作</th>' +
+            '</tr></thead>' +
+            '<tbody>' + rows + '</tbody>' +
+          '</table>' +
+        '</div>' +
+      '</div>'
+    )
+  }
+
+  function bindTrustedDeviceEvents(panel) {
+    panel.querySelectorAll('[data-revoke-device]').forEach(function (btn) {
+      btn.addEventListener('click', async function () {
+        const id = btn.dataset.revokeDevice
+        const label = btn.dataset.label || '此裝置'
+        if (!confirm('確定要撤銷「' + label + '」的信任登入？')) return
+        try {
+          await auth.api('/api/admin/trusted-devices/' + id, { method: 'DELETE' })
+          alert('已撤銷信任裝置')
+          renderAdminPanel()
+        } catch (err) {
+          alert(err.message)
+        }
+      })
+    })
+  }
+
   async function renderAdminPanel(tab) {
     if (tab) adminMemberTab = tab
     const panel = document.getElementById('adminPanel')
@@ -729,9 +793,10 @@
     panel.innerHTML = '<div class="auth-card"><p>載入中…</p></div>'
 
     try {
-      const [data, auditData] = await Promise.all([
+      const [data, auditData, deviceData] = await Promise.all([
         auth.api('/api/admin/members/' + adminMemberTab),
         auth.api('/api/admin/audit-logs?limit=20'),
+        auth.api('/api/admin/trusted-devices'),
       ])
       const summary = data.summary || { free: 0, paid: 0, expiring: 0, pending: 0, admins: 0 }
       const members = data.members || []
@@ -764,6 +829,7 @@
           expiringAlert +
           '<p class="admin-member-note">' + adminTabDescription(adminMemberTab) + '</p>' +
           '<div class="admin-table-wrap">' + renderAdminMemberTable(adminMemberTab, members) + '</div>' +
+          renderTrustedDevicesSection(deviceData) +
           '<div class="admin-audit-section">' +
             '<h3>最近操作紀錄</h3>' +
             renderAuditLogs(auditLogs) +
@@ -771,6 +837,7 @@
         '</div>'
 
       bindAdminPanelEvents(panel)
+      bindTrustedDeviceEvents(panel)
     } catch (err) {
       panel.innerHTML = '<div class="auth-card auth-error">' + err.message + '</div>'
     }
@@ -1115,7 +1182,19 @@
       return
     }
 
-    const token = auth.getToken()
+    let token = auth.getToken()
+    if (!token && auth.getDeviceToken()) {
+      try {
+        const deviceData = await auth.tryDeviceLogin()
+        if (deviceData && deviceData.token) {
+          auth.setToken(deviceData.token)
+          token = deviceData.token
+        }
+      } catch (_err) {
+        auth.clearDeviceTrust()
+      }
+    }
+
     if (!token) {
       auth.redirectToLogin()
       return

@@ -60,5 +60,14 @@ export const consumeDailyChartGeneration = (userId: number) => driver.consumeDai
 export const getGuestAiQuota = (ip: string) => driver.getGuestAiQuota(ip)
 export const incrementGuestAiQuota = (ip: string) => driver.incrementGuestAiQuota(ip)
 export const ensureAdminUser = () => driver.ensureAdminUser()
+export const ensureSuperAdminUser = () => driver.ensureSuperAdminUser()
+export const countActiveTrustedDevices = (userId: number) => driver.countActiveTrustedDevices(userId)
+export const upsertTrustedDevice = (input: Parameters<typeof sqlite.upsertTrustedDevice>[0]) =>
+  driver.upsertTrustedDevice(input)
+export const findActiveTrustedDevice = (deviceId: string) => driver.findActiveTrustedDevice(deviceId)
+export const touchTrustedDevice = (id: number) => driver.touchTrustedDevice(id)
+export const listTrustedDevices = (userId?: number) => driver.listTrustedDevices(userId)
+export const revokeTrustedDevice = (id: number) => driver.revokeTrustedDevice(id)
+export const revokeAllTrustedDevicesForUser = (userId: number) => driver.revokeAllTrustedDevicesForUser(userId)
 
 export { toPublicUser } from './shared.js'
