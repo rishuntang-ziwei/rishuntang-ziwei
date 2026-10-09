@@ -1804,30 +1804,50 @@
         width: 100%;
         max-width: 100%;
         min-width: 0;
+        /* 小螢幕略增高命盤，避免最底排宮位 footer 被裁切 */
+        aspect-ratio: 6 / 4.35;
       }
 
-      .cell {
+      .cell:not(.center) {
+        overflow: visible;
+      }
+
+      .cell.center {
         overflow: hidden;
       }
 
       .palace {
         font-size: 12px;
-        padding: 1px 3px 0 2px;
+        padding: 1px 3px 2px 2px;
       }
 
       .palace-stars {
-        max-height: calc(100% - 40px);
+        max-height: calc(100% - 52px);
         padding-right: 2px;
         left: 1px;
       }
 
       .palace-bottom {
-        height: 38px;
+        height: 46px;
+        padding-bottom: 1px;
+        box-sizing: border-box;
+      }
+
+      .palace-footer-grid {
+        line-height: 1.05;
+        column-gap: 2px;
       }
 
       .daily-days {
-        bottom: 40px;
+        bottom: 48px;
         font-size: 10px;
+      }
+
+      .shen {
+        bottom: 34px;
+        font-size: 11px;
+        line-height: 18px;
+        padding: 0 3px;
       }
 
       .star-vcol.major .vname {
@@ -1904,25 +1924,30 @@
       }
 
       .palace-label {
-        font-size: 13px;
-        letter-spacing: 1px;
+        font-size: 11px;
+        letter-spacing: 0;
         gap: 1px;
       }
 
       .monthly-badge {
-        width: 16px;
-        height: 16px;
-        font-size: 11px;
+        width: 14px;
+        height: 14px;
+        font-size: 10px;
       }
 
       .daxian,
       .decadal-slot {
-        font-size: 14px;
+        font-size: 10px;
       }
 
       .gz-gan,
       .gz-zhi {
-        font-size: 17px;
+        font-size: 12px;
+        line-height: 1;
+      }
+
+      .gz-col {
+        gap: 1px;
       }
 
       .center {
@@ -2062,12 +2087,38 @@
     }
 
     @media (max-width: 480px) {
+      .chart-outer {
+        aspect-ratio: 6 / 4.5;
+      }
+
+      .palace-bottom {
+        height: 48px;
+      }
+
+      .palace-stars {
+        max-height: calc(100% - 52px);
+      }
+
+      .daily-days {
+        bottom: 50px;
+      }
+
       .star-vcol.major .vname,
       .star-vcol.g-lg .vname {
         font-size: 13px;
       }
 
       .palace-label {
+        font-size: 10px;
+      }
+
+      .daxian,
+      .decadal-slot {
+        font-size: 9px;
+      }
+
+      .gz-gan,
+      .gz-zhi {
         font-size: 11px;
       }
 
