@@ -3,6 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#4a3228" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="日舜堂排盤" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="./icons/icon-192.png" />
   <title>紫微斗數線上排盤｜國際日舜堂</title>
   <link rel="stylesheet" href="./css/theme.css?v=20260717a" />
   <style>
@@ -1222,6 +1227,91 @@
 
     .back-to-natal:hover {
       background: #fff8e1;
+    }
+
+    .horoscope-tools {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      justify-content: flex-end;
+      align-items: center;
+      margin-top: 4px;
+      max-width: 220px;
+    }
+
+    .center-quick-btn {
+      font-family: inherit;
+      font-size: 12px;
+      padding: 2px 7px;
+      border: 1px solid #8b4513;
+      border-radius: 4px;
+      background: #fff;
+      color: #8b4513;
+      cursor: pointer;
+    }
+
+    .center-quick-btn:hover {
+      background: #fff8e1;
+    }
+
+    .horoscope-bookmark-select {
+      font-family: inherit;
+      font-size: 12px;
+      max-width: 118px;
+      padding: 2px 4px;
+    }
+
+    .chart-compare {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: flex-start;
+      width: 100%;
+    }
+
+    .chart-compare-pane {
+      flex: 1 1 340px;
+      min-width: 0;
+    }
+
+    .chart-compare-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--brand-brown, #5d4037);
+      margin-bottom: 6px;
+      letter-spacing: 0.08em;
+    }
+
+    .chart-compare-tabs {
+      display: none;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .chart-compare-tabs button {
+      flex: 1;
+      font-family: inherit;
+      font-size: 14px;
+      padding: 8px 6px;
+      border: 1px solid var(--border);
+      background: var(--paper);
+      cursor: pointer;
+    }
+
+    .chart-compare-tabs button.active {
+      background: #fff8e1;
+      border-color: #8b4513;
+      font-weight: 700;
+    }
+
+    @media (max-width: 820px) {
+      .chart-compare-tabs {
+        display: flex;
+      }
+
+      .chart-compare-pane.is-hidden-mobile {
+        display: none;
+      }
     }
 
     .gz-col {
@@ -2464,9 +2554,18 @@
       .center-top-right .center-control-row,
       .center-top-right .center-toggle-btn,
       .back-to-natal,
+      .horoscope-tools,
       .center-scope,
       .center-flow-scope {
         display: none !important;
+      }
+
+      .chart-compare-tabs {
+        display: none !important;
+      }
+
+      .chart-compare-pane.is-hidden-mobile {
+        display: block !important;
       }
 
       .chart-lines {
@@ -2969,6 +3068,9 @@
         <h3>會員功能</h3>
         <div class="member-actions">
           <button type="button" id="printChartBtn" class="secondary">列印命盤</button>
+          <button type="button" id="exportPdfBtn" class="secondary">匯出 PDF</button>
+          <button type="button" id="compareChartBtn" class="secondary">並排比對</button>
+          <button type="button" id="exitCompareBtn" class="secondary hidden">結束比對</button>
           <button type="button" id="saveChartBtn" class="secondary">儲存命盤</button>
           <button type="button" id="starDrawBtn" class="secondary">先知斗數神牌</button>
           <button type="button" id="chartDbBtn" class="secondary">命盤資料庫</button>
@@ -3106,6 +3208,11 @@
     let initialChartType = 'natal'
     let yearlyYear = new Date().getFullYear()
     let horoscopeDate = ''
+    let natalHoroscopeBaseline = ''
+    let comparePartnerInput = null
+    let compareMobileTab = 'primary'
+    const HOROSCOPE_BOOKMARKS_KEY = 'rishuntangHoroscopeBookmarks'
+    const HOROSCOPE_BOOKMARKS_MAX = 15
     let showYearlyDaily = false
     let yearlyMonthSelected = false
     let selectedFlowLunarYear = null
@@ -3645,6 +3752,129 @@
       const m = String(d.getMonth() + 1).padStart(2, '0')
       const day = String(d.getDate()).padStart(2, '0')
       return `${y}-${m}-${day}`
+    }
+
+    function loadHoroscopeBookmarks() {
+      try {
+        const raw = localStorage.getItem(HOROSCOPE_BOOKMARKS_KEY)
+        const list = raw ? JSON.parse(raw) : []
+        return Array.isArray(list) ? list : []
+      } catch (_err) {
+        return []
+      }
+    }
+
+    function persistHoroscopeBookmarks(list) {
+      try {
+        localStorage.setItem(
+          HOROSCOPE_BOOKMARKS_KEY,
+          JSON.stringify(list.slice(0, HOROSCOPE_BOOKMARKS_MAX)),
+        )
+      } catch (_err) {
+        /* storage full or private mode */
+      }
+    }
+
+    function horoscopeBookmarkSnapshot() {
+      const label = horoscopeDate.replace(/-/g, '/')
+      return {
+        id: String(Date.now()),
+        label: label,
+        horoscopeDate: horoscopeDate,
+        initialChartType: initialChartType,
+        yearlyYear: yearlyYear,
+        yearlyMonthSelected: yearlyMonthSelected,
+        showYearlyDaily: showYearlyDaily,
+        selectedFlowLunarYear: selectedFlowLunarYear,
+        selectedFlowMonth: selectedFlowMonth,
+        selectedFlowIsLeap: selectedFlowIsLeap,
+        showLines: showLines,
+      }
+    }
+
+    function applyHoroscopeBookmark(entry) {
+      if (!entry) return
+      horoscopeDate = entry.horoscopeDate || todaySolarDate()
+      if (entry.initialChartType === 'yearly') {
+        yearlyYear = entry.yearlyYear || new Date().getFullYear()
+        yearlyMonthSelected = Boolean(entry.yearlyMonthSelected)
+        showYearlyDaily = Boolean(entry.showYearlyDaily)
+        selectedFlowLunarYear = entry.selectedFlowLunarYear ?? null
+        selectedFlowMonth = entry.selectedFlowMonth ?? null
+        selectedFlowIsLeap = Boolean(entry.selectedFlowIsLeap)
+      } else {
+        yearlyMonthSelected = false
+        showYearlyDaily = false
+        selectedFlowLunarYear = null
+        selectedFlowMonth = null
+        selectedFlowIsLeap = false
+      }
+      showLines = Boolean(entry.showLines)
+      selectedPalaceName = '命宮'
+    }
+
+    function addHoroscopeBookmark() {
+      const name = window.prompt('書籤名稱（例：開業日、合約日）', horoscopeDate.replace(/-/g, '/'))
+      if (name === null) return
+      const entry = horoscopeBookmarkSnapshot()
+      entry.label = (name.trim() || entry.label).slice(0, 40)
+      const list = loadHoroscopeBookmarks().filter(function (b) {
+        return b.horoscopeDate !== entry.horoscopeDate || b.label !== entry.label
+      })
+      list.unshift(entry)
+      persistHoroscopeBookmarks(list)
+    }
+
+    function renderHoroscopeBookmarkOptions() {
+      const bookmarks = loadHoroscopeBookmarks()
+      let opts = '<option value="">常用日期…</option>'
+      bookmarks.forEach(function (b) {
+        opts += '<option value="' + escapeHtml(b.id) + '">' + escapeHtml(b.label) + '</option>'
+      })
+      return opts
+    }
+
+    function shouldShowResetHoroscope() {
+      if (initialChartType === 'yearly') {
+        return yearlyMonthSelected || showYearlyDaily
+      }
+      if (initialChartType === 'natal') {
+        if (resolveEffectiveChartMode() === 'decadal') return true
+        const baseline = natalHoroscopeBaseline || todaySolarDate()
+        if (horoscopeDate !== baseline) return true
+      }
+      return false
+    }
+
+    function resetHoroscopeView() {
+      showLines = false
+      if (initialChartType === 'yearly') {
+        yearlyMonthSelected = false
+        showYearlyDaily = false
+        selectedFlowLunarYear = null
+        selectedFlowMonth = null
+        selectedFlowIsLeap = false
+        horoscopeDate = horoscopeDateForYear(yearlyYear)
+      } else {
+        horoscopeDate = natalHoroscopeBaseline || todaySolarDate()
+      }
+      selectedPalaceName = '命宮'
+    }
+
+    function setHoroscopeToToday() {
+      if (initialChartType === 'yearly') {
+        yearlyYear = new Date().getFullYear()
+        yearlyMonthSelected = false
+        showYearlyDaily = false
+        selectedFlowLunarYear = null
+        selectedFlowMonth = null
+        selectedFlowIsLeap = false
+        horoscopeDate = horoscopeDateForYear(yearlyYear)
+      } else {
+        horoscopeDate = todaySolarDate()
+      }
+      showLines = false
+      selectedPalaceName = '命宮'
     }
 
     function getInput() {
@@ -4432,7 +4662,8 @@
       return `<div class="center-bazi-text">${formatBazi(a)}</div>`
     }
 
-    function renderCenter(name, a, h, input) {
+    function renderCenter(name, a, h, input, centerOptions) {
+      const compactCenter = centerOptions && centerOptions.compactCenter
       const chartMode = resolveEffectiveChartMode()
       const b = centerBirthText(a)
       const age = h.age.nominalAge
@@ -4453,17 +4684,27 @@
           </div>`
         : ''
 
-      const backToNatal = initialChartType === 'natal' && chartMode === 'decadal'
-        ? `<button type="button" class="back-to-natal" id="backToNatal">回到本命盤</button>`
-        : ''
-
+      let backToNatal = ''
       let yearControl = ''
-      if (initialChartType === 'yearly') {
-        yearControl =
-          `<label class="center-control-row"><span>流年年份</span><input type="number" id="centerYearlyYear" min="1900" max="2100" value="${yearlyYear}"/></label>` +
-          `<button type="button" class="center-toggle-btn ${showYearlyDaily ? 'active' : ''}" id="toggleYearlyDaily" ${yearlyMonthSelected ? '' : 'disabled'} title="${yearlyMonthSelected ? '' : '請先雙擊宮位選擇流月'}">${showYearlyDaily ? '隱藏流日' : '顯示流日'}</button>`
-      } else {
-        yearControl = `<label class="center-control-row"><span>論命日期</span><input type="date" id="horoscopeDate" value="${horoscopeDate}"/></label>`
+      let horoscopeTools = ''
+      if (!compactCenter) {
+        const resetLabel = chartMode === 'decadal' ? '回到本命盤' : '回到預設'
+        backToNatal = shouldShowResetHoroscope()
+          ? `<button type="button" class="back-to-natal" id="backToNatal">${resetLabel}</button>`
+          : ''
+        if (initialChartType === 'yearly') {
+          yearControl =
+            `<label class="center-control-row"><span>流年年份</span><input type="number" id="centerYearlyYear" min="1900" max="2100" value="${yearlyYear}"/></label>` +
+            `<button type="button" class="center-toggle-btn ${showYearlyDaily ? 'active' : ''}" id="toggleYearlyDaily" ${yearlyMonthSelected ? '' : 'disabled'} title="${yearlyMonthSelected ? '' : '請先雙擊宮位選擇流月'}">${showYearlyDaily ? '隱藏流日' : '顯示流日'}</button>`
+        } else {
+          yearControl = `<label class="center-control-row"><span>論命日期</span><input type="date" id="horoscopeDate" value="${horoscopeDate}"/></label>`
+        }
+        horoscopeTools =
+          `<div class="horoscope-tools">` +
+            `<button type="button" class="center-quick-btn" id="horoscopeTodayBtn">今日</button>` +
+            `<button type="button" class="center-quick-btn" id="horoscopeBookmarkAdd" title="加入常用日期">★</button>` +
+            `<select class="horoscope-bookmark-select" id="horoscopeBookmarkPick" title="常用日期書籤">${renderHoroscopeBookmarkOptions()}</select>` +
+          `</div>`
       }
 
       return `<div class="center">
@@ -4475,6 +4716,7 @@
           </div>
           <div class="center-top-right">
             ${yearControl}
+            ${horoscopeTools}
           </div>
           <div class="center-print-date">論命日期 ${horoscopeDate.replace(/-/g, '/')}</div>
         </div>
@@ -4554,9 +4796,8 @@
       return `<svg class="chart-lines" viewBox="0 0 ${CHART_W} ${CHART_H}" preserveAspectRatio="none">${lineEls.join('')}</svg>`
     }
 
-    function renderChart(name, a, input) {
-      currentInput = input
-      currentAstrolabe = a
+    function buildChartOuterHtml(name, a, input, buildOptions) {
+      const compactCenter = buildOptions && buildOptions.compactCenter
       const chartMode = resolveEffectiveChartMode()
       const h = a.horoscope(horoscopeDate, input.timeIndex)
       const activeLunar = parseLunarFromSolarDate(horoscopeDate)
@@ -4578,7 +4819,7 @@
           if (cell === 'C') {
             if (ri === 1 && ci === 1 && !centerDone) {
               centerDone = true
-              html += `<div class="cell center" style="grid-row:2/4;grid-column:2/4">${renderCenter(name, a, h, input)}</div>`
+              html += `<div class="cell center" style="grid-row:2/4;grid-column:2/4">${renderCenter(name, a, h, input, { compactCenter: compactCenter })}</div>`
             }
             return
           }
@@ -4590,9 +4831,12 @@
 
       html += renderLines(a, h)
       html += '</div></div>'
-      document.getElementById('chartView').innerHTML = html
+      return html
+    }
 
-      document.querySelectorAll('.palace[data-scope-palace]').forEach(el => {
+    function bindChartPalaceEvents(root, name, a, input) {
+      if (!root) return
+      root.querySelectorAll('.palace[data-scope-palace]').forEach(el => {
         el.addEventListener('click', () => {
           const mode = resolveEffectiveChartMode()
           if (mode !== 'yearly') {
@@ -4632,7 +4876,7 @@
         })
       })
 
-      document.querySelectorAll('.decadal-slot[data-age-start]').forEach(btn => {
+      root.querySelectorAll('.decadal-slot[data-age-start]').forEach(btn => {
         btn.addEventListener('click', e => {
           e.stopPropagation()
           if (!isPremiumMember()) {
@@ -4646,12 +4890,35 @@
           renderChart(name, a, input)
         })
       })
+    }
 
+    function bindPrimaryChartControls(name, a, input) {
       document.getElementById('backToNatal')?.addEventListener('click', () => {
-        showLines = false
-        horoscopeDate = todaySolarDate()
-        selectedPalaceName = '命宮'
+        resetHoroscopeView()
         renderChart(name, a, input)
+      })
+
+      document.getElementById('horoscopeTodayBtn')?.addEventListener('click', () => {
+        setHoroscopeToToday()
+        renderChart(name, a, input)
+      })
+
+      document.getElementById('horoscopeBookmarkAdd')?.addEventListener('click', () => {
+        addHoroscopeBookmark()
+        renderChart(name, a, input)
+      })
+
+      document.getElementById('horoscopeBookmarkPick')?.addEventListener('change', e => {
+        const id = e.target.value
+        if (!id) return
+        const entry = loadHoroscopeBookmarks().find(function (b) {
+          return b.id === id
+        })
+        if (entry) {
+          applyHoroscopeBookmark(entry)
+          renderChart(name, a, input)
+        }
+        e.target.value = ''
       })
 
       document.getElementById('centerYearlyYear')?.addEventListener('change', e => {
@@ -4681,7 +4948,138 @@
         selectedPalaceName = '命宮'
         renderChart(name, a, input)
       })
+    }
 
+    function bindCompareTabs() {
+      document.querySelectorAll('[data-compare-tab]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          compareMobileTab = btn.dataset.compareTab === 'secondary' ? 'secondary' : 'primary'
+          if (currentAstrolabe && currentInput) {
+            renderChart(currentInput.name, currentAstrolabe, currentInput)
+          }
+        })
+      })
+    }
+
+    function updateCompareToolbar() {
+      const exitBtn = document.getElementById('exitCompareBtn')
+      const compareBtn = document.getElementById('compareChartBtn')
+      if (exitBtn) exitBtn.classList.toggle('hidden', !comparePartnerInput)
+      if (compareBtn) compareBtn.classList.toggle('hidden', Boolean(comparePartnerInput))
+    }
+
+    async function startCompareFromSavedCharts() {
+      if (!window.ZiweiAuth) {
+        alert('請先登入會員')
+        return
+      }
+      try {
+        const data = await window.ZiweiAuth.api('/api/charts')
+        const charts = data.charts || []
+        if (!charts.length) {
+          alert('尚無已存命盤，請先儲存後再比對')
+          return
+        }
+        const lines = charts.slice(0, 12).map(function (c, i) {
+          return (i + 1) + '. ' + (c.subjectName || '未命名')
+        })
+        const pick = window.prompt(
+          '輸入要比對的命盤編號（同一論命日期並排顯示）：\n' + lines.join('\n'),
+          '1',
+        )
+        if (pick === null) return
+        const idx = Number(pick) - 1
+        if (!Number.isFinite(idx) || idx < 0 || idx >= charts.length) {
+          alert('編號無效')
+          return
+        }
+        const chart = charts[idx]
+        const detail = await window.ZiweiAuth.api('/api/charts/' + chart.id)
+        const payload = detail.chart && detail.chart.payload
+        if (!payload) throw new Error('命盤資料不完整')
+        comparePartnerInput = {
+          name: payload.name || chart.subjectName,
+          gender: payload.gender,
+          calendar: payload.calendar,
+          date: payload.date,
+          timeIndex: payload.timeIndex,
+          isLeap: payload.isLeap,
+          initialChartType: payload.initialChartType || 'natal',
+          yearlyYear: payload.yearlyYear || new Date().getFullYear(),
+        }
+        compareMobileTab = 'primary'
+        updateCompareToolbar()
+        if (currentAstrolabe && currentInput) {
+          renderChart(currentInput.name, currentAstrolabe, currentInput)
+        }
+      } catch (err) {
+        alert(err.message || '無法開始比對')
+      }
+    }
+
+    function exitCompareMode() {
+      comparePartnerInput = null
+      compareMobileTab = 'primary'
+      updateCompareToolbar()
+      if (currentAstrolabe && currentInput) {
+        renderChart(currentInput.name, currentAstrolabe, currentInput)
+      }
+    }
+
+    window.startCompareFromSavedCharts = startCompareFromSavedCharts
+    window.exitCompareMode = exitCompareMode
+
+    function renderChart(name, a, input) {
+      currentInput = input
+      currentAstrolabe = a
+      const primaryHtml = buildChartOuterHtml(name, a, input, {})
+      let viewHtml = primaryHtml
+
+      if (comparePartnerInput) {
+        const partnerA = compute(comparePartnerInput)
+        const partnerName = comparePartnerInput.name || '匿名'
+        const secondaryHtml = buildChartOuterHtml(partnerName, partnerA, comparePartnerInput, {
+          compactCenter: true,
+        })
+        const primaryTitle = name || '目前命盤'
+        const secondaryTitle = partnerName || '比對命盤'
+        const hidePrimary = compareMobileTab === 'secondary' ? ' is-hidden-mobile' : ''
+        const hideSecondary = compareMobileTab === 'primary' ? ' is-hidden-mobile' : ''
+        viewHtml =
+          '<div class="chart-compare-tabs">' +
+            '<button type="button" data-compare-tab="primary"' +
+              (compareMobileTab === 'primary' ? ' class="active"' : '') +
+              '>' + escapeHtml(primaryTitle) + '</button>' +
+            '<button type="button" data-compare-tab="secondary"' +
+              (compareMobileTab === 'secondary' ? ' class="active"' : '') +
+              '>' + escapeHtml(secondaryTitle) + '</button>' +
+          '</div>' +
+          '<div class="chart-compare">' +
+            '<div class="chart-compare-pane' + hidePrimary + '" data-compare-pane="primary">' +
+              '<div class="chart-compare-title">' + escapeHtml(primaryTitle) + '</div>' +
+              primaryHtml +
+            '</div>' +
+            '<div class="chart-compare-pane' + hideSecondary + '" data-compare-pane="secondary">' +
+              '<div class="chart-compare-title">' + escapeHtml(secondaryTitle) + '</div>' +
+              secondaryHtml +
+            '</div>' +
+          '</div>'
+      }
+
+      document.getElementById('chartView').innerHTML = viewHtml
+
+      const primaryRoot = comparePartnerInput
+        ? document.querySelector('[data-compare-pane="primary"]')
+        : document.getElementById('chartView')
+      bindChartPalaceEvents(primaryRoot, name, a, input)
+      if (comparePartnerInput) {
+        const partnerA = compute(comparePartnerInput)
+        const secondaryRoot = document.querySelector('[data-compare-pane="secondary"]')
+        bindChartPalaceEvents(secondaryRoot, comparePartnerInput.name, partnerA, comparePartnerInput)
+        bindCompareTabs()
+      }
+      bindPrimaryChartControls(name, a, input)
+      updateCompareToolbar()
       syncAiInterpretButton(name, a)
     }
 
@@ -4699,6 +5097,7 @@
         const input = getInput()
         const a = compute(input)
         initialChartType = input.initialChartType
+        comparePartnerInput = null
         showLines = false
         selectedPalaceName = '命宮'
         if (initialChartType === 'yearly') {
@@ -4712,6 +5111,7 @@
         } else {
           horoscopeDate = todaySolarDate()
         }
+        natalHoroscopeBaseline = horoscopeDate
         renderChart(input.name, a, input)
       } catch (err) {
         hideAiInterpretUi()
@@ -4768,6 +5168,7 @@
     document.getElementById('solarDate').value = todaySolarDate()
     document.getElementById('yearlyYear').value = new Date().getFullYear()
     horoscopeDate = todaySolarDate()
+    natalHoroscopeBaseline = horoscopeDate
     updateCalendarUI()
     updateChartTypeUI()
 
@@ -4781,5 +5182,6 @@
   <script src="./vendor/auth-common.js?v=20260717"></script>
   <script src="./vendor/payment-ui.js?v=20260717"></script>
   <script src="./vendor/auth-app.js?v=20260729"></script>
+  <script src="./vendor/pwa-register.js"></script>
   </body>
 </html>
