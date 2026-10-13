@@ -1001,18 +1001,8 @@
     return user.role === 'admin' || user.membershipActive
   }
 
-  function isAdminUser(user) {
-    return Boolean(user && user.role === 'admin')
-  }
-
-  /** PWA／進階排盤／合盤／分享等：目前僅管理員測試 */
-  function canUseChartLabFeatures(user) {
-    return isAdminUser(user)
-  }
-
   function updateMemberFeatures(user) {
     const premium = isPremiumMember(user)
-    const chartLab = canUseChartLabFeatures(user)
     const starDrawBtn = document.getElementById('starDrawBtn')
     const saveChartBtn = document.getElementById('saveChartBtn')
     const printChartBtn = document.getElementById('printChartBtn')
@@ -1029,12 +1019,6 @@
       isPremium: function () {
         return isPremiumMember(window.ZiweiMember.currentUser)
       },
-      isAdmin: function () {
-        return isAdminUser(window.ZiweiMember.currentUser)
-      },
-      canUseChartLab: function () {
-        return canUseChartLabFeatures(window.ZiweiMember.currentUser)
-      },
       requirePremium: function (featureName) {
         if (isPremiumMember(window.ZiweiMember.currentUser)) return true
         alert((featureName || '此功能') + '需訂閱付費會員，請在左側選擇方案升級')
@@ -1046,25 +1030,20 @@
       return window.ZiweiMember.requirePremium(featureName)
     }
 
-    function requireChartLab(featureName) {
-      if (canUseChartLabFeatures(window.ZiweiMember.currentUser)) return true
-      alert((featureName || '此功能') + '目前僅開放管理員測試')
-      return false
-    }
-
-    ;[saveChartBtn, printChartBtn, chartDbBtn, starDrawBtn].forEach(function (btn) {
+    ;[
+      saveChartBtn,
+      printChartBtn,
+      exportPdfBtn,
+      compareChartBtn,
+      hepanChartBtn,
+      shareChartBtn,
+      chartDbBtn,
+      starDrawBtn,
+    ].forEach(function (btn) {
       if (!btn) return
       btn.disabled = false
       btn.classList.toggle('member-feature-locked', !premium)
       btn.title = premium ? '' : '付費會員專屬功能，請升級訂閱'
-    })
-
-    ;[exportPdfBtn, compareChartBtn, hepanChartBtn, shareChartBtn].forEach(function (btn) {
-      if (!btn) return
-      btn.hidden = !chartLab
-      btn.disabled = false
-      btn.classList.remove('member-feature-locked')
-      btn.title = chartLab ? '' : ''
     })
 
     function printCurrentChart(pdfHint) {
@@ -1088,14 +1067,13 @@
 
     if (exportPdfBtn) {
       exportPdfBtn.onclick = function () {
-        if (!requireChartLab('匯出 PDF')) return
         printCurrentChart(true)
       }
     }
 
     if (compareChartBtn) {
       compareChartBtn.onclick = function () {
-        if (!requireChartLab('並排比對')) return
+        if (!requireUpgrade('並排比對')) return
         const view = document.getElementById('chartView')
         if (!view || view.querySelector('.chart-placeholder') || view.querySelector('.error-box')) {
           alert('請先完成排盤後再比對')
@@ -1115,7 +1093,7 @@
 
     if (hepanChartBtn) {
       hepanChartBtn.onclick = function () {
-        if (!requireChartLab('合盤')) return
+        if (!requireUpgrade('合盤')) return
         const view = document.getElementById('chartView')
         if (!view || view.querySelector('.chart-placeholder') || view.querySelector('.error-box')) {
           alert('請先完成排盤後再合盤')
@@ -1135,7 +1113,7 @@
 
     if (shareChartBtn) {
       shareChartBtn.onclick = async function () {
-        if (!requireChartLab('分享連結')) return
+        if (!requireUpgrade('分享連結')) return
         const view = document.getElementById('chartView')
         if (!view || view.querySelector('.chart-placeholder') || view.querySelector('.error-box')) {
           alert('請先完成排盤後再分享')

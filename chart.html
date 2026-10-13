@@ -3181,10 +3181,6 @@
       return window.ZiweiMember && window.ZiweiMember.isPremium && window.ZiweiMember.isPremium()
     }
 
-    function isAdminChartLab() {
-      return window.ZiweiMember && window.ZiweiMember.canUseChartLab && window.ZiweiMember.canUseChartLab()
-    }
-
     window.applyMemberTierUI = function () {
       const premium = isPremiumMember()
       const note = document.getElementById('chartTypeNote')
@@ -3921,12 +3917,10 @@
 
     function shouldShowResetHoroscope() {
       if (initialChartType === 'yearly') {
-        if (!isAdminChartLab()) return yearlyMonthSelected || showYearlyDaily
         return yearlyMonthSelected || showYearlyDaily
       }
       if (initialChartType === 'natal') {
         if (resolveEffectiveChartMode() === 'decadal') return true
-        if (!isAdminChartLab()) return false
         const baseline = natalHoroscopeBaseline || todaySolarDate()
         if (horoscopeDate !== baseline) return true
       }
@@ -4786,14 +4780,12 @@
         } else {
           yearControl = `<label class="center-control-row"><span>論命日期</span><input type="date" id="horoscopeDate" value="${horoscopeDate}"/></label>`
         }
-        if (isAdminChartLab()) {
-          horoscopeTools =
-            `<div class="horoscope-tools">` +
-              `<button type="button" class="center-quick-btn" id="horoscopeTodayBtn">今日</button>` +
-              `<button type="button" class="center-quick-btn" id="horoscopeBookmarkAdd" title="加入常用日期">★</button>` +
-              `<select class="horoscope-bookmark-select" id="horoscopeBookmarkPick" title="常用日期書籤">${renderHoroscopeBookmarkOptions()}</select>` +
-            `</div>`
-        }
+        horoscopeTools =
+          `<div class="horoscope-tools">` +
+            `<button type="button" class="center-quick-btn" id="horoscopeTodayBtn">今日</button>` +
+            `<button type="button" class="center-quick-btn" id="horoscopeBookmarkAdd" title="加入常用日期">★</button>` +
+            `<select class="horoscope-bookmark-select" id="horoscopeBookmarkPick" title="常用日期書籤">${renderHoroscopeBookmarkOptions()}</select>` +
+          `</div>`
       }
 
       return `<div class="center">
@@ -5052,18 +5044,13 @@
     }
 
     function updateCompareToolbar() {
-      const lab = isAdminChartLab()
       const exitBtn = document.getElementById('exitCompareBtn')
       const compareBtn = document.getElementById('compareChartBtn')
-      if (exitBtn) exitBtn.classList.toggle('hidden', !lab || !comparePartnerInput)
-      if (compareBtn) compareBtn.classList.toggle('hidden', !lab || Boolean(comparePartnerInput))
+      if (exitBtn) exitBtn.classList.toggle('hidden', !comparePartnerInput)
+      if (compareBtn) compareBtn.classList.toggle('hidden', Boolean(comparePartnerInput))
     }
 
     async function startCompareFromSavedCharts() {
-      if (!isAdminChartLab()) {
-        alert('並排比對目前僅開放管理員測試')
-        return
-      }
       if (!window.ZiweiAuth) {
         alert('請先登入會員')
         return
@@ -5160,9 +5147,6 @@
     }
 
     async function createShareLink(expiresInDays) {
-      if (!isAdminChartLab()) {
-        throw new Error('分享連結目前僅開放管理員測試')
-      }
       const snapshot = buildShareSnapshot()
       const data = await window.ZiweiAuth.api('/api/charts/share', {
         method: 'POST',
@@ -5235,7 +5219,7 @@
     }
 
     function renderHepanPanelHtml(name, a, input) {
-      if (!isAdminChartLab() || !hepanActive || !comparePartnerInput || !window.HepanReading) return ''
+      if (!hepanActive || !comparePartnerInput || !window.HepanReading) return ''
       const partnerA = compute(comparePartnerInput)
       const reading = window.HepanReading.buildHepanReading(
         a,
@@ -5262,18 +5246,13 @@
     }
 
     function updateHepanToolbar() {
-      const lab = isAdminChartLab()
       const exitHepan = document.getElementById('exitHepanBtn')
       const hepanBtn = document.getElementById('hepanChartBtn')
-      if (exitHepan) exitHepan.classList.toggle('hidden', !lab || !hepanActive)
-      if (hepanBtn) hepanBtn.classList.toggle('hidden', !lab || Boolean(hepanActive))
+      if (exitHepan) exitHepan.classList.toggle('hidden', !hepanActive)
+      if (hepanBtn) hepanBtn.classList.toggle('hidden', Boolean(hepanActive))
     }
 
     async function startHepanFromSavedCharts() {
-      if (!isAdminChartLab()) {
-        alert('合盤目前僅開放管理員測試')
-        return
-      }
       if (!window.ZiweiAuth) {
         alert('請先登入會員')
         return
@@ -5345,7 +5324,7 @@
       const primaryHtml = buildChartOuterHtml(name, a, input, {})
       let viewHtml = primaryHtml
 
-      if (comparePartnerInput && isAdminChartLab()) {
+      if (comparePartnerInput) {
         const partnerA = compute(comparePartnerInput)
         const partnerName = comparePartnerInput.name || '匿名'
         const secondaryHtml = buildChartOuterHtml(partnerName, partnerA, comparePartnerInput, {
