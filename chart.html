@@ -493,6 +493,70 @@
       font-size: 16px;
     }
 
+    .chart-db-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 12px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .chart-db-toolbar label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: #444;
+    }
+
+    .chart-db-toolbar select {
+      min-width: 160px;
+      padding: 8px 10px;
+      font-family: inherit;
+      font-size: 15px;
+      border: 1px solid #bbb;
+      background: #fff;
+    }
+
+    .chart-db-group-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chart-db-group-actions button {
+      width: auto;
+      margin-top: 0;
+      padding: 8px 14px;
+      font-family: inherit;
+      font-size: 14px;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--paper-surface);
+      color: var(--ink);
+    }
+
+    .chart-db-group-actions button.primary-action {
+      color: #fff;
+      border-color: var(--border);
+    }
+
+    .chart-db-table .db-select-col {
+      width: 36px;
+      text-align: center;
+      padding-left: 8px;
+      padding-right: 8px;
+    }
+
+    .chart-db-table .db-group-cell {
+      white-space: nowrap;
+      color: #555;
+      max-width: 140px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
     .chart-db-status {
       font-size: 14px;
       color: #666;
@@ -2958,8 +3022,21 @@
           <button type="button" id="chartDbBackBtn">返回命盤</button>
         </div>
         <div class="chart-db-search">
-          <input type="search" id="savedChartSearch" placeholder="搜尋姓名或電話…" />
+          <input type="search" id="savedChartSearch" placeholder="搜尋姓名、電話或資料夾名稱…" />
           <button type="button" id="savedChartSearchBtn">搜尋</button>
+        </div>
+        <div class="chart-db-toolbar">
+          <label>
+            篩選資料夾
+            <select id="savedChartGroupFilter">
+              <option value="">全部命盤</option>
+            </select>
+          </label>
+          <div class="chart-db-group-actions">
+            <button type="button" id="savedChartNewGroupBtn" class="primary-action">新增資料夾</button>
+            <button type="button" id="savedChartMoveToGroupBtn">移入資料夾</button>
+            <button type="button" id="savedChartRemoveFromGroupBtn">移出資料夾</button>
+          </div>
         </div>
         <div class="chart-db-status" id="savedChartSearchStatus"></div>
         <div class="chart-db-table-wrap" id="savedChartList">
@@ -3743,10 +3820,13 @@
     }
 
     let savedChartSearchQuery = ''
+    let savedChartGroupFilterId = ''
+    let chartGroupsCache = []
     let chartDatabaseVisible = false
     let editingChartId = null
     const savedChartPayloads = new Map()
     const savedRowSnapshots = new Map()
+    const savedChartSelection = new Set()
 
     const DB_TIME_LABELS = {
       0: '早子時', 1: '丑時', 2: '寅時', 3: '卯時', 4: '辰時', 5: '巳時',
@@ -3782,18 +3862,158 @@
       document.getElementById('chartView')?.classList.add('hidden')
       document.getElementById('chartDatabaseView')?.classList.remove('hidden')
       hideAiInterpretUi()
-      loadSavedCharts(savedChartSearchQuery)
+      loadChartGroups()
+        .catch(function () { chartGroupsCache = [] })
+        .finally(function () {
+          loadSavedCharts(savedChartSearchQuery)
+        })
+    }
+
+    function getActiveGroupFilterLabel() {
+      if (!savedChartGroupFilterId) return ''
+      const group = chartGroupsCache.find(function (g) { return String(g.id) === String(savedChartGroupFilterId) })
+      return group ? group.name : ''
     }
 
     function updateSavedChartSearchStatus(count, query) {
       const status = document.getElementById('savedChartSearchStatus')
       if (!status) return
+      const folderLabel = getActiveGroupFilterLabel()
+      const folderNote = folderLabel ? '（資料夾：' + folderLabel + '）' : ''
       if (query && query.trim()) {
         status.textContent = count
-          ? '搜尋「' + query.trim() + '」共 ' + count + ' 筆'
-          : '搜尋「' + query.trim() + '」找不到符合的命盤'
+          ? '搜尋「' + query.trim() + '」' + folderNote + '共 ' + count + ' 筆'
+          : '搜尋「' + query.trim() + '」' + folderNote + '找不到符合的命盤'
+      } else if (folderLabel) {
+        status.textContent = count
+          ? '資料夾「' + folderLabel + '」共 ' + count + ' 筆命盤'
+          : '資料夾「' + folderLabel + '」尚無命盤'
       } else {
         status.textContent = count ? '共 ' + count + ' 筆已存命盤' : '尚無已存命盤'
+      }
+    }
+
+    function renderChartGroupFilterOptions() {
+      const sel = document.getElementById('savedChartGroupFilter')
+      if (!sel) return
+      const prev = savedChartGroupFilterId
+      let html = '<option value="">全部命盤</option>'
+      html += chartGroupsCache.map(function (g) {
+        return '<option value="' + g.id + '">' + escapeHtml(g.name) + ' (' + g.chartCount + ')</option>'
+      }).join('')
+      sel.innerHTML = html
+      if (prev && chartGroupsCache.some(function (g) { return String(g.id) === String(prev) })) {
+        sel.value = prev
+      } else {
+        savedChartGroupFilterId = ''
+        sel.value = ''
+      }
+    }
+
+    async function loadChartGroups() {
+      const data = await window.ZiweiAuth.api('/api/charts/groups')
+      chartGroupsCache = data.groups || []
+      renderChartGroupFilterOptions()
+    }
+
+    function buildChartsApiQuery() {
+      const params = []
+      const q = savedChartSearchQuery.trim()
+      if (q) params.push('q=' + encodeURIComponent(q))
+      if (savedChartGroupFilterId) params.push('groupId=' + encodeURIComponent(savedChartGroupFilterId))
+      return params.length ? '?' + params.join('&') : ''
+    }
+
+    function getSelectedChartIds() {
+      return Array.from(savedChartSelection)
+    }
+
+    function syncSavedChartSelectionFromDom() {
+      savedChartSelection.clear()
+      document.querySelectorAll('.saved-chart-select:checked').forEach(function (cb) {
+        savedChartSelection.add(Number(cb.dataset.chartId))
+      })
+    }
+
+    async function pickGroupByPrompt(title) {
+      if (!chartGroupsCache.length) {
+        alert('請先按「新增資料夾」建立資料夾')
+        return null
+      }
+      const lines = chartGroupsCache.map(function (g, i) {
+        return (i + 1) + '. ' + g.name + '（' + g.chartCount + ' 筆）'
+      }).join('\n')
+      const raw = prompt(title + '\n\n' + lines + '\n\n請輸入序號：')
+      if (raw == null || !String(raw).trim()) return null
+      const idx = Number(String(raw).trim()) - 1
+      if (!Number.isFinite(idx) || idx < 0 || idx >= chartGroupsCache.length) {
+        alert('無效的序號')
+        return null
+      }
+      return chartGroupsCache[idx].id
+    }
+
+    async function createChartGroupFromUi() {
+      const name = prompt('請輸入資料夾名稱（1–40 字）')
+      if (name == null || !name.trim()) return
+      try {
+        const data = await window.ZiweiAuth.api('/api/charts/groups', {
+          method: 'POST',
+          body: JSON.stringify({ name: name.trim() }),
+        })
+        await loadChartGroups()
+        if (data.group && data.group.id) {
+          savedChartGroupFilterId = String(data.group.id)
+          const sel = document.getElementById('savedChartGroupFilter')
+          if (sel) sel.value = savedChartGroupFilterId
+        }
+        await loadSavedCharts(savedChartSearchQuery)
+      } catch (err) {
+        alert(err.message || '建立資料夾失敗')
+      }
+    }
+
+    async function moveSelectedChartsToGroup() {
+      syncSavedChartSelectionFromDom()
+      const chartIds = getSelectedChartIds()
+      if (!chartIds.length) {
+        alert('請先勾選要移入資料夾的命盤')
+        return
+      }
+      try {
+        await loadChartGroups()
+        const groupId = await pickGroupByPrompt('移入哪個資料夾？')
+        if (!groupId) return
+        await window.ZiweiAuth.api('/api/charts/groups/' + groupId + '/members', {
+          method: 'PUT',
+          body: JSON.stringify({ chartIds: chartIds }),
+        })
+        savedChartSelection.clear()
+        await loadChartGroups()
+        await loadSavedCharts(savedChartSearchQuery)
+      } catch (err) {
+        alert(err.message || '移入資料夾失敗')
+      }
+    }
+
+    async function removeSelectedChartsFromGroup() {
+      syncSavedChartSelectionFromDom()
+      const chartIds = getSelectedChartIds()
+      if (!chartIds.length) {
+        alert('請先勾選要移出資料夾的命盤')
+        return
+      }
+      if (!confirm('確定將所選 ' + chartIds.length + ' 筆命盤移出資料夾？（不會刪除命盤）')) return
+      try {
+        await window.ZiweiAuth.api('/api/charts/groups/unassign', {
+          method: 'POST',
+          body: JSON.stringify({ chartIds: chartIds }),
+        })
+        savedChartSelection.clear()
+        await loadChartGroups()
+        await loadSavedCharts(savedChartSearchQuery)
+      } catch (err) {
+        alert(err.message || '移出資料夾失敗')
       }
     }
 
@@ -4034,7 +4254,8 @@
         return
       }
       let html = '<table class="chart-db-table"><thead><tr>' +
-        '<th>姓名</th><th>性別</th><th>出生資訊</th><th>電話</th><th>操作</th>' +
+        '<th class="db-select-col"><input type="checkbox" id="savedChartSelectAll" title="全選本頁" aria-label="全選" /></th>' +
+        '<th>姓名</th><th>性別</th><th>出生資訊</th><th>電話</th><th>資料夾</th><th>操作</th>' +
         '</tr></thead><tbody>'
       html += charts.map(function (chart) {
         const phone = chart.phone || ''
@@ -4042,8 +4263,13 @@
         savedChartPayloads.set(chart.id, payload)
         const birthText = chart.birthDateTime || formatBirthDateTimeFromPayload(payload)
         const name = payload.name || chart.subjectName
+        const groupLabel = chart.groupName ? escapeHtml(chart.groupName) : '—'
+        const checked = savedChartSelection.has(chart.id) ? ' checked' : ''
         return (
           '<tr data-chart-id="' + chart.id + '">' +
+            '<td class="db-select-col">' +
+              '<input type="checkbox" class="saved-chart-select" data-chart-id="' + chart.id + '"' + checked + ' aria-label="選取" />' +
+            '</td>' +
             '<td class="db-name-cell">' +
               '<span class="db-field-view">' + escapeHtml(chart.subjectName) + '</span>' +
               '<input type="text" class="db-field-edit db-name-input" value="' + escapeHtml(name) + '" readonly />' +
@@ -4060,6 +4286,7 @@
               buildBirthEditHtml(payload) +
             '</td>' +
             '<td><input type="tel" class="db-phone-input" value="' + escapeHtml(phone) + '" placeholder="請輸入電話" readonly /></td>' +
+            '<td class="db-group-cell">' + groupLabel + '</td>' +
             '<td><div class="db-actions">' +
               '<button type="button" data-edit-chart="' + chart.id + '">修改</button>' +
               '<button type="button" data-save-chart="' + chart.id + '" disabled>儲存</button>' +
@@ -4124,9 +4351,36 @@
           if (!confirm('確定要刪除「' + btn.dataset.name + '」的命盤？')) return
           try {
             await window.ZiweiAuth.api('/api/charts/' + btn.dataset.deleteChart, { method: 'DELETE' })
+            savedChartSelection.delete(Number(btn.dataset.deleteChart))
+            await loadChartGroups().catch(function () {})
             await loadSavedCharts(savedChartSearchQuery)
           } catch (err) {
             alert(err.message || '刪除失敗')
+          }
+        })
+      })
+
+      const selectAll = document.getElementById('savedChartSelectAll')
+      if (selectAll) {
+        selectAll.addEventListener('change', function () {
+          const on = selectAll.checked
+          list.querySelectorAll('.saved-chart-select').forEach(function (cb) {
+            cb.checked = on
+            const id = Number(cb.dataset.chartId)
+            if (on) savedChartSelection.add(id)
+            else savedChartSelection.delete(id)
+          })
+        })
+      }
+
+      list.querySelectorAll('.saved-chart-select').forEach(function (cb) {
+        cb.addEventListener('change', function () {
+          const id = Number(cb.dataset.chartId)
+          if (cb.checked) savedChartSelection.add(id)
+          else savedChartSelection.delete(id)
+          if (selectAll) {
+            const boxes = list.querySelectorAll('.saved-chart-select')
+            selectAll.checked = boxes.length > 0 && Array.from(boxes).every(function (box) { return box.checked })
           }
         })
       })
@@ -4140,8 +4394,7 @@
       if (status) status.textContent = '搜尋中…'
       list.innerHTML = '<div class="chart-db-empty">搜尋中…</div>'
       try {
-        const q = savedChartSearchQuery.trim() ? '?q=' + encodeURIComponent(savedChartSearchQuery.trim()) : ''
-        const data = await window.ZiweiAuth.api('/api/charts' + q)
+        const data = await window.ZiweiAuth.api('/api/charts' + buildChartsApiQuery())
         renderSavedChartList(data.charts || [], savedChartSearchQuery)
       } catch (err) {
         if (status) status.textContent = ''
@@ -4754,6 +5007,23 @@
         e.preventDefault()
         loadSavedCharts(e.target.value || '')
       }
+    })
+
+    document.getElementById('savedChartGroupFilter')?.addEventListener('change', function (e) {
+      savedChartGroupFilterId = e.target.value || ''
+      loadSavedCharts(savedChartSearchQuery)
+    })
+
+    document.getElementById('savedChartNewGroupBtn')?.addEventListener('click', function () {
+      createChartGroupFromUi()
+    })
+
+    document.getElementById('savedChartMoveToGroupBtn')?.addEventListener('click', function () {
+      moveSelectedChartsToGroup()
+    })
+
+    document.getElementById('savedChartRemoveFromGroupBtn')?.addEventListener('click', function () {
+      removeSelectedChartsFromGroup()
     })
 
     document.querySelectorAll('input[name="calendar"]').forEach(el => {

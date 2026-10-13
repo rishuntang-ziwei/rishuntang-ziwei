@@ -59,6 +59,23 @@ export async function initDb() {
     db.exec(`ALTER TABLE saved_charts ADD COLUMN phone TEXT NOT NULL DEFAULT ''`)
   }
 
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS chart_groups (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      name TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      UNIQUE(user_id, name)
+    );
+    CREATE INDEX IF NOT EXISTS idx_chart_groups_user ON chart_groups(user_id);
+  `)
+
+  const chartColumnsAfter = db.prepare('PRAGMA table_info(saved_charts)').all() as { name: string }[]
+  if (!chartColumnsAfter.some((col) => col.name === 'group_id')) {
+    db.exec(`ALTER TABLE saved_charts ADD COLUMN group_id INTEGER REFERENCES chart_groups(id) ON DELETE SET NULL`)
+  }
+
   if (!userColumns.some((col) => col.name === 'membership_plan')) {
     db.exec(`ALTER TABLE users ADD COLUMN membership_plan TEXT`)
   }
@@ -344,24 +361,144 @@ export async function deleteUser(id: number): Promise<boolean> {
   return result.changes > 0
 }
 
-export async function listSavedChartsByUser(userId: number, search?: string): Promise<SavedChartSummary[]> {
+function mapSavedChartListRow(row: Record<string, unknown>): SavedChartSummary {
+  return toSavedChartSummary(mapSavedChartRow(row), {
+    group_name: row.group_name != null ? String(row.group_name) : null,
+  })
+}
+
+export async function listSavedChartsByUser(
+  userId: number,
+  search?: string,
+  groupId?: number,
+): Promise<SavedChartSummary[]> {
   const q = search?.trim()
-  const rows = q
-    ? (db
-        .prepare(
-          `SELECT * FROM saved_charts
-           WHERE user_id = ? AND (subject_name LIKE ? OR phone LIKE ?)
-           ORDER BY updated_at DESC, id DESC`,
-        )
-        .all(userId, `%${q}%`, `%${q}%`) as unknown as Record<string, unknown>[])
-    : (db
-        .prepare(
-          `SELECT * FROM saved_charts
-           WHERE user_id = ?
-           ORDER BY updated_at DESC, id DESC`,
-        )
-        .all(userId) as unknown as Record<string, unknown>[])
-  return rows.map((row) => toSavedChartSummary(mapSavedChartRow(row)))
+  const like = q ? `%${q}%` : null
+  const rows = db
+    .prepare(
+      `SELECT sc.*, cg.name AS group_name
+       FROM saved_charts sc
+       LEFT JOIN chart_groups cg ON cg.id = sc.group_id
+       WHERE sc.user_id = ?
+         AND (? IS NULL OR sc.group_id = ?)
+         AND (
+           ? IS NULL
+           OR sc.subject_name LIKE ?
+           OR sc.phone LIKE ?
+           OR cg.name LIKE ?
+         )
+       ORDER BY sc.updated_at DESC, sc.id DESC`,
+    )
+    .all(
+      userId,
+      groupId ?? null,
+      groupId ?? null,
+      like,
+      like,
+      like,
+      like,
+    ) as unknown as Record<string, unknown>[]
+  return rows.map((row) => mapSavedChartListRow(row))
+}
+
+export async function listChartGroupsByUser(userId: number): Promise<import('../types.js').ChartGroupSummary[]> {
+  const rows = db
+    .prepare(
+      `SELECT g.id, g.name, g.created_at, g.updated_at,
+              COUNT(sc.id) AS chart_count
+       FROM chart_groups g
+       LEFT JOIN saved_charts sc ON sc.group_id = g.id AND sc.user_id = g.user_id
+       WHERE g.user_id = ?
+       GROUP BY g.id
+       ORDER BY g.name COLLATE NOCASE ASC`,
+    )
+    .all(userId) as unknown as Record<string, unknown>[]
+  return rows.map((row) => ({
+    id: Number(row.id),
+    name: String(row.name),
+    chartCount: Number(row.chart_count ?? 0),
+    createdAt: String(row.created_at),
+    updatedAt: String(row.updated_at),
+  }))
+}
+
+export async function createChartGroup(userId: number, name: string): Promise<import('../types.js').ChartGroupSummary> {
+  const trimmed = name.trim()
+  const result = db
+    .prepare(`INSERT INTO chart_groups (user_id, name) VALUES (?, ?)`)
+    .run(userId, trimmed)
+  const id = Number(result.lastInsertRowid)
+  const row = db.prepare('SELECT * FROM chart_groups WHERE id = ?').get(id) as Record<string, unknown>
+  return {
+    id,
+    name: String(row.name),
+    chartCount: 0,
+    createdAt: String(row.created_at),
+    updatedAt: String(row.updated_at),
+  }
+}
+
+export async function findChartGroupForUser(
+  groupId: number,
+  userId: number,
+): Promise<{ id: number; name: string } | undefined> {
+  const row = db
+    .prepare('SELECT id, name FROM chart_groups WHERE id = ? AND user_id = ?')
+    .get(groupId, userId) as Record<string, unknown> | undefined
+  if (!row) return undefined
+  return { id: Number(row.id), name: String(row.name) }
+}
+
+export async function renameChartGroup(
+  groupId: number,
+  userId: number,
+  name: string,
+): Promise<import('../types.js').ChartGroupSummary | undefined> {
+  const trimmed = name.trim()
+  const result = db
+    .prepare(
+      `UPDATE chart_groups SET name = ?, updated_at = datetime('now') WHERE id = ? AND user_id = ?`,
+    )
+    .run(trimmed, groupId, userId)
+  if (result.changes === 0) return undefined
+  const groups = await listChartGroupsByUser(userId)
+  return groups.find((g) => g.id === groupId)
+}
+
+export async function deleteChartGroup(groupId: number, userId: number): Promise<boolean> {
+  const result = db.prepare('DELETE FROM chart_groups WHERE id = ? AND user_id = ?').run(groupId, userId)
+  return result.changes > 0
+}
+
+export async function assignChartsToGroup(
+  userId: number,
+  groupId: number,
+  chartIds: number[],
+): Promise<number> {
+  const group = await findChartGroupForUser(groupId, userId)
+  if (!group) return 0
+  let updated = 0
+  const stmt = db.prepare(
+    `UPDATE saved_charts SET group_id = ?, updated_at = datetime('now') WHERE id = ? AND user_id = ?`,
+  )
+  for (const chartId of chartIds) {
+    const r = stmt.run(groupId, chartId, userId)
+    updated += Number(r.changes)
+  }
+  db.prepare(`UPDATE chart_groups SET updated_at = datetime('now') WHERE id = ?`).run(groupId)
+  return updated
+}
+
+export async function removeChartsFromGroup(userId: number, chartIds: number[]): Promise<number> {
+  let updated = 0
+  const stmt = db.prepare(
+    `UPDATE saved_charts SET group_id = NULL, updated_at = datetime('now') WHERE id = ? AND user_id = ?`,
+  )
+  for (const chartId of chartIds) {
+    const r = stmt.run(chartId, userId)
+    updated += Number(r.changes)
+  }
+  return updated
 }
 
 export async function findSavedChartById(id: number): Promise<SavedChartRow | undefined> {

@@ -21,8 +21,17 @@ export const countAdmins = () => driver.countAdmins()
 export const updateUserRole = (id: number, role: 'user' | 'admin') => driver.updateUserRole(id, role)
 export const updateUserStarDraw = (id: number, enabled: boolean) => driver.updateUserStarDraw(id, enabled)
 export const deleteUser = (id: number) => driver.deleteUser(id)
-export const listSavedChartsByUser = (userId: number, search?: string) =>
-  driver.listSavedChartsByUser(userId, search)
+export const listSavedChartsByUser = (userId: number, search?: string, groupId?: number) =>
+  driver.listSavedChartsByUser(userId, search, groupId)
+export const listChartGroupsByUser = (userId: number) => driver.listChartGroupsByUser(userId)
+export const createChartGroup = (userId: number, name: string) => driver.createChartGroup(userId, name)
+export const renameChartGroup = (groupId: number, userId: number, name: string) =>
+  driver.renameChartGroup(groupId, userId, name)
+export const deleteChartGroup = (groupId: number, userId: number) => driver.deleteChartGroup(groupId, userId)
+export const assignChartsToGroup = (userId: number, groupId: number, chartIds: number[]) =>
+  driver.assignChartsToGroup(userId, groupId, chartIds)
+export const removeChartsFromGroup = (userId: number, chartIds: number[]) =>
+  driver.removeChartsFromGroup(userId, chartIds)
 export const findSavedChartById = (id: number) => driver.findSavedChartById(id)
 export const findSavedChartForUser = (id: number, userId: number) =>
   driver.findSavedChartForUser(id, userId)

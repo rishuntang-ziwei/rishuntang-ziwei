@@ -82,9 +82,18 @@ export interface SavedChartRow {
   gender: ChartGender
   bazi: string
   phone: string
+  group_id: number | null
   payload: string
   created_at: string
   updated_at: string
+}
+
+export interface ChartGroupSummary {
+  id: number
+  name: string
+  chartCount: number
+  createdAt: string
+  updatedAt: string
 }
 
 export interface SavedChartSummary {
@@ -92,6 +101,8 @@ export interface SavedChartSummary {
   subjectName: string
   gender: ChartGender
   phone: string
+  groupId: number | null
+  groupName: string | null
   birthDateTime: string
   payload: SavedChartPayload
   createdAt: string

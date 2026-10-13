@@ -75,6 +75,22 @@ export async function initDb() {
   `)
 
   await pool.query(`
+    CREATE TABLE IF NOT EXISTS chart_groups (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      name TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE(user_id, name)
+    )
+  `)
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_chart_groups_user ON chart_groups(user_id)`)
+  await pool.query(`
+    ALTER TABLE saved_charts
+    ADD COLUMN IF NOT EXISTS group_id INTEGER REFERENCES chart_groups(id) ON DELETE SET NULL
+  `)
+
+  await pool.query(`
     ALTER TABLE users
     ADD COLUMN IF NOT EXISTS membership_plan TEXT
   `)
@@ -366,22 +382,135 @@ export async function deleteUser(id: number): Promise<boolean> {
   return (result.rowCount ?? 0) > 0
 }
 
-export async function listSavedChartsByUser(userId: number, search?: string): Promise<SavedChartSummary[]> {
+function mapSavedChartListRow(row: Record<string, unknown>): SavedChartSummary {
+  return toSavedChartSummary(mapSavedChartRow(row), {
+    group_name: row.group_name != null ? String(row.group_name) : null,
+  })
+}
+
+export async function listSavedChartsByUser(
+  userId: number,
+  search?: string,
+  groupId?: number,
+): Promise<SavedChartSummary[]> {
   const q = search?.trim()
-  const result = q
-    ? await pool.query(
-        `SELECT * FROM saved_charts
-         WHERE user_id = $1 AND (subject_name ILIKE $2 OR phone ILIKE $2)
-         ORDER BY updated_at DESC, id DESC`,
-        [userId, `%${q}%`],
-      )
-    : await pool.query(
-        `SELECT * FROM saved_charts
-         WHERE user_id = $1
-         ORDER BY updated_at DESC, id DESC`,
-        [userId],
-      )
-  return result.rows.map((row) => toSavedChartSummary(mapSavedChartRow(row)))
+  const like = q ? `%${q}%` : null
+  const result = await pool.query(
+    `SELECT sc.*, cg.name AS group_name
+     FROM saved_charts sc
+     LEFT JOIN chart_groups cg ON cg.id = sc.group_id
+     WHERE sc.user_id = $1
+       AND ($2::int IS NULL OR sc.group_id = $2)
+       AND (
+         $3::text IS NULL
+         OR sc.subject_name ILIKE $3
+         OR sc.phone ILIKE $3
+         OR cg.name ILIKE $3
+       )
+     ORDER BY sc.updated_at DESC, sc.id DESC`,
+    [userId, groupId ?? null, like],
+  )
+  return result.rows.map((row) => mapSavedChartListRow(row as Record<string, unknown>))
+}
+
+export async function listChartGroupsByUser(userId: number): Promise<import('../types.js').ChartGroupSummary[]> {
+  const result = await pool.query(
+    `SELECT g.id, g.name, g.created_at, g.updated_at,
+            COUNT(sc.id)::int AS chart_count
+     FROM chart_groups g
+     LEFT JOIN saved_charts sc ON sc.group_id = g.id AND sc.user_id = g.user_id
+     WHERE g.user_id = $1
+     GROUP BY g.id
+     ORDER BY g.name ASC`,
+    [userId],
+  )
+  return result.rows.map((row) => ({
+    id: Number(row.id),
+    name: String(row.name),
+    chartCount: Number(row.chart_count ?? 0),
+    createdAt: new Date(row.created_at).toISOString(),
+    updatedAt: new Date(row.updated_at).toISOString(),
+  }))
+}
+
+export async function createChartGroup(userId: number, name: string): Promise<import('../types.js').ChartGroupSummary> {
+  const trimmed = name.trim()
+  const result = await pool.query(
+    `INSERT INTO chart_groups (user_id, name) VALUES ($1, $2) RETURNING id, name, created_at, updated_at`,
+    [userId, trimmed],
+  )
+  const row = result.rows[0]
+  return {
+    id: Number(row.id),
+    name: String(row.name),
+    chartCount: 0,
+    createdAt: new Date(row.created_at).toISOString(),
+    updatedAt: new Date(row.updated_at).toISOString(),
+  }
+}
+
+export async function findChartGroupForUser(
+  groupId: number,
+  userId: number,
+): Promise<{ id: number; name: string } | undefined> {
+  const result = await pool.query('SELECT id, name FROM chart_groups WHERE id = $1 AND user_id = $2', [
+    groupId,
+    userId,
+  ])
+  const row = result.rows[0]
+  if (!row) return undefined
+  return { id: Number(row.id), name: String(row.name) }
+}
+
+export async function renameChartGroup(
+  groupId: number,
+  userId: number,
+  name: string,
+): Promise<import('../types.js').ChartGroupSummary | undefined> {
+  const trimmed = name.trim()
+  const result = await pool.query(
+    `UPDATE chart_groups SET name = $1, updated_at = NOW() WHERE id = $2 AND user_id = $3`,
+    [trimmed, groupId, userId],
+  )
+  if ((result.rowCount ?? 0) === 0) return undefined
+  const groups = await listChartGroupsByUser(userId)
+  return groups.find((g) => g.id === groupId)
+}
+
+export async function deleteChartGroup(groupId: number, userId: number): Promise<boolean> {
+  const result = await pool.query('DELETE FROM chart_groups WHERE id = $1 AND user_id = $2', [groupId, userId])
+  return (result.rowCount ?? 0) > 0
+}
+
+export async function assignChartsToGroup(
+  userId: number,
+  groupId: number,
+  chartIds: number[],
+): Promise<number> {
+  const group = await findChartGroupForUser(groupId, userId)
+  if (!group) return 0
+  let updated = 0
+  for (const chartId of chartIds) {
+    const result = await pool.query(
+      `UPDATE saved_charts SET group_id = $1, updated_at = NOW() WHERE id = $2 AND user_id = $3`,
+      [groupId, chartId, userId],
+    )
+    updated += result.rowCount ?? 0
+  }
+  await pool.query(`UPDATE chart_groups SET updated_at = NOW() WHERE id = $1`, [groupId])
+  return updated
+}
+
+export async function removeChartsFromGroup(userId: number, chartIds: number[]): Promise<number> {
+  let updated = 0
+  for (const chartId of chartIds) {
+    const result = await pool.query(
+      `UPDATE saved_charts SET group_id = NULL, updated_at = NOW() WHERE id = $1 AND user_id = $2`,
+      [chartId, userId],
+    )
+    updated += result.rowCount ?? 0
+  }
+  return updated
 }
 
 export async function findSavedChartById(id: number): Promise<SavedChartRow | undefined> {

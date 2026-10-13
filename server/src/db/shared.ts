@@ -23,13 +23,22 @@ export function parseSavedChartPayload(raw: string): SavedChartPayload {
   return JSON.parse(raw) as SavedChartPayload
 }
 
-export function toSavedChartSummary(row: SavedChartRow): SavedChartSummary {
+export function toSavedChartSummary(
+  row: SavedChartRow,
+  extras?: { group_name?: string | null },
+): SavedChartSummary {
   const payload = parseSavedChartPayload(row.payload)
+  const groupName =
+    extras?.group_name != null && String(extras.group_name).trim()
+      ? String(extras.group_name).trim()
+      : null
   return {
     id: row.id,
     subjectName: row.subject_name,
     gender: row.gender,
     phone: row.phone,
+    groupId: row.group_id ?? null,
+    groupName,
     birthDateTime: formatBirthDateTime(payload),
     payload,
     createdAt: row.created_at,
@@ -129,6 +138,7 @@ export function mapSavedChartRow(row: Record<string, unknown>): SavedChartRow {
     gender: row.gender as SavedChartRow['gender'],
     bazi: String(row.bazi),
     phone: String(row.phone ?? ''),
+    group_id: row.group_id != null && row.group_id !== '' ? Number(row.group_id) : null,
     payload: String(row.payload),
     created_at: toIsoString(row.created_at),
     updated_at: toIsoString(row.updated_at),
