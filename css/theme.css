@@ -698,14 +698,15 @@ body {
   background: var(--ui-primary-hover);
 }
 
-.chart-db-group-actions button.primary-action {
-  color: #fff;
-  background: var(--ui-primary);
-  border-color: var(--ui-primary-hover);
+.chart-db-group-actions button.chart-db-create-folder {
+  font-weight: 600;
+  color: var(--ink);
+  background: var(--paper-surface);
+  border-color: var(--border);
 }
 
-.chart-db-group-actions button.primary-action:hover {
-  background: var(--ui-primary-hover);
+.chart-db-group-actions button.chart-db-create-folder:hover {
+  background: var(--paper-muted);
 }
 
 .chart-db-table th {

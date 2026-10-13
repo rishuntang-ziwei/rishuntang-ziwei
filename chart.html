@@ -9,7 +9,7 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="apple-touch-icon" href="./icons/icon-192.png" />
   <title>紫微斗數線上排盤｜國際日舜堂</title>
-  <link rel="stylesheet" href="./css/theme.css?v=20261013a" />
+  <link rel="stylesheet" href="./css/theme.css?v=20261013b" />
   <style>
     :root {
       --paper: #fffdf9;
@@ -537,14 +537,15 @@
       color: var(--ink);
     }
 
-    .chart-db-group-actions button.primary-action {
-      color: #fff;
-      background: var(--ui-primary, var(--brand-brown));
-      border-color: var(--ui-primary-hover, var(--brand-brown-dark));
+    .chart-db-group-actions button.chart-db-create-folder {
+      font-weight: 600;
+      color: var(--ink);
+      background: var(--paper-surface, var(--paper));
+      border-color: var(--border);
     }
 
-    .chart-db-group-actions button.primary-action:hover {
-      background: var(--ui-primary-hover, var(--brand-brown-dark));
+    .chart-db-group-actions button.chart-db-create-folder:hover {
+      background: var(--paper-muted, #f5efe4);
     }
 
     .chart-db-table .db-select-col {
@@ -3038,7 +3039,7 @@
             </select>
           </label>
           <div class="chart-db-group-actions">
-            <button type="button" id="savedChartNewGroupBtn" class="primary-action">新增資料夾</button>
+            <button type="button" id="savedChartNewGroupBtn" class="chart-db-create-folder">建立資料夾</button>
             <button type="button" id="savedChartMoveToGroupBtn">移入資料夾</button>
             <button type="button" id="savedChartRemoveFromGroupBtn">移出資料夾</button>
           </div>
@@ -3942,7 +3943,7 @@
 
     async function pickGroupByPrompt(title) {
       if (!chartGroupsCache.length) {
-        alert('請先按「新增資料夾」建立資料夾')
+        alert('請先按「建立資料夾」')
         return null
       }
       const lines = chartGroupsCache.map(function (g, i) {
