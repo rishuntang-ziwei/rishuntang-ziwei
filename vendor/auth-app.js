@@ -1006,9 +1006,6 @@
     const starDrawBtn = document.getElementById('starDrawBtn')
     const saveChartBtn = document.getElementById('saveChartBtn')
     const printChartBtn = document.getElementById('printChartBtn')
-    const exportPdfBtn = document.getElementById('exportPdfBtn')
-    const compareChartBtn = document.getElementById('compareChartBtn')
-    const exitCompareBtn = document.getElementById('exitCompareBtn')
     const chartDbBtn = document.getElementById('chartDbBtn')
 
     window.ZiweiMember = {
@@ -1027,55 +1024,22 @@
       return window.ZiweiMember.requirePremium(featureName)
     }
 
-    ;[saveChartBtn, printChartBtn, exportPdfBtn, compareChartBtn, chartDbBtn, starDrawBtn].forEach(function (btn) {
+    ;[saveChartBtn, printChartBtn, chartDbBtn, starDrawBtn].forEach(function (btn) {
       if (!btn) return
       btn.disabled = false
       btn.classList.toggle('member-feature-locked', !premium)
       btn.title = premium ? '' : '付費會員專屬功能，請升級訂閱'
     })
 
-    function printCurrentChart(pdfHint) {
-      if (!requireUpgrade('列印功能')) return
-      const view = document.getElementById('chartView')
-      if (!view || view.querySelector('.chart-placeholder') || view.querySelector('.error-box')) {
-        alert('請先完成排盤後再列印')
-        return
-      }
-      if (pdfHint) {
-        alert('請在列印對話框選擇「另存為 PDF」或「Microsoft Print to PDF」。')
-      }
-      window.print()
-    }
-
     if (printChartBtn) {
       printChartBtn.onclick = function () {
-        printCurrentChart(false)
-      }
-    }
-
-    if (exportPdfBtn) {
-      exportPdfBtn.onclick = function () {
-        printCurrentChart(true)
-      }
-    }
-
-    if (compareChartBtn) {
-      compareChartBtn.onclick = function () {
-        if (!requireUpgrade('並排比對')) return
+        if (!requireUpgrade('列印功能')) return
         const view = document.getElementById('chartView')
         if (!view || view.querySelector('.chart-placeholder') || view.querySelector('.error-box')) {
-          alert('請先完成排盤後再比對')
+          alert('請先完成排盤後再列印')
           return
         }
-        if (typeof window.startCompareFromSavedCharts === 'function') {
-          window.startCompareFromSavedCharts()
-        }
-      }
-    }
-
-    if (exitCompareBtn) {
-      exitCompareBtn.onclick = function () {
-        if (typeof window.exitCompareMode === 'function') window.exitCompareMode()
+        window.print()
       }
     }
 
