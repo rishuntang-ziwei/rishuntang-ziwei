@@ -1009,9 +1009,6 @@
     const exportPdfBtn = document.getElementById('exportPdfBtn')
     const compareChartBtn = document.getElementById('compareChartBtn')
     const exitCompareBtn = document.getElementById('exitCompareBtn')
-    const hepanChartBtn = document.getElementById('hepanChartBtn')
-    const exitHepanBtn = document.getElementById('exitHepanBtn')
-    const shareChartBtn = document.getElementById('shareChartBtn')
     const chartDbBtn = document.getElementById('chartDbBtn')
 
     window.ZiweiMember = {
@@ -1030,16 +1027,7 @@
       return window.ZiweiMember.requirePremium(featureName)
     }
 
-    ;[
-      saveChartBtn,
-      printChartBtn,
-      exportPdfBtn,
-      compareChartBtn,
-      hepanChartBtn,
-      shareChartBtn,
-      chartDbBtn,
-      starDrawBtn,
-    ].forEach(function (btn) {
+    ;[saveChartBtn, printChartBtn, exportPdfBtn, compareChartBtn, chartDbBtn, starDrawBtn].forEach(function (btn) {
       if (!btn) return
       btn.disabled = false
       btn.classList.toggle('member-feature-locked', !premium)
@@ -1091,58 +1079,6 @@
       }
     }
 
-    if (hepanChartBtn) {
-      hepanChartBtn.onclick = function () {
-        if (!requireUpgrade('合盤')) return
-        const view = document.getElementById('chartView')
-        if (!view || view.querySelector('.chart-placeholder') || view.querySelector('.error-box')) {
-          alert('請先完成排盤後再合盤')
-          return
-        }
-        if (typeof window.startHepanFromSavedCharts === 'function') {
-          window.startHepanFromSavedCharts()
-        }
-      }
-    }
-
-    if (exitHepanBtn) {
-      exitHepanBtn.onclick = function () {
-        if (typeof window.exitHepanMode === 'function') window.exitHepanMode()
-      }
-    }
-
-    if (shareChartBtn) {
-      shareChartBtn.onclick = async function () {
-        if (!requireUpgrade('分享連結')) return
-        const view = document.getElementById('chartView')
-        if (!view || view.querySelector('.chart-placeholder') || view.querySelector('.error-box')) {
-          alert('請先完成排盤後再分享')
-          return
-        }
-        if (typeof window.createShareLinkAction !== 'function') {
-          alert('排盤程式尚未就緒，請重新整理頁面')
-          return
-        }
-        const daysRaw = window.prompt('連結有效天數（1–90，預設 14）', '14')
-        if (daysRaw === null) return
-        const days = Number(daysRaw) || 14
-        try {
-          const result = await window.createShareLinkAction(days)
-          if (navigator.clipboard && navigator.clipboard.writeText) {
-            await navigator.clipboard.writeText(result.url)
-            alert(
-              '分享連結已複製到剪貼簿（唯讀）\n有效至：' +
-                new Date(result.expiresAt).toLocaleString('zh-TW'),
-            )
-          } else {
-            window.prompt('請複製分享連結（唯讀）', result.url)
-          }
-        } catch (err) {
-          alert(err.message || '建立分享連結失敗')
-        }
-      }
-    }
-
     if (saveChartBtn) {
       saveChartBtn.onclick = async function () {
         if (!requireUpgrade('儲存命盤')) return
@@ -1185,50 +1121,6 @@
 
     if (typeof window.applyMemberTierUI === 'function') {
       window.applyMemberTierUI()
-    }
-  }
-
-  async function enterShareApp(token) {
-    document.body.classList.add('share-mode')
-    setView('app')
-
-    const formPanel = document.querySelector('.form-panel')
-    if (formPanel) formPanel.hidden = true
-    const toolbar = document.getElementById('appToolbar')
-    if (toolbar) toolbar.hidden = true
-
-    let banner = document.getElementById('shareModeBanner')
-    if (!banner) {
-      banner = document.createElement('div')
-      banner.id = 'shareModeBanner'
-      banner.className = 'share-mode-banner'
-      const chartPanel = document.getElementById('chartPanel')
-      if (chartPanel) chartPanel.insertBefore(banner, chartPanel.firstChild)
-    }
-    banner.textContent = '正在載入分享命盤…'
-
-    if (typeof window.initChartApp === 'function') window.initChartApp()
-
-    try {
-      const res = await fetch(auth.apiBase() + '/api/share/' + encodeURIComponent(token))
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || '分享連結無效')
-      const share = data.share
-      const expires = share.expiresAt
-        ? new Date(share.expiresAt).toLocaleString('zh-TW')
-        : ''
-      banner.textContent =
-        '老師分享唯讀命盤 · 無法修改資料' + (expires ? ' · 有效至 ' + expires : '')
-      if (typeof window.applyShareDocument === 'function') {
-        window.applyShareDocument(share.document)
-      }
-    } catch (err) {
-      banner.textContent = err.message || '無法載入分享命盤'
-      const chartView = document.getElementById('chartView')
-      if (chartView) {
-        chartView.innerHTML =
-          '<div class="error-box">' + (err.message || '分享連結無效或已過期') + '</div>'
-      }
     }
   }
 
@@ -1321,14 +1213,7 @@
   }
 
   async function boot() {
-    const params = new URLSearchParams(location.search)
-    const shareToken = params.get('share')
-    if (shareToken) {
-      await enterShareApp(shareToken)
-      return
-    }
-
-    if (params.get('guest') === '1') {
+    if (new URLSearchParams(location.search).get('guest') === '1') {
       await enterGuestApp()
       return
     }

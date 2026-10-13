@@ -1,5 +1,5 @@
 /* 國際日舜堂排盤 · 靜態資源快取（API 一律走網路） */
-const CACHE_VERSION = 'rishuntang-ziwei-v2'
+const CACHE_VERSION = 'rishuntang-ziwei-v1'
 const PRECACHE = [
   './',
   './index.html',
@@ -14,11 +14,6 @@ const PRECACHE = [
   './vendor/auth-app.js',
   './vendor/payment-ui.js',
   './vendor/pwa-register.js',
-  './vendor/hepan-reading.mjs',
-  './vendor/wuxing-panel.mjs',
-  './vendor/ai-formatter.mjs',
-  './vendor/ai-interpreter.mjs',
-  './vendor/rishuntang-brightness.js',
   './assets/zushi-jiangziya.png',
   './manifest.webmanifest',
   './icons/icon-192.png',

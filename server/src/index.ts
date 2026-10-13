@@ -9,7 +9,6 @@ import starDrawRoutes from './routes/starDraw.js'
 import paymentRoutes from './routes/payment.js'
 import interpretRoutes from './routes/interpret.js'
 import guestInterpretRoutes from './routes/guestInterpret.js'
-import shareRoutes from './routes/share.js'
 import {
   apiRateLimiter,
   authRateLimiter,
@@ -75,7 +74,6 @@ app.use('/api/star-draw', apiRateLimiter, starDrawRoutes)
 app.use('/api/payment', apiRateLimiter, paymentRoutes)
 app.use('/api/interpret', apiRateLimiter, interpretRoutes)
 app.use('/api/guest', apiRateLimiter, guestInterpretRoutes)
-app.use('/api/share', apiRateLimiter, shareRoutes)
 
 await initDb()
 const dbInfo = await getDbInfo()

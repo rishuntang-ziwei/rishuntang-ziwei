@@ -69,12 +69,5 @@ export const touchTrustedDevice = (id: number) => driver.touchTrustedDevice(id)
 export const listTrustedDevices = (userId?: number) => driver.listTrustedDevices(userId)
 export const revokeTrustedDevice = (id: number) => driver.revokeTrustedDevice(id)
 export const revokeAllTrustedDevicesForUser = (userId: number) => driver.revokeAllTrustedDevicesForUser(userId)
-export const createChartShare = (
-  userId: number,
-  token: string,
-  document: import('../types.js').ChartShareDocument,
-  expiresAt: string,
-) => driver.createChartShare(userId, token, document, expiresAt)
-export const getChartShareByToken = (token: string) => driver.getChartShareByToken(token)
 
 export { toPublicUser } from './shared.js'

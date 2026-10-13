@@ -132,19 +132,6 @@ export async function initDb() {
     CREATE INDEX IF NOT EXISTS idx_trusted_devices_device ON trusted_devices(device_id);
   `)
 
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS chart_shares (
-      token TEXT PRIMARY KEY,
-      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      payload TEXT NOT NULL,
-      expires_at TEXT NOT NULL,
-      view_count INTEGER NOT NULL DEFAULT 0,
-      created_at TEXT NOT NULL DEFAULT (datetime('now'))
-    );
-    CREATE INDEX IF NOT EXISTS idx_chart_shares_user ON chart_shares(user_id);
-    CREATE INDEX IF NOT EXISTS idx_chart_shares_expires ON chart_shares(expires_at);
-  `)
-
   if (process.env.RENDER && !process.env.DB_PATH) {
     console.warn(
       '[db] 警告：Render 免費方案的本機 SQLite 會在重啟後清空。請設定 DATABASE_URL 使用 PostgreSQL，或升級方案並設定 DB_PATH 指向持久磁碟。',
@@ -663,47 +650,6 @@ export async function ensureAdminUser() {
      VALUES (?, ?, ?, ?, 'approved', 'admin', 0, datetime('now'))`,
   ).run(name, phone, email, passwordHash)
   console.log(`[auth] 已建立管理員帳號：${email}`)
-}
-
-export async function createChartShare(
-  userId: number,
-  token: string,
-  document: import('../types.js').ChartShareDocument,
-  expiresAt: string,
-): Promise<{ token: string; expiresAt: string }> {
-  db.prepare(
-    `INSERT INTO chart_shares (token, user_id, payload, expires_at)
-     VALUES (?, ?, ?, ?)`,
-  ).run(token, userId, JSON.stringify(document), expiresAt)
-  return { token, expiresAt }
-}
-
-export async function getChartShareByToken(
-  token: string,
-): Promise<import('../types.js').ChartSharePublic | null> {
-  const row = db.prepare('SELECT * FROM chart_shares WHERE token = ?').get(token) as
-    | Record<string, unknown>
-    | undefined
-  if (!row) return null
-  const expiresAt = String(row.expires_at)
-  if (new Date(expiresAt).getTime() <= Date.now()) {
-    db.prepare('DELETE FROM chart_shares WHERE token = ?').run(token)
-    return null
-  }
-  db.prepare('UPDATE chart_shares SET view_count = view_count + 1 WHERE token = ?').run(token)
-  let document: import('../types.js').ChartShareDocument
-  try {
-    document = JSON.parse(String(row.payload)) as import('../types.js').ChartShareDocument
-  } catch {
-    return null
-  }
-  if (document.version !== 1) return null
-  return {
-    token,
-    document,
-    expiresAt,
-    viewCount: Number(row.view_count) + 1,
-  }
 }
 
 export async function ensureSuperAdminUser() {

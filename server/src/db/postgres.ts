@@ -160,19 +160,6 @@ export async function initDb() {
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_trusted_devices_user ON trusted_devices(user_id)`)
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_trusted_devices_device ON trusted_devices(device_id)`)
 
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS chart_shares (
-      token TEXT PRIMARY KEY,
-      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      payload TEXT NOT NULL,
-      expires_at TIMESTAMPTZ NOT NULL,
-      view_count INTEGER NOT NULL DEFAULT 0,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    )
-  `)
-  await pool.query(`CREATE INDEX IF NOT EXISTS idx_chart_shares_user ON chart_shares(user_id)`)
-  await pool.query(`CREATE INDEX IF NOT EXISTS idx_chart_shares_expires ON chart_shares(expires_at)`)
-
   console.log('[db] PostgreSQL 就緒')
 }
 
@@ -693,47 +680,6 @@ export async function ensureAdminUser() {
     [name, phone, email, passwordHash],
   )
   console.log(`[auth] 已建立管理員帳號：${email}`)
-}
-
-export async function createChartShare(
-  userId: number,
-  token: string,
-  document: import('../types.js').ChartShareDocument,
-  expiresAt: string,
-): Promise<{ token: string; expiresAt: string }> {
-  await pool.query(
-    `INSERT INTO chart_shares (token, user_id, payload, expires_at)
-     VALUES ($1, $2, $3, $4)`,
-    [token, userId, JSON.stringify(document), expiresAt],
-  )
-  return { token, expiresAt }
-}
-
-export async function getChartShareByToken(
-  token: string,
-): Promise<import('../types.js').ChartSharePublic | null> {
-  const result = await pool.query('SELECT * FROM chart_shares WHERE token = $1', [token])
-  const row = result.rows[0]
-  if (!row) return null
-  const expiresAt = new Date(row.expires_at).toISOString()
-  if (new Date(expiresAt).getTime() <= Date.now()) {
-    await pool.query('DELETE FROM chart_shares WHERE token = $1', [token])
-    return null
-  }
-  await pool.query('UPDATE chart_shares SET view_count = view_count + 1 WHERE token = $1', [token])
-  let document: import('../types.js').ChartShareDocument
-  try {
-    document = JSON.parse(String(row.payload)) as import('../types.js').ChartShareDocument
-  } catch {
-    return null
-  }
-  if (document.version !== 1) return null
-  return {
-    token,
-    document,
-    expiresAt,
-    viewCount: Number(row.view_count) + 1,
-  }
 }
 
 export async function ensureSuperAdminUser() {
