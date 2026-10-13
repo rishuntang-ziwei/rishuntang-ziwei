@@ -1314,6 +1314,79 @@
       }
     }
 
+    .hepan-panel {
+      width: 100%;
+      margin-bottom: 12px;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      background: #fffef8;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .hepan-panel-header h3 {
+      font-size: 18px;
+      margin-bottom: 4px;
+      color: var(--brand-brown, #5d4037);
+    }
+
+    .hepan-panel-sub {
+      color: #666;
+      margin-bottom: 8px;
+    }
+
+    .hepan-toolbar-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .hepan-toolbar-row label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+    }
+
+    .hepan-block h4 {
+      font-size: 16px;
+      margin: 10px 0 4px;
+      color: #8b4513;
+    }
+
+    .hepan-block p {
+      margin: 0 0 4px;
+      color: #333;
+    }
+
+    .hepan-disclaimer {
+      margin-top: 10px;
+      font-size: 13px;
+      color: #777;
+    }
+
+    .share-mode-banner {
+      width: 100%;
+      padding: 10px 14px;
+      margin-bottom: 10px;
+      background: #fff8e1;
+      border: 1px solid #c9a227;
+      font-size: 15px;
+      line-height: 1.45;
+      color: #4a3228;
+    }
+
+    body.share-mode .form-panel,
+    body.share-mode #appToolbar {
+      display: none !important;
+    }
+
+    body.share-mode .layout {
+      display: block;
+    }
+
     .gz-col {
       grid-column: 2;
       grid-row: 1 / span 2;
@@ -2555,6 +2628,7 @@
       .center-top-right .center-toggle-btn,
       .back-to-natal,
       .horoscope-tools,
+      .hepan-toolbar-row,
       .center-scope,
       .center-flow-scope {
         display: none !important;
@@ -3071,6 +3145,9 @@
           <button type="button" id="exportPdfBtn" class="secondary">匯出 PDF</button>
           <button type="button" id="compareChartBtn" class="secondary">並排比對</button>
           <button type="button" id="exitCompareBtn" class="secondary hidden">結束比對</button>
+          <button type="button" id="hepanChartBtn" class="secondary">合盤</button>
+          <button type="button" id="exitHepanBtn" class="secondary hidden">結束合盤</button>
+          <button type="button" id="shareChartBtn" class="secondary">分享連結</button>
           <button type="button" id="saveChartBtn" class="secondary">儲存命盤</button>
           <button type="button" id="starDrawBtn" class="secondary">先知斗數神牌</button>
           <button type="button" id="chartDbBtn" class="secondary">命盤資料庫</button>
@@ -3093,9 +3170,11 @@
     import * as WuxingPanel from './vendor/wuxing-panel.mjs'
     import * as AiFormatter from './vendor/ai-formatter.mjs'
     import * as AiInterpreter from './vendor/ai-interpreter.mjs'
+    import * as HepanReading from './vendor/hepan-reading.mjs'
     window.WuxingPanel = WuxingPanel
     window.AiFormatter = AiFormatter
     window.AiInterpreter = AiInterpreter
+    window.HepanReading = HepanReading
   </script>
   <script>
     function isPremiumMember() {
@@ -3211,6 +3290,8 @@
     let natalHoroscopeBaseline = ''
     let comparePartnerInput = null
     let compareMobileTab = 'primary'
+    let hepanActive = false
+    let hepanRelationship = 'love'
     const HOROSCOPE_BOOKMARKS_KEY = 'rishuntangHoroscopeBookmarks'
     const HOROSCOPE_BOOKMARKS_MAX = 15
     let showYearlyDaily = false
@@ -4893,6 +4974,7 @@
     }
 
     function bindPrimaryChartControls(name, a, input) {
+      if (document.body.classList.contains('share-mode')) return
       document.getElementById('backToNatal')?.addEventListener('click', () => {
         resetHoroscopeView()
         renderChart(name, a, input)
@@ -5007,8 +5089,10 @@
           initialChartType: payload.initialChartType || 'natal',
           yearlyYear: payload.yearlyYear || new Date().getFullYear(),
         }
+        hepanActive = false
         compareMobileTab = 'primary'
         updateCompareToolbar()
+        updateHepanToolbar()
         if (currentAstrolabe && currentInput) {
           renderChart(currentInput.name, currentAstrolabe, currentInput)
         }
@@ -5019,8 +5103,10 @@
 
     function exitCompareMode() {
       comparePartnerInput = null
+      hepanActive = false
       compareMobileTab = 'primary'
       updateCompareToolbar()
+      updateHepanToolbar()
       if (currentAstrolabe && currentInput) {
         renderChart(currentInput.name, currentAstrolabe, currentInput)
       }
@@ -5028,6 +5114,209 @@
 
     window.startCompareFromSavedCharts = startCompareFromSavedCharts
     window.exitCompareMode = exitCompareMode
+
+    function inputToSharePayload(input) {
+      const a = compute(input)
+      return buildSavePayload(input, a)
+    }
+
+    function buildShareSnapshot() {
+      if (!currentInput || !currentAstrolabe) {
+        throw new Error('請先完成排盤')
+      }
+      const input = getInput()
+      const snapshot = {
+        version: 1,
+        subject: inputToSharePayload(input),
+        viewState: {
+          horoscopeDate: horoscopeDate,
+          yearlyYear: yearlyYear,
+          yearlyMonthSelected: yearlyMonthSelected,
+          showYearlyDaily: showYearlyDaily,
+          selectedFlowMonth: selectedFlowMonth,
+          showLines: showLines,
+        },
+      }
+      if (comparePartnerInput) {
+        snapshot.partner = inputToSharePayload(comparePartnerInput)
+        if (hepanActive) {
+          snapshot.hepan = { relationship: hepanRelationship }
+        }
+      }
+      return snapshot
+    }
+
+    async function createShareLink(expiresInDays) {
+      const snapshot = buildShareSnapshot()
+      const data = await window.ZiweiAuth.api('/api/charts/share', {
+        method: 'POST',
+        body: JSON.stringify({ snapshot: snapshot, expiresInDays: expiresInDays }),
+      })
+      const token = data.share && data.share.token
+      if (!token) throw new Error('無法建立分享連結')
+      const url = new URL(location.href)
+      url.search = ''
+      url.searchParams.set('share', token)
+      return { url: url.toString(), expiresAt: data.share.expiresAt }
+    }
+
+    window.createShareLinkAction = createShareLink
+
+    function applyShareDocument(doc) {
+      if (!doc || doc.version !== 1 || !doc.subject) {
+        throw new Error('分享資料無效')
+      }
+      let partner = null
+      let hepan = false
+      let hepanRel = 'love'
+      if (doc.partner) {
+        partner = {
+          name: doc.partner.name,
+          gender: doc.partner.gender,
+          calendar: doc.partner.calendar,
+          date: doc.partner.date,
+          timeIndex: doc.partner.timeIndex,
+          isLeap: doc.partner.isLeap,
+          initialChartType: doc.partner.initialChartType || 'natal',
+          yearlyYear: doc.partner.yearlyYear || new Date().getFullYear(),
+        }
+        if (doc.hepan && doc.hepan.relationship) {
+          hepan = true
+          hepanRel = doc.hepan.relationship
+        }
+      }
+      window.__pendingShareState = {
+        comparePartnerInput: partner,
+        hepanActive: hepan,
+        hepanRelationship: hepanRel,
+        viewState: doc.viewState || null,
+      }
+      applyInputToForm(doc.subject)
+      run({ skipQuotaCheck: true, fromShare: true })
+    }
+
+    window.applyShareDocument = applyShareDocument
+
+    function renderHepanRelationSelect() {
+      const options = [
+        ['love', '感情'],
+        ['family', '六親'],
+        ['business', '合作'],
+        ['general', '綜合'],
+      ]
+      let html = '<option value="">合盤類型…</option>'
+      options.forEach(function (pair) {
+        const selected = hepanRelationship === pair[0] ? ' selected' : ''
+        html += '<option value="' + pair[0] + '"' + selected + '>' + pair[1] + '</option>'
+      })
+      return (
+        '<div class="hepan-toolbar-row">' +
+        '<label>合盤類型<select id="hepanRelationSelect">' +
+        html +
+        '</select></label>' +
+        '</div>'
+      )
+    }
+
+    function renderHepanPanelHtml(name, a, input) {
+      if (!hepanActive || !comparePartnerInput || !window.HepanReading) return ''
+      const partnerA = compute(comparePartnerInput)
+      const reading = window.HepanReading.buildHepanReading(
+        a,
+        name || input.name,
+        partnerA,
+        comparePartnerInput.name,
+        hepanRelationship,
+      )
+      return (
+        '<div class="hepan-panel" id="hepanPanel">' +
+        renderHepanRelationSelect() +
+        window.HepanReading.renderHepanPanelHtml(reading) +
+        '</div>'
+      )
+    }
+
+    function bindHepanControls(name, a, input) {
+      document.getElementById('hepanRelationSelect')?.addEventListener('change', function (e) {
+        const val = e.target.value
+        if (!val) return
+        hepanRelationship = val
+        renderChart(name, a, input)
+      })
+    }
+
+    function updateHepanToolbar() {
+      const exitHepan = document.getElementById('exitHepanBtn')
+      const hepanBtn = document.getElementById('hepanChartBtn')
+      if (exitHepan) exitHepan.classList.toggle('hidden', !hepanActive)
+      if (hepanBtn) hepanBtn.classList.toggle('hidden', Boolean(hepanActive))
+    }
+
+    async function startHepanFromSavedCharts() {
+      if (!window.ZiweiAuth) {
+        alert('請先登入會員')
+        return
+      }
+      try {
+        const data = await window.ZiweiAuth.api('/api/charts')
+        const charts = data.charts || []
+        if (!charts.length) {
+          alert('尚無已存命盤，請先儲存對方命盤後再合盤')
+          return
+        }
+        const lines = charts.slice(0, 12).map(function (c, i) {
+          return (i + 1) + '. ' + (c.subjectName || '未命名')
+        })
+        const pick = window.prompt(
+          '輸入合盤對象編號（會並排顯示並產生合盤簡述）：\n' + lines.join('\n'),
+          '1',
+        )
+        if (pick === null) return
+        const idx = Number(pick) - 1
+        if (!Number.isFinite(idx) || idx < 0 || idx >= charts.length) {
+          alert('編號無效')
+          return
+        }
+        const chart = charts[idx]
+        const detail = await window.ZiweiAuth.api('/api/charts/' + chart.id)
+        const payload = detail.chart && detail.chart.payload
+        if (!payload) throw new Error('命盤資料不完整')
+        comparePartnerInput = {
+          name: payload.name || chart.subjectName,
+          gender: payload.gender,
+          calendar: payload.calendar,
+          date: payload.date,
+          timeIndex: payload.timeIndex,
+          isLeap: payload.isLeap,
+          initialChartType: payload.initialChartType || 'natal',
+          yearlyYear: payload.yearlyYear || new Date().getFullYear(),
+        }
+        hepanActive = true
+        hepanRelationship = 'love'
+        compareMobileTab = 'primary'
+        updateCompareToolbar()
+        updateHepanToolbar()
+        if (currentAstrolabe && currentInput) {
+          renderChart(currentInput.name, currentAstrolabe, currentInput)
+        }
+      } catch (err) {
+        alert(err.message || '無法開始合盤')
+      }
+    }
+
+    function exitHepanMode() {
+      hepanActive = false
+      comparePartnerInput = null
+      compareMobileTab = 'primary'
+      updateCompareToolbar()
+      updateHepanToolbar()
+      if (currentAstrolabe && currentInput) {
+        renderChart(currentInput.name, currentAstrolabe, currentInput)
+      }
+    }
+
+    window.startHepanFromSavedCharts = startHepanFromSavedCharts
+    window.exitHepanMode = exitHepanMode
 
     function renderChart(name, a, input) {
       currentInput = input
@@ -5066,7 +5355,8 @@
           '</div>'
       }
 
-      document.getElementById('chartView').innerHTML = viewHtml
+      const hepanHtml = renderHepanPanelHtml(name, a, input)
+      document.getElementById('chartView').innerHTML = hepanHtml + viewHtml
 
       const primaryRoot = comparePartnerInput
         ? document.querySelector('[data-compare-pane="primary"]')
@@ -5079,7 +5369,9 @@
         bindCompareTabs()
       }
       bindPrimaryChartControls(name, a, input)
+      bindHepanControls(name, a, input)
       updateCompareToolbar()
+      updateHepanToolbar()
       syncAiInterpretButton(name, a)
     }
 
@@ -5097,7 +5389,17 @@
         const input = getInput()
         const a = compute(input)
         initialChartType = input.initialChartType
-        comparePartnerInput = null
+        const pendingShare = window.__pendingShareState
+        window.__pendingShareState = null
+        if (pendingShare) {
+          comparePartnerInput = pendingShare.comparePartnerInput
+          hepanActive = Boolean(pendingShare.hepanActive)
+          hepanRelationship = pendingShare.hepanRelationship || 'love'
+          compareMobileTab = 'primary'
+        } else {
+          comparePartnerInput = null
+          hepanActive = false
+        }
         showLines = false
         selectedPalaceName = '命宮'
         if (initialChartType === 'yearly') {
@@ -5110,6 +5412,15 @@
           horoscopeDate = horoscopeDateForYear(yearlyYear)
         } else {
           horoscopeDate = todaySolarDate()
+        }
+        if (pendingShare && pendingShare.viewState) {
+          const vs = pendingShare.viewState
+          horoscopeDate = vs.horoscopeDate || horoscopeDate
+          if (vs.yearlyYear) yearlyYear = vs.yearlyYear
+          yearlyMonthSelected = Boolean(vs.yearlyMonthSelected)
+          showYearlyDaily = Boolean(vs.showYearlyDaily)
+          selectedFlowMonth = vs.selectedFlowMonth ?? null
+          showLines = Boolean(vs.showLines)
         }
         natalHoroscopeBaseline = horoscopeDate
         renderChart(input.name, a, input)

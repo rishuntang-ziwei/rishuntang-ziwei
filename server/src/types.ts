@@ -101,3 +101,29 @@ export interface SavedChartSummary {
 export interface SavedChartDetail extends SavedChartSummary {
   payload: SavedChartPayload
 }
+
+export type HepanRelationship = 'love' | 'family' | 'business' | 'general'
+
+export interface ChartShareViewState {
+  horoscopeDate: string
+  yearlyYear?: number
+  yearlyMonthSelected?: boolean
+  showYearlyDaily?: boolean
+  selectedFlowMonth?: number | null
+  showLines?: boolean
+}
+
+export interface ChartShareDocument {
+  version: 1
+  subject: SavedChartPayload
+  viewState?: ChartShareViewState
+  partner?: SavedChartPayload
+  hepan?: { relationship: HepanRelationship }
+}
+
+export interface ChartSharePublic {
+  token: string
+  document: ChartShareDocument
+  expiresAt: string
+  viewCount: number
+}
