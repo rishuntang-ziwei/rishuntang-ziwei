@@ -8,6 +8,7 @@ import {
   listSavedChartsByUser,
   updateSavedChart,
 } from '../db.js'
+import { isAdminUser } from '../adminRoles.js'
 import { requireAuth, requireActiveMember } from '../middleware.js'
 import { validateChartPayload } from '../chartPayload.js'
 import { validateChartShareDocument } from '../chartShare.js'
@@ -25,6 +26,11 @@ router.get('/', async (req, res) => {
 })
 
 router.post('/share', async (req, res) => {
+  if (!isAdminUser(req.authUser!)) {
+    res.status(403).json({ error: '分享連結目前僅開放管理員測試' })
+    return
+  }
+
   const document = validateChartShareDocument(req.body?.snapshot)
   if (!document) {
     res.status(400).json({ error: '分享資料不完整或格式錯誤' })
