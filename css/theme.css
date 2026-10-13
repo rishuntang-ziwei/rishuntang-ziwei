@@ -698,6 +698,16 @@ body {
   background: var(--ui-primary-hover);
 }
 
+.chart-db-group-actions button.primary-action {
+  color: #fff;
+  background: var(--ui-primary);
+  border-color: var(--ui-primary-hover);
+}
+
+.chart-db-group-actions button.primary-action:hover {
+  background: var(--ui-primary-hover);
+}
+
 .chart-db-table th {
   background: var(--paper-muted);
   color: var(--brand-brown);

@@ -9,7 +9,7 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="apple-touch-icon" href="./icons/icon-192.png" />
   <title>紫微斗數線上排盤｜國際日舜堂</title>
-  <link rel="stylesheet" href="./css/theme.css?v=20260717a" />
+  <link rel="stylesheet" href="./css/theme.css?v=20261013a" />
   <style>
     :root {
       --paper: #fffdf9;
@@ -539,7 +539,12 @@
 
     .chart-db-group-actions button.primary-action {
       color: #fff;
-      border-color: var(--border);
+      background: var(--ui-primary, var(--brand-brown));
+      border-color: var(--ui-primary-hover, var(--brand-brown-dark));
+    }
+
+    .chart-db-group-actions button.primary-action:hover {
+      background: var(--ui-primary-hover, var(--brand-brown-dark));
     }
 
     .chart-db-table .db-select-col {
