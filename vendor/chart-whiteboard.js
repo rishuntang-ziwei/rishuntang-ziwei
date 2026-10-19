@@ -256,9 +256,10 @@
   }
 
   function highlighterColor(hex) {
+    if (hex === '#d32f2f') return 'rgba(244, 67, 54, 0.48)'
     if (hex === '#1a237e') return 'rgba(100, 181, 246, 0.55)'
     if (hex === '#f9a825') return 'rgba(255, 235, 59, 0.58)'
-    return 'rgba(255, 183, 77, 0.55)'
+    return 'rgba(244, 67, 54, 0.48)'
   }
 
   function onDrawStart(evt) {
