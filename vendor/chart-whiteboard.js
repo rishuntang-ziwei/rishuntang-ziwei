@@ -126,15 +126,12 @@
           '<button type="button" class="chart-wb-btn" data-wb-tool="eraser">橡皮擦</button>' +
         '</div>' +
         '<div class="chart-wb-group chart-wb-colors">' +
-          '<button type="button" class="chart-wb-color is-active" data-color="#d32f2f" style="background:#d32f2f"></button>' +
-          '<button type="button" class="chart-wb-color" data-color="#1a237e" style="background:#1a237e"></button>' +
-          '<button type="button" class="chart-wb-color" data-color="#212121" style="background:#212121"></button>' +
-          '<button type="button" class="chart-wb-color" data-color="#2e7d32" style="background:#2e7d32"></button>' +
-          '<button type="button" class="chart-wb-color" data-color="#f9a825" style="background:#f9a825" title="螢光黃"></button>' +
+          '<button type="button" class="chart-wb-color is-active" data-color="#d32f2f" style="background:#d32f2f" aria-label="紅色"></button>' +
+          '<button type="button" class="chart-wb-color" data-color="#1a237e" style="background:#1a237e" aria-label="藍色"></button>' +
+          '<button type="button" class="chart-wb-color" data-color="#f9a825" style="background:#f9a825" aria-label="黃色"></button>' +
         '</div>' +
         '<button type="button" class="chart-wb-btn" data-wb-undo disabled>復原上一動</button>' +
         '<button type="button" class="chart-wb-btn chart-wb-clear" data-wb-clear>清除手寫</button>' +
-        '<p class="chart-wb-hint" id="chartWbHint">在命盤上書寫；螢光筆只會標色，不會蓋住底下文字</p>' +
       '</div>'
 
     panel.insertBefore(wrap, panel.firstChild)
@@ -203,16 +200,6 @@
     ui.querySelectorAll('[data-wb-tool]').forEach(function (btn) {
       btn.classList.toggle('is-active', btn.dataset.wbTool === tool)
     })
-    const hint = document.getElementById('chartWbHint')
-    if (hint) {
-      if (tool === 'highlighter') {
-        hint.textContent = '螢光筆：標色後仍可清楚看見命盤文字（不會被不透明筆跡蓋住）'
-      } else if (tool === 'eraser') {
-        hint.textContent = '橡皮擦：可清除書寫與螢光標記'
-      } else {
-        hint.textContent = '書寫筆：在命盤上標註；可搭配復原上一動'
-      }
-    }
     syncCanvasPointer()
   }
 
@@ -269,11 +256,9 @@
   }
 
   function highlighterColor(hex) {
-    if (hex === '#212121') return 'rgba(120, 120, 120, 0.45)'
     if (hex === '#1a237e') return 'rgba(100, 181, 246, 0.55)'
-    if (hex === '#2e7d32') return 'rgba(129, 199, 132, 0.55)'
-    if (hex === '#d32f2f') return 'rgba(255, 183, 77, 0.55)'
-    return 'rgba(255, 235, 59, 0.58)'
+    if (hex === '#f9a825') return 'rgba(255, 235, 59, 0.58)'
+    return 'rgba(255, 183, 77, 0.55)'
   }
 
   function onDrawStart(evt) {
