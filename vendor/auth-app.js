@@ -1007,6 +1007,7 @@
     const saveChartBtn = document.getElementById('saveChartBtn')
     const printChartBtn = document.getElementById('printChartBtn')
     const chartDbBtn = document.getElementById('chartDbBtn')
+    const chartWhiteboardBtn = document.getElementById('chartWhiteboardBtn')
 
     window.ZiweiMember = {
       currentUser: user,
@@ -1066,6 +1067,26 @@
           return
         }
         window.showChartDatabaseAction()
+      }
+    }
+
+    if (chartWhiteboardBtn) {
+      const showWhiteboard = auth.isAdminUser(user)
+      chartWhiteboardBtn.classList.toggle('is-visible', showWhiteboard)
+      chartWhiteboardBtn.hidden = !showWhiteboard
+      if (showWhiteboard) {
+        chartWhiteboardBtn.onclick = function () {
+          if (typeof window.toggleChartWhiteboard !== 'function') {
+            alert('電子白板模組尚未載入，請重新整理頁面')
+            return
+          }
+          window.toggleChartWhiteboard()
+        }
+      } else {
+        chartWhiteboardBtn.onclick = null
+        if (typeof window.toggleChartWhiteboard === 'function') {
+          window.toggleChartWhiteboard(false)
+        }
       }
     }
 

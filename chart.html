@@ -721,6 +721,185 @@
       font-size: 15px;
     }
 
+    #chartWhiteboardBtn {
+      display: none;
+    }
+
+    #chartWhiteboardBtn.is-visible {
+      display: inline-flex;
+    }
+
+    #chartWhiteboardBtn.is-active {
+      background: var(--brand-brown-dark);
+      color: #fff;
+      border-color: var(--brand-brown-dark);
+    }
+
+    .chart-whiteboard-active .chart-panel {
+      position: relative;
+    }
+
+    .chart-wb-ui {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 10px;
+      align-items: flex-start;
+    }
+
+    .chart-wb-ui.hidden {
+      display: none !important;
+    }
+
+    .chart-wb-toolbar {
+      flex: 1;
+      min-width: 280px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      padding: 8px 10px;
+      background: var(--paper-muted);
+      border: 1px solid var(--brand-gold-light);
+      border-radius: var(--radius-sm);
+    }
+
+    .chart-wb-group {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .chart-wb-btn {
+      border: 1px solid var(--border);
+      background: var(--paper-surface);
+      color: var(--ink);
+      border-radius: var(--radius-sm);
+      padding: 5px 10px;
+      font-family: inherit;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .chart-wb-btn.is-active {
+      background: var(--brand-brown);
+      border-color: var(--brand-brown);
+      color: #fff;
+    }
+
+    .chart-wb-color {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .chart-wb-color.is-active {
+      border-color: var(--brand-brown);
+      box-shadow: 0 0 0 2px var(--brand-gold-light);
+    }
+
+    .chart-wb-hint {
+      flex: 1 1 100%;
+      margin: 0;
+      font-size: 12px;
+      color: var(--ink-muted);
+    }
+
+    .chart-wb-deck {
+      width: 120px;
+      max-height: 220px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      border: 1px solid var(--brand-gold-light);
+      border-radius: var(--radius-sm);
+      background: var(--paper-surface);
+    }
+
+    .chart-wb-deck-title {
+      padding: 6px 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--brand-brown);
+      border-bottom: 1px solid var(--brand-gold-light);
+      text-align: center;
+    }
+
+    .chart-wb-deck-list {
+      overflow-y: auto;
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .chart-wb-text-card {
+      touch-action: none;
+      cursor: grab;
+      padding: 7px 6px;
+      text-align: center;
+      font-family: var(--font-chart, inherit);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--major);
+      background: linear-gradient(180deg, #fff, var(--paper-muted));
+      border: 1px solid var(--brand-gold-light);
+      border-radius: 6px;
+      user-select: none;
+    }
+
+    .chart-wb-text-card.is-dragging {
+      opacity: 0.45;
+    }
+
+    .chart-wb-float-card {
+      position: fixed;
+      z-index: 200;
+      pointer-events: none;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+    }
+
+    .chart-wb-canvas {
+      position: absolute;
+      inset: 0;
+      z-index: 6;
+      touch-action: none;
+    }
+
+    .chart-wb-canvas.is-pass-through {
+      pointer-events: none;
+    }
+
+    .palace.is-drop-target {
+      outline: 2px dashed var(--line-red);
+      outline-offset: -2px;
+      background: #fff8e8;
+    }
+
+    .chart-wb-placed-wrap {
+      position: absolute;
+      left: 4px;
+      top: 4px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      max-width: 55%;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    .chart-wb-placed-card {
+      font-size: 13px;
+      padding: 4px 6px;
+      background: #fff8e1;
+      border-color: #c4a574;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+    }
+
     @page {
       size: A4 landscape;
       margin: 8mm;
@@ -3060,6 +3239,7 @@
           <button type="button" id="saveChartBtn" class="secondary">儲存命盤</button>
           <button type="button" id="starDrawBtn" class="secondary">先知斗數神牌</button>
           <button type="button" id="chartDbBtn" class="secondary">命盤資料庫</button>
+          <button type="button" id="chartWhiteboardBtn" class="secondary">電子白板</button>
         </div>
       </div>
     </aside>
@@ -4854,7 +5034,14 @@
 
       html += renderLines(a, h)
       html += '</div></div>'
+      const wbSnapshot =
+        typeof window.captureChartWhiteboardSnapshot === 'function'
+          ? window.captureChartWhiteboardSnapshot()
+          : null
       document.getElementById('chartView').innerHTML = html
+      if (typeof window.syncChartWhiteboardAfterRender === 'function') {
+        window.syncChartWhiteboardAfterRender(wbSnapshot)
+      }
 
       document.querySelectorAll('.palace[data-scope-palace]').forEach(el => {
         el.addEventListener('click', () => {
@@ -5061,7 +5248,8 @@
   </script>
   <script src="./vendor/auth-common.js?v=20260717"></script>
   <script src="./vendor/payment-ui.js?v=20260717"></script>
-  <script src="./vendor/auth-app.js?v=20260729"></script>
+  <script src="./vendor/chart-whiteboard.js?v=20261019"></script>
+  <script src="./vendor/auth-app.js?v=20261019"></script>
   <script src="./vendor/pwa-register.js"></script>
   </body>
 </html>
