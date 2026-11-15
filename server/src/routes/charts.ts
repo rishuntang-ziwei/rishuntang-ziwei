@@ -157,7 +157,7 @@ router.post('/groups/:groupId/share', async (req, res) => {
     }
     toUserId = user.id
   } else {
-    res.status(400).json({ error: '請提供對方 Email' + (isAdminUser(sender) ? ' 或會員編號' : '') })
+    res.status(400).json({ error: '請提供對方 Email' })
     return
   }
 

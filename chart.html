@@ -2571,6 +2571,108 @@
       background: var(--paper-surface);
     }
 
+    .chart-share-modal-card {
+      width: min(100%, 520px);
+      max-height: min(90vh, 640px);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chart-share-modal-desc {
+      margin: 0 0 12px;
+      font-size: 14px;
+      color: var(--ink-muted);
+      line-height: 1.5;
+    }
+
+    .chart-share-member-search {
+      width: 100%;
+      margin-bottom: 8px;
+      padding: 8px 10px;
+      font-family: inherit;
+      font-size: 15px;
+      border: 1px solid #bbb;
+      border-radius: 6px;
+    }
+
+    .chart-share-member-list {
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid var(--brand-gold-light);
+      border-radius: 8px;
+      background: var(--paper-bg);
+      margin-bottom: 8px;
+    }
+
+    .chart-share-member-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--brand-gold-light);
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .chart-share-member-row:last-child {
+      border-bottom: none;
+    }
+
+    .chart-share-member-row:hover {
+      background: #fff8e8;
+    }
+
+    .chart-share-member-row input {
+      margin-top: 3px;
+      flex-shrink: 0;
+    }
+
+    .chart-share-member-main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .chart-share-member-name {
+      font-weight: 700;
+      color: var(--brand-brown-dark);
+    }
+
+    .chart-share-member-email {
+      display: block;
+      font-size: 13px;
+      color: var(--ink-muted);
+      word-break: break-all;
+    }
+
+    .chart-share-member-tag {
+      font-size: 12px;
+      color: var(--ink-light);
+      white-space: nowrap;
+    }
+
+    .chart-share-empty {
+      padding: 20px;
+      text-align: center;
+      color: var(--ink-muted);
+      font-size: 14px;
+    }
+
+    .chart-share-email-label {
+      display: block;
+      font-size: 14px;
+    }
+
+    .chart-share-email-label input {
+      display: block;
+      width: 100%;
+      margin-top: 6px;
+      padding: 8px;
+      font-family: inherit;
+      font-size: 15px;
+      border: 1px solid #bbb;
+      border-radius: 6px;
+    }
+
     /* 列印樣式置於最末，!important 避免被螢幕版 / RWD 覆蓋 */
     @media print {
       * {
@@ -3178,6 +3280,27 @@
     <div class="reading-modal-card">
       <button type="button" class="reading-modal-close" id="natalReadingCloseBtn" aria-label="關閉">×</button>
       <div id="natalReadingModalBody"></div>
+    </div>
+  </div>
+
+  <div id="chartShareModal" class="password-modal" hidden aria-hidden="true">
+    <div class="password-modal-card chart-share-modal-card" role="dialog" aria-modal="true" aria-labelledby="chartShareModalTitle">
+      <h3 id="chartShareModalTitle">分享資料夾</h3>
+      <p id="chartShareModalDesc" class="chart-share-modal-desc"></p>
+      <div id="chartShareAdminPick" hidden>
+        <input type="search" id="chartShareMemberSearch" class="chart-share-member-search" placeholder="搜尋姓名或 Email…" autocomplete="off" />
+        <div id="chartShareMemberList" class="chart-share-member-list" role="radiogroup" aria-label="選擇接收會員"></div>
+      </div>
+      <div id="chartShareEmailPick" hidden>
+        <label class="chart-share-email-label" for="chartShareEmailInput">
+          對方註冊 Email（須已開通會員）
+          <input id="chartShareEmailInput" type="email" inputmode="email" autocomplete="email" />
+        </label>
+      </div>
+      <div class="password-modal-actions">
+        <button type="button" class="secondary" id="chartShareModalCancel">取消</button>
+        <button type="button" class="primary" id="chartShareModalConfirm">確認分享</button>
+      </div>
     </div>
   </div>
 
@@ -4132,6 +4255,165 @@
       }
     }
 
+    let pendingShareGroup = null
+    let chartShareRecipientCache = []
+
+    function closeChartShareModal() {
+      const modal = document.getElementById('chartShareModal')
+      if (modal) {
+        modal.hidden = true
+        modal.setAttribute('aria-hidden', 'true')
+      }
+      pendingShareGroup = null
+      chartShareRecipientCache = []
+    }
+
+    function shareRecipientStatusLabel(user) {
+      if (user.role === 'admin') return '管理員'
+      if (user.membershipActive) return '付費會員'
+      if (user.status === 'approved') return '已開通'
+      return '待審核'
+    }
+
+    function filterShareRecipientUsers(users) {
+      const self = window.ZiweiMember && window.ZiweiMember.currentUser
+      const selfId = self ? Number(self.id) : -1
+      return (users || []).filter(function (u) {
+        if (Number(u.id) === selfId) return false
+        if (u.status === 'rejected' || u.status === 'pending') return false
+        return u.status === 'approved' || u.role === 'admin'
+      })
+    }
+
+    function renderChartShareMemberList(query) {
+      const listEl = document.getElementById('chartShareMemberList')
+      if (!listEl) return
+      const q = String(query || '').trim().toLowerCase()
+      const rows = chartShareRecipientCache.filter(function (u) {
+        if (!q) return true
+        return (
+          String(u.name || '').toLowerCase().includes(q) ||
+          String(u.email || '').toLowerCase().includes(q)
+        )
+      })
+      if (!rows.length) {
+        listEl.innerHTML = '<div class="chart-share-empty">' +
+          (q ? '找不到符合的會員' : '沒有可分享的會員') +
+          '</div>'
+        return
+      }
+      listEl.innerHTML = rows
+        .map(function (u) {
+          return (
+            '<label class="chart-share-member-row">' +
+            '<input type="radio" name="chartShareRecipient" value="' + escapeHtml(String(u.id)) + '" />' +
+            '<span class="chart-share-member-main">' +
+            '<span class="chart-share-member-name">' + escapeHtml(u.name || '—') + '</span>' +
+            '<span class="chart-share-member-email">' + escapeHtml(u.email || '') + '</span>' +
+            '</span>' +
+            '<span class="chart-share-member-tag">' + escapeHtml(shareRecipientStatusLabel(u)) + '</span>' +
+            '</label>'
+          )
+        })
+        .join('')
+    }
+
+    async function openChartShareModal(group, isAdmin) {
+      pendingShareGroup = group
+      const modal = document.getElementById('chartShareModal')
+      const desc = document.getElementById('chartShareModalDesc')
+      const adminPick = document.getElementById('chartShareAdminPick')
+      const emailPick = document.getElementById('chartShareEmailPick')
+      const search = document.getElementById('chartShareMemberSearch')
+      const emailInput = document.getElementById('chartShareEmailInput')
+      if (!modal || !desc) return
+
+      desc.textContent =
+        '資料夾「' + group.name + '」共 ' + group.chartCount + ' 筆命盤。' +
+        '對方會在自己的帳號收到一份複本，你這邊的資料不變。'
+
+      if (adminPick) adminPick.hidden = !isAdmin
+      if (emailPick) emailPick.hidden = !!isAdmin
+      if (search) search.value = ''
+      if (emailInput) emailInput.value = ''
+
+      modal.hidden = false
+      modal.setAttribute('aria-hidden', 'false')
+
+      if (isAdmin) {
+        const listEl = document.getElementById('chartShareMemberList')
+        if (listEl) listEl.innerHTML = '<div class="chart-share-empty">載入會員名單中…</div>'
+        try {
+          const data = await window.ZiweiAuth.api('/api/admin/users')
+          chartShareRecipientCache = filterShareRecipientUsers(data.users)
+          renderChartShareMemberList('')
+        } catch (err) {
+          if (listEl) {
+            listEl.innerHTML =
+              '<div class="chart-share-empty">' + escapeHtml(err.message || '無法載入會員名單') + '</div>'
+          }
+        }
+      }
+    }
+
+    async function submitChartShareModal() {
+      if (!pendingShareGroup) return
+      const group = pendingShareGroup
+      const member = window.ZiweiMember && window.ZiweiMember.currentUser
+      const isAdmin = member && member.role === 'admin'
+      const body = {}
+
+      if (isAdmin) {
+        const picked = document.querySelector('input[name="chartShareRecipient"]:checked')
+        if (!picked) {
+          alert('請勾選一位接收會員')
+          return
+        }
+        body.recipientUserId = Number(picked.value)
+      } else {
+        const emailInput = document.getElementById('chartShareEmailInput')
+        const email = emailInput ? String(emailInput.value || '').trim().toLowerCase() : ''
+        if (!email) {
+          alert('請輸入對方註冊 Email')
+          return
+        }
+        body.recipientEmail = email
+      }
+
+      const recipientName = isAdmin
+        ? (chartShareRecipientCache.find(function (u) { return String(u.id) === String(body.recipientUserId) }) || {}).name
+        : body.recipientEmail
+      if (
+        !confirm(
+          '確定將資料夾「' + group.name + '」內全部命盤複製給 ' +
+            (recipientName || '對方') +
+            '？\n（單次最多 200 筆，含姓名、出生與電話等欄位）',
+        )
+      ) {
+        return
+      }
+
+      const confirmBtn = document.getElementById('chartShareModalConfirm')
+      if (confirmBtn) confirmBtn.disabled = true
+      try {
+        const data = await window.ZiweiAuth.api('/api/charts/groups/' + group.id + '/share', {
+          method: 'POST',
+          body: JSON.stringify(body),
+        })
+        const targetName =
+          data.targetGroup && data.targetGroup.name ? data.targetGroup.name : data.targetGroupName
+        closeChartShareModal()
+        alert(
+          (data.message || '分享完成') +
+            (targetName ? '\n對方資料夾：「' + targetName + '」' : ''),
+        )
+      } catch (err) {
+        alert(err.message || '分享資料夾失敗')
+      } finally {
+        if (confirmBtn) confirmBtn.disabled = false
+      }
+    }
+
     async function shareCurrentChartFolder() {
       await loadChartGroups()
       if (!savedChartGroupFilterId) {
@@ -4151,44 +4433,7 @@
       }
       const member = window.ZiweiMember && window.ZiweiMember.currentUser
       const isAdmin = member && member.role === 'admin'
-      const hint = isAdmin
-        ? '請輸入對方註冊 Email，或輸入會員編號（純數字）'
-        : '請輸入對方註冊 Email（須已開通會員）'
-      const raw = prompt(
-        '分享資料夾「' + group.name + '」（共 ' + group.chartCount + ' 筆命盤）\n\n' +
-          hint +
-          '\n\n對方會在自己的帳號收到一份複本，你這邊的資料不變。',
-      )
-      if (raw == null) return
-      const input = String(raw).trim()
-      if (!input) return
-      if (
-        !confirm(
-          '確定將此資料夾內全部命盤複製給對方？\n（單次最多 200 筆，含姓名、出生與電話等欄位）',
-        )
-      ) {
-        return
-      }
-      const body = {}
-      if (isAdmin && /^\d+$/.test(input)) {
-        body.recipientUserId = Number(input)
-      } else {
-        body.recipientEmail = input.toLowerCase()
-      }
-      try {
-        const data = await window.ZiweiAuth.api('/api/charts/groups/' + group.id + '/share', {
-          method: 'POST',
-          body: JSON.stringify(body),
-        })
-        const targetName =
-          data.targetGroup && data.targetGroup.name ? data.targetGroup.name : data.targetGroupName
-        alert(
-          (data.message || '分享完成') +
-            (targetName ? '\n對方資料夾：「' + targetName + '」' : ''),
-        )
-      } catch (err) {
-        alert(err.message || '分享資料夾失敗')
-      }
+      await openChartShareModal(group, isAdmin)
     }
 
     function formatBirthDateTimeFromPayload(payload) {
@@ -5209,6 +5454,17 @@
 
     document.getElementById('savedChartShareGroupBtn')?.addEventListener('click', function () {
       shareCurrentChartFolder()
+    })
+
+    document.getElementById('chartShareModalCancel')?.addEventListener('click', closeChartShareModal)
+    document.getElementById('chartShareModalConfirm')?.addEventListener('click', function () {
+      submitChartShareModal()
+    })
+    document.getElementById('chartShareMemberSearch')?.addEventListener('input', function (e) {
+      renderChartShareMemberList(e.target.value)
+    })
+    document.getElementById('chartShareModal')?.addEventListener('click', function (e) {
+      if (e.target === e.currentTarget) closeChartShareModal()
     })
 
     document.querySelectorAll('input[name="calendar"]').forEach(el => {
