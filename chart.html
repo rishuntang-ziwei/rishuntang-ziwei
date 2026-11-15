@@ -9,7 +9,7 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="apple-touch-icon" href="./icons/icon-192.png" />
   <title>紫微斗數線上排盤｜國際日舜堂</title>
-  <link rel="stylesheet" href="./css/theme.css?v=20261013b" />
+  <link rel="stylesheet" href="./css/theme.css?v=20261115a" />
   <style>
     :root {
       --paper: #fffdf9;
@@ -159,6 +159,7 @@
     }
 
     .app-toolbar-account button,
+    .app-toolbar-account a.user-bar-link,
     .app-toolbar .member-actions button {
       width: 100%;
       margin-top: 0;
@@ -166,6 +167,15 @@
       font-size: 17px;
       line-height: 1.35;
       white-space: normal;
+      box-sizing: border-box;
+    }
+
+    .app-toolbar-account a.user-bar-link {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      text-decoration: none;
     }
 
     .chart-panel {
@@ -763,7 +773,10 @@
     }
 
     #chartWhiteboardBtn.is-visible {
-      display: inline-flex;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
     }
 
     #chartWhiteboardBtn.is-active {
@@ -2009,6 +2022,11 @@
       .member-actions {
         display: grid;
         grid-template-columns: 1fr 1fr;
+      }
+
+      /* 最後一顆若落單，拉滿整列，避免歪在左側 */
+      .member-actions > :last-child:nth-child(odd) {
+        grid-column: 1 / -1;
       }
 
       .form-panel {
