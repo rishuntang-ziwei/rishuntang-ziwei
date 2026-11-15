@@ -552,6 +552,28 @@
       line-height: 1.45;
     }
 
+    .chart-db-share-hint--alert {
+      color: var(--brand-red);
+      font-weight: 600;
+    }
+
+    .chart-db-sync-notice {
+      margin: 0 0 10px;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      background: #fff4e5;
+      border: 1px solid #f0b429;
+      color: #6d4c1a;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    #savedChartSyncGroupBtn.chart-db-sync-pending {
+      border-color: var(--brand-red);
+      color: var(--brand-red);
+      font-weight: 700;
+    }
+
     .db-readonly-tag {
       font-size: 12px;
       color: var(--ink-muted);
@@ -3255,6 +3277,7 @@
           <input type="search" id="savedChartSearch" placeholder="搜尋姓名、電話或資料夾名稱…" />
           <button type="button" id="savedChartSearchBtn">搜尋</button>
         </div>
+        <p id="chartDbSyncNotice" class="chart-db-sync-notice hidden" role="status" aria-live="polite"></p>
         <div class="chart-db-toolbar">
           <label>
             篩選資料夾
@@ -4155,6 +4178,28 @@
       }) || null
     }
 
+    function renderChartDbSyncNotice() {
+      const box = document.getElementById('chartDbSyncNotice')
+      if (!box) return
+      const pending = chartGroupsCache.filter(function (g) {
+        return g.isSharedIncoming && g.incomingShareId && g.shareNeedsSync
+      })
+      if (!pending.length) {
+        box.classList.add('hidden')
+        box.textContent = ''
+        return
+      }
+      box.classList.remove('hidden')
+      const names = pending
+        .map(function (g) {
+          const owner = g.shareOwnerName ? g.shareOwnerName + '的' : ''
+          return '「' + g.name + '」' + (owner ? '（' + owner + '）' : '')
+        })
+        .join('、')
+      box.textContent =
+        '更新通知：' + names + ' 已有新內容，請選擇資料夾後按「同步到最新」。'
+    }
+
     function updateChartDbShareToolbar() {
       const syncBtn = document.getElementById('savedChartSyncGroupBtn')
       const shareBtn = document.getElementById('savedChartShareGroupBtn')
@@ -4163,23 +4208,36 @@
       const removeBtn = document.getElementById('savedChartRemoveFromGroupBtn')
       const group = getActiveChartGroupMeta()
       const incoming = Boolean(group && group.incomingShareId)
+      const needsSync = Boolean(group && group.shareNeedsSync)
 
-      if (syncBtn) syncBtn.classList.toggle('hidden', !incoming)
+      if (syncBtn) {
+        syncBtn.classList.toggle('hidden', !incoming)
+        syncBtn.textContent = needsSync ? '同步到最新（有新版本）' : '同步到最新'
+        syncBtn.classList.toggle('chart-db-sync-pending', needsSync)
+      }
       if (shareBtn) shareBtn.hidden = incoming
       if (moveBtn) moveBtn.disabled = incoming
       if (removeBtn) removeBtn.disabled = incoming
 
       if (hint) {
+        hint.classList.remove('chart-db-share-hint--alert')
         if (incoming) {
           hint.classList.remove('hidden')
-          hint.textContent =
-            '此資料夾由「' + (group.shareOwnerName || '老師') +
-            '」分享，命盤唯讀；老師更新後請按「同步到最新」。'
+          if (needsSync) {
+            hint.classList.add('chart-db-share-hint--alert')
+            hint.textContent =
+              '老師已更新「' + (group.shareOwnerName || '老師') + '」分享的資料夾，請按「同步到最新」。'
+          } else {
+            hint.textContent =
+              '此資料夾由「' + (group.shareOwnerName || '老師') +
+              '」分享，命盤唯讀；已與老師最新內容同步。'
+          }
         } else {
           hint.classList.add('hidden')
           hint.textContent = ''
         }
       }
+      renderChartDbSyncNotice()
     }
 
     function renderChartGroupFilterOptions() {
@@ -4192,9 +4250,10 @@
           g.isSharedIncoming && g.shareOwnerName
             ? ' · 來自' + g.shareOwnerName
             : ''
+        const pending = g.shareNeedsSync ? ' · 有新版本' : ''
         return (
           '<option value="' + g.id + '">' +
-          escapeHtml(g.name) + tag + ' (' + g.chartCount + ')</option>'
+          escapeHtml(g.name) + tag + pending + ' (' + g.chartCount + ')</option>'
         )
       }).join('')
       sel.innerHTML = html

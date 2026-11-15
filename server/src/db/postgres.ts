@@ -122,6 +122,14 @@ export async function initDb() {
     ADD COLUMN IF NOT EXISTS shared_from_chart_id INTEGER
   `)
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_saved_charts_share ON saved_charts(share_id)`)
+  await pool.query(`
+    ALTER TABLE chart_group_shares
+    ADD COLUMN IF NOT EXISTS source_updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  `)
+  await pool.query(`
+    ALTER TABLE chart_group_shares
+    ADD COLUMN IF NOT EXISTS last_synced_at TIMESTAMPTZ
+  `)
 
   await pool.query(`
     ALTER TABLE users
@@ -451,7 +459,9 @@ export async function listChartGroupsByUser(userId: number): Promise<import('../
     `SELECT g.id, g.name, g.created_at, g.updated_at,
             COUNT(sc.id)::int AS chart_count,
             cgs.id AS incoming_share_id,
-            ou.name AS share_owner_name
+            ou.name AS share_owner_name,
+            cgs.source_updated_at AS share_source_updated_at,
+            cgs.last_synced_at AS share_last_synced_at
      FROM chart_groups g
      LEFT JOIN saved_charts sc ON sc.group_id = g.id AND sc.user_id = g.user_id
      LEFT JOIN chart_group_shares cgs ON cgs.mirror_group_id = g.id AND cgs.recipient_user_id = g.user_id
@@ -470,7 +480,22 @@ export async function listChartGroupsByUser(userId: number): Promise<import('../
     isSharedIncoming: row.incoming_share_id != null,
     incomingShareId: row.incoming_share_id != null ? Number(row.incoming_share_id) : null,
     shareOwnerName: row.share_owner_name != null ? String(row.share_owner_name) : null,
+    shareSourceUpdatedAt:
+      row.share_source_updated_at != null ? new Date(row.share_source_updated_at).toISOString() : null,
+    shareLastSyncedAt:
+      row.share_last_synced_at != null ? new Date(row.share_last_synced_at).toISOString() : null,
+    shareNeedsSync: computeShareNeedsSync(row.share_source_updated_at, row.share_last_synced_at),
   }))
+}
+
+function computeShareNeedsSync(sourceUpdated: unknown, lastSynced: unknown): boolean {
+  if (sourceUpdated == null) return false
+  if (lastSynced == null) return true
+  const sourceMs = new Date(String(sourceUpdated)).getTime()
+  const syncedMs = new Date(String(lastSynced)).getTime()
+  if (Number.isNaN(sourceMs)) return false
+  if (Number.isNaN(syncedMs)) return true
+  return sourceMs > syncedMs
 }
 
 export async function createChartGroup(userId: number, name: string): Promise<import('../types.js').ChartGroupSummary> {
@@ -545,18 +570,25 @@ export async function assignChartsToGroup(
     updated += result.rowCount ?? 0
   }
   await pool.query(`UPDATE chart_groups SET updated_at = NOW() WHERE id = $1`, [groupId])
+  await bumpChartGroupSharesSourceUpdated(groupId)
   return updated
 }
 
 export async function removeChartsFromGroup(userId: number, chartIds: number[]): Promise<number> {
   let updated = 0
+  const touchedGroups = new Set<number>()
   for (const chartId of chartIds) {
+    const chart = await findSavedChartForUser(chartId, userId)
+    if (chart?.group_id != null) touchedGroups.add(chart.group_id)
     const result = await pool.query(
       `UPDATE saved_charts SET group_id = NULL, updated_at = NOW()
        WHERE id = $1 AND user_id = $2 AND share_id IS NULL`,
       [chartId, userId],
     )
     updated += result.rowCount ?? 0
+  }
+  for (const gid of touchedGroups) {
+    await bumpChartGroupSharesSourceUpdated(gid)
   }
   return updated
 }
@@ -589,10 +621,15 @@ export async function createSavedChart(userId: number, payload: SavedChartPayloa
 }
 
 export async function deleteSavedChart(id: number, userId: number): Promise<boolean> {
+  const existing = await findSavedChartForUser(id, userId)
+  if (!existing) return false
   const result = await pool.query(
     'DELETE FROM saved_charts WHERE id = $1 AND user_id = $2 AND share_id IS NULL',
     [id, userId],
   )
+  if ((result.rowCount ?? 0) > 0 && existing.group_id != null) {
+    await bumpChartGroupSharesSourceUpdated(existing.group_id)
+  }
   return (result.rowCount ?? 0) > 0
 }
 
@@ -616,6 +653,9 @@ export async function updateSavedChart(
     [payload.name.trim(), payload.gender, payload.bazi.trim(), payloadJson, phone, id, userId],
   )
   if ((result.rowCount ?? 0) === 0) return undefined
+  if (existing.group_id != null) {
+    await bumpChartGroupSharesSourceUpdated(existing.group_id)
+  }
   const row = await findSavedChartForUser(id, userId)
   return row ? toSavedChartDetail(row) : undefined
 }
@@ -848,9 +888,25 @@ function mapChartGroupShareRow(row: Record<string, unknown>): ChartGroupShareRow
     source_group_id: Number(row.source_group_id),
     recipient_user_id: Number(row.recipient_user_id),
     mirror_group_id: row.mirror_group_id != null ? Number(row.mirror_group_id) : null,
+    source_updated_at: toIsoString(row.source_updated_at ?? row.updated_at),
+    last_synced_at: row.last_synced_at != null ? toIsoString(row.last_synced_at) : null,
     created_at: toIsoString(row.created_at),
     updated_at: toIsoString(row.updated_at),
   }
+}
+
+export async function bumpChartGroupSharesSourceUpdated(sourceGroupId: number): Promise<void> {
+  await pool.query(
+    `UPDATE chart_group_shares SET source_updated_at = NOW(), updated_at = NOW() WHERE source_group_id = $1`,
+    [sourceGroupId],
+  )
+}
+
+export async function setChartGroupShareLastSynced(shareId: number): Promise<void> {
+  await pool.query(
+    `UPDATE chart_group_shares SET last_synced_at = NOW(), updated_at = NOW() WHERE id = $1`,
+    [shareId],
+  )
 }
 
 export async function findChartGroupShareByTriple(

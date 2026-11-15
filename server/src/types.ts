@@ -100,6 +100,9 @@ export interface ChartGroupSummary {
   isSharedIncoming?: boolean
   incomingShareId?: number | null
   shareOwnerName?: string | null
+  shareNeedsSync?: boolean
+  shareLastSyncedAt?: string | null
+  shareSourceUpdatedAt?: string | null
 }
 
 export interface ChartGroupShareRow {
@@ -108,6 +111,8 @@ export interface ChartGroupShareRow {
   source_group_id: number
   recipient_user_id: number
   mirror_group_id: number | null
+  source_updated_at: string
+  last_synced_at: string | null
   created_at: string
   updated_at: string
 }

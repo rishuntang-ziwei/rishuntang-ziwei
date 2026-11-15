@@ -41,6 +41,9 @@ export const createChartGroupShareRecord = (
 export const setChartGroupShareMirrorGroup = (shareId: number, mirrorGroupId: number) =>
   driver.setChartGroupShareMirrorGroup(shareId, mirrorGroupId)
 export const touchChartGroupShareUpdatedAt = (shareId: number) => driver.touchChartGroupShareUpdatedAt(shareId)
+export const bumpChartGroupSharesSourceUpdated = (sourceGroupId: number) =>
+  driver.bumpChartGroupSharesSourceUpdated(sourceGroupId)
+export const setChartGroupShareLastSynced = (shareId: number) => driver.setChartGroupShareLastSynced(shareId)
 export const listMirroredChartsByShareId = (shareId: number) => driver.listMirroredChartsByShareId(shareId)
 export const insertMirroredSavedChart = (
   userId: number,

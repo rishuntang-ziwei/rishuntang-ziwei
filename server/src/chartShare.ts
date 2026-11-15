@@ -10,7 +10,7 @@ import {
   listMirroredChartsByShareId,
   listSavedChartsByUser,
   setChartGroupShareMirrorGroup,
-  touchChartGroupShareUpdatedAt,
+  setChartGroupShareLastSynced,
   updateMirroredSavedChart,
 } from './db.js'
 import { isAdminUser } from './adminRoles.js'
@@ -125,7 +125,7 @@ export async function syncChartGroupShare(shareId: number): Promise<SyncShareSta
     sourceIds,
   )
 
-  await touchChartGroupShareUpdatedAt(shareId)
+  await setChartGroupShareLastSynced(shareId)
 
   return {
     added,
