@@ -5,6 +5,8 @@ import {
   createSavedChart,
   deleteChartGroup,
   deleteSavedChart,
+  findUserByEmail,
+  findUserById,
   getSavedChartDetailForUser,
   listChartGroupsByUser,
   listSavedChartsByUser,
@@ -13,6 +15,8 @@ import {
   updateSavedChart,
 } from '../db.js'
 import { requireAuth, requireActiveMember } from '../middleware.js'
+import { isAdminUser } from '../adminRoles.js'
+import { ShareChartGroupError, shareChartGroupToUser } from '../chartShare.js'
 import { validateChartPayload } from '../chartPayload.js'
 import type { SavedChartPayload } from '../types.js'
 
@@ -119,6 +123,68 @@ router.put('/groups/:groupId/members', async (req, res) => {
     return
   }
   res.json({ updated })
+})
+
+router.post('/groups/:groupId/share', async (req, res) => {
+  const groupId = Number(req.params.groupId)
+  if (!Number.isFinite(groupId)) {
+    res.status(400).json({ error: '無效的資料夾 ID' })
+    return
+  }
+
+  const sender = req.authUser!
+  const recipientUserIdRaw = req.body?.recipientUserId
+  const recipientEmailRaw = req.body?.recipientEmail
+
+  let toUserId: number | null = null
+  if (recipientUserIdRaw != null && recipientUserIdRaw !== '') {
+    if (!isAdminUser(sender)) {
+      res.status(403).json({ error: '僅管理員可使用會員編號分享' })
+      return
+    }
+    const id = Number(recipientUserIdRaw)
+    if (!Number.isFinite(id) || id <= 0) {
+      res.status(400).json({ error: '無效的會員編號' })
+      return
+    }
+    toUserId = id
+  } else if (typeof recipientEmailRaw === 'string' && recipientEmailRaw.trim()) {
+    const email = recipientEmailRaw.trim().toLowerCase()
+    const user = await findUserByEmail(email)
+    if (!user) {
+      res.status(404).json({ error: '找不到此 Email 的會員' })
+      return
+    }
+    toUserId = user.id
+  } else {
+    res.status(400).json({ error: '請提供對方 Email' + (isAdminUser(sender) ? ' 或會員編號' : '') })
+    return
+  }
+
+  const recipient = await findUserById(toUserId)
+  if (!recipient) {
+    res.status(404).json({ error: '找不到對方帳號' })
+    return
+  }
+
+  try {
+    const result = await shareChartGroupToUser(sender, groupId, toUserId)
+    res.json({
+      message: `已將 ${result.copied} 筆命盤複製給 ${result.recipientName}`,
+      ...result,
+      targetGroup: {
+        id: result.targetGroupId,
+        name: result.targetGroupName,
+      },
+    })
+  } catch (err) {
+    if (err instanceof ShareChartGroupError) {
+      res.status(err.status).json({ error: err.message })
+      return
+    }
+    console.error('[charts/groups share]', err)
+    res.status(500).json({ error: '分享資料夾失敗' })
+  }
 })
 
 router.post('/groups/unassign', async (req, res) => {

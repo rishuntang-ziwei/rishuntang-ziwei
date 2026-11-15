@@ -3149,6 +3149,7 @@
             <button type="button" id="savedChartNewGroupBtn" class="chart-db-create-folder">建立資料夾</button>
             <button type="button" id="savedChartMoveToGroupBtn">移入資料夾</button>
             <button type="button" id="savedChartRemoveFromGroupBtn">移出資料夾</button>
+            <button type="button" id="savedChartShareGroupBtn">分享資料夾</button>
           </div>
         </div>
         <div class="chart-db-status" id="savedChartSearchStatus"></div>
@@ -4128,6 +4129,65 @@
         await loadSavedCharts(savedChartSearchQuery)
       } catch (err) {
         alert(err.message || '移出資料夾失敗')
+      }
+    }
+
+    async function shareCurrentChartFolder() {
+      await loadChartGroups()
+      if (!savedChartGroupFilterId) {
+        alert('請先在「篩選資料夾」選擇要分享的資料夾')
+        return
+      }
+      const group = chartGroupsCache.find(function (g) {
+        return String(g.id) === String(savedChartGroupFilterId)
+      })
+      if (!group) {
+        alert('找不到資料夾，請重新整理後再試')
+        return
+      }
+      if (!group.chartCount) {
+        alert('此資料夾沒有命盤可分享')
+        return
+      }
+      const member = window.ZiweiMember && window.ZiweiMember.currentUser
+      const isAdmin = member && member.role === 'admin'
+      const hint = isAdmin
+        ? '請輸入對方註冊 Email，或輸入會員編號（純數字）'
+        : '請輸入對方註冊 Email（須已開通會員）'
+      const raw = prompt(
+        '分享資料夾「' + group.name + '」（共 ' + group.chartCount + ' 筆命盤）\n\n' +
+          hint +
+          '\n\n對方會在自己的帳號收到一份複本，你這邊的資料不變。',
+      )
+      if (raw == null) return
+      const input = String(raw).trim()
+      if (!input) return
+      if (
+        !confirm(
+          '確定將此資料夾內全部命盤複製給對方？\n（單次最多 200 筆，含姓名、出生與電話等欄位）',
+        )
+      ) {
+        return
+      }
+      const body = {}
+      if (isAdmin && /^\d+$/.test(input)) {
+        body.recipientUserId = Number(input)
+      } else {
+        body.recipientEmail = input.toLowerCase()
+      }
+      try {
+        const data = await window.ZiweiAuth.api('/api/charts/groups/' + group.id + '/share', {
+          method: 'POST',
+          body: JSON.stringify(body),
+        })
+        const targetName =
+          data.targetGroup && data.targetGroup.name ? data.targetGroup.name : data.targetGroupName
+        alert(
+          (data.message || '分享完成') +
+            (targetName ? '\n對方資料夾：「' + targetName + '」' : ''),
+        )
+      } catch (err) {
+        alert(err.message || '分享資料夾失敗')
       }
     }
 
@@ -5145,6 +5205,10 @@
 
     document.getElementById('savedChartRemoveFromGroupBtn')?.addEventListener('click', function () {
       removeSelectedChartsFromGroup()
+    })
+
+    document.getElementById('savedChartShareGroupBtn')?.addEventListener('click', function () {
+      shareCurrentChartFolder()
     })
 
     document.querySelectorAll('input[name="calendar"]').forEach(el => {

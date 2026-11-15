@@ -25,6 +25,8 @@ export const listSavedChartsByUser = (userId: number, search?: string, groupId?:
   driver.listSavedChartsByUser(userId, search, groupId)
 export const listChartGroupsByUser = (userId: number) => driver.listChartGroupsByUser(userId)
 export const createChartGroup = (userId: number, name: string) => driver.createChartGroup(userId, name)
+export const findChartGroupForUser = (groupId: number, userId: number) =>
+  driver.findChartGroupForUser(groupId, userId)
 export const renameChartGroup = (groupId: number, userId: number, name: string) =>
   driver.renameChartGroup(groupId, userId, name)
 export const deleteChartGroup = (groupId: number, userId: number) => driver.deleteChartGroup(groupId, userId)
