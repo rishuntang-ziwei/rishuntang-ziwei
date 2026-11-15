@@ -544,6 +544,21 @@
       border-color: var(--border);
     }
 
+    .chart-db-share-hint {
+      flex: 1 1 100%;
+      margin: 0;
+      font-size: 14px;
+      color: var(--brand-brown);
+      line-height: 1.45;
+    }
+
+    .db-readonly-tag {
+      font-size: 12px;
+      color: var(--ink-muted);
+      padding: 0 6px 0 0;
+      white-space: nowrap;
+    }
+
     .chart-db-group-actions button.chart-db-create-folder:hover {
       background: var(--paper-muted, #f5efe4);
     }
@@ -3252,7 +3267,9 @@
             <button type="button" id="savedChartMoveToGroupBtn">移入資料夾</button>
             <button type="button" id="savedChartRemoveFromGroupBtn">移出資料夾</button>
             <button type="button" id="savedChartShareGroupBtn">分享資料夾</button>
+            <button type="button" id="savedChartSyncGroupBtn" class="hidden">同步到最新</button>
           </div>
+          <p id="savedChartShareHint" class="chart-db-share-hint hidden"></p>
         </div>
         <div class="chart-db-status" id="savedChartSearchStatus"></div>
         <div class="chart-db-table-wrap" id="savedChartList">
@@ -4131,13 +4148,54 @@
       }
     }
 
+    function getActiveChartGroupMeta() {
+      if (!savedChartGroupFilterId) return null
+      return chartGroupsCache.find(function (g) {
+        return String(g.id) === String(savedChartGroupFilterId)
+      }) || null
+    }
+
+    function updateChartDbShareToolbar() {
+      const syncBtn = document.getElementById('savedChartSyncGroupBtn')
+      const shareBtn = document.getElementById('savedChartShareGroupBtn')
+      const hint = document.getElementById('savedChartShareHint')
+      const moveBtn = document.getElementById('savedChartMoveToGroupBtn')
+      const removeBtn = document.getElementById('savedChartRemoveFromGroupBtn')
+      const group = getActiveChartGroupMeta()
+      const incoming = Boolean(group && group.incomingShareId)
+
+      if (syncBtn) syncBtn.classList.toggle('hidden', !incoming)
+      if (shareBtn) shareBtn.hidden = incoming
+      if (moveBtn) moveBtn.disabled = incoming
+      if (removeBtn) removeBtn.disabled = incoming
+
+      if (hint) {
+        if (incoming) {
+          hint.classList.remove('hidden')
+          hint.textContent =
+            '此資料夾由「' + (group.shareOwnerName || '老師') +
+            '」分享，命盤唯讀；老師更新後請按「同步到最新」。'
+        } else {
+          hint.classList.add('hidden')
+          hint.textContent = ''
+        }
+      }
+    }
+
     function renderChartGroupFilterOptions() {
       const sel = document.getElementById('savedChartGroupFilter')
       if (!sel) return
       const prev = savedChartGroupFilterId
       let html = '<option value="">全部命盤</option>'
       html += chartGroupsCache.map(function (g) {
-        return '<option value="' + g.id + '">' + escapeHtml(g.name) + ' (' + g.chartCount + ')</option>'
+        const tag =
+          g.isSharedIncoming && g.shareOwnerName
+            ? ' · 來自' + g.shareOwnerName
+            : ''
+        return (
+          '<option value="' + g.id + '">' +
+          escapeHtml(g.name) + tag + ' (' + g.chartCount + ')</option>'
+        )
       }).join('')
       sel.innerHTML = html
       if (prev && chartGroupsCache.some(function (g) { return String(g.id) === String(prev) })) {
@@ -4146,12 +4204,37 @@
         savedChartGroupFilterId = ''
         sel.value = ''
       }
+      updateChartDbShareToolbar()
     }
 
     async function loadChartGroups() {
       const data = await window.ZiweiAuth.api('/api/charts/groups')
       chartGroupsCache = data.groups || []
       renderChartGroupFilterOptions()
+    }
+
+    async function syncIncomingShareFolder() {
+      const group = getActiveChartGroupMeta()
+      if (!group || !group.incomingShareId) {
+        alert('請先選擇老師分享的資料夾')
+        return
+      }
+      try {
+        const data = await window.ZiweiAuth.api('/api/charts/shares/' + group.incomingShareId + '/sync', {
+          method: 'POST',
+        })
+        await loadChartGroups()
+        await loadSavedCharts(savedChartSearchQuery)
+        const stats = data.stats || {}
+        const parts = []
+        if (stats.added) parts.push('新增 ' + stats.added)
+        if (stats.updated) parts.push('更新 ' + stats.updated)
+        if (stats.removed) parts.push('移除 ' + stats.removed)
+        const detail = parts.length ? '\n' + parts.join('、') : ''
+        alert((data.message || '已同步') + detail)
+      } catch (err) {
+        alert(err.message || '同步失敗')
+      }
     }
 
     function buildChartsApiQuery() {
@@ -4385,9 +4468,9 @@
         : body.recipientEmail
       if (
         !confirm(
-          '確定將資料夾「' + group.name + '」內全部命盤複製給 ' +
+          '確定將資料夾「' + group.name + '」分享給 ' +
             (recipientName || '對方') +
-            '？\n（單次最多 200 筆，含姓名、出生與電話等欄位）',
+            '？\n學員端為唯讀，需自行按「同步到最新」取得你的更新。',
         )
       ) {
         return
@@ -4405,7 +4488,7 @@
         closeChartShareModal()
         alert(
           (data.message || '分享完成') +
-            (targetName ? '\n對方資料夾：「' + targetName + '」' : ''),
+            (targetName ? '\n學員資料夾：「' + targetName + '」' : ''),
         )
       } catch (err) {
         alert(err.message || '分享資料夾失敗')
@@ -4707,10 +4790,14 @@
             '<td><input type="tel" class="db-phone-input" value="' + escapeHtml(phone) + '" placeholder="請輸入電話" readonly /></td>' +
             '<td class="db-group-cell">' + groupLabel + '</td>' +
             '<td><div class="db-actions">' +
-              '<button type="button" data-edit-chart="' + chart.id + '">修改</button>' +
-              '<button type="button" data-save-chart="' + chart.id + '" disabled>儲存</button>' +
+              (chart.isReadOnly
+                ? '<span class="db-readonly-tag">分享唯讀</span>'
+                : '<button type="button" data-edit-chart="' + chart.id + '">修改</button>' +
+                  '<button type="button" data-save-chart="' + chart.id + '" disabled>儲存</button>') +
               '<button type="button" data-load-chart="' + chart.id + '">提取</button>' +
-              '<button type="button" class="danger" data-delete-chart="' + chart.id + '" data-name="' + escapeHtml(chart.subjectName) + '">刪除</button>' +
+              (chart.isReadOnly
+                ? ''
+                : '<button type="button" class="danger" data-delete-chart="' + chart.id + '" data-name="' + escapeHtml(chart.subjectName) + '">刪除</button>') +
             '</div></td>' +
           '</tr>'
         )
@@ -5437,6 +5524,7 @@
 
     document.getElementById('savedChartGroupFilter')?.addEventListener('change', function (e) {
       savedChartGroupFilterId = e.target.value || ''
+      updateChartDbShareToolbar()
       loadSavedCharts(savedChartSearchQuery)
     })
 
@@ -5454,6 +5542,10 @@
 
     document.getElementById('savedChartShareGroupBtn')?.addEventListener('click', function () {
       shareCurrentChartFolder()
+    })
+
+    document.getElementById('savedChartSyncGroupBtn')?.addEventListener('click', function () {
+      syncIncomingShareFolder()
     })
 
     document.getElementById('chartShareModalCancel')?.addEventListener('click', closeChartShareModal)

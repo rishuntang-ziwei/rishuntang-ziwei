@@ -16,7 +16,11 @@ import {
 } from '../db.js'
 import { requireAuth, requireActiveMember } from '../middleware.js'
 import { isAdminUser } from '../adminRoles.js'
-import { ShareChartGroupError, shareChartGroupToUser } from '../chartShare.js'
+import {
+  ShareChartGroupError,
+  shareChartGroupToUser,
+  syncChartGroupShareForRecipient,
+} from '../chartShare.js'
 import { validateChartPayload } from '../chartPayload.js'
 import type { SavedChartPayload } from '../types.js'
 
@@ -170,7 +174,9 @@ router.post('/groups/:groupId/share', async (req, res) => {
   try {
     const result = await shareChartGroupToUser(sender, groupId, toUserId)
     res.json({
-      message: `已將 ${result.copied} 筆命盤複製給 ${result.recipientName}`,
+      message: result.isNewShare
+        ? `已分享資料夾給 ${result.recipientName}（學員需按「同步到最新」取得更新）`
+        : `已更新分享給 ${result.recipientName} 的資料夾內容`,
       ...result,
       targetGroup: {
         id: result.targetGroupId,
@@ -184,6 +190,28 @@ router.post('/groups/:groupId/share', async (req, res) => {
     }
     console.error('[charts/groups share]', err)
     res.status(500).json({ error: '分享資料夾失敗' })
+  }
+})
+
+router.post('/shares/:shareId/sync', async (req, res) => {
+  const shareId = Number(req.params.shareId)
+  if (!Number.isFinite(shareId)) {
+    res.status(400).json({ error: '無效的分享 ID' })
+    return
+  }
+  try {
+    const stats = await syncChartGroupShareForRecipient(shareId, req.authUser!.id)
+    res.json({
+      message: '已同步到最新',
+      stats,
+    })
+  } catch (err) {
+    if (err instanceof ShareChartGroupError) {
+      res.status(err.status).json({ error: err.message })
+      return
+    }
+    console.error('[charts/shares sync]', err)
+    res.status(500).json({ error: '同步失敗' })
   }
 })
 
@@ -267,6 +295,11 @@ router.patch('/:id', async (req, res) => {
 
   const chart = await updateSavedChart(id, req.authUser!.id, { phone, payload })
   if (!chart) {
+    const existing = await getSavedChartDetailForUser(id, req.authUser!.id)
+    if (existing?.isReadOnly) {
+      res.status(403).json({ error: '此命盤來自老師分享，僅能閱讀與抽盤' })
+      return
+    }
     res.status(404).json({ error: '找不到命盤' })
     return
   }
@@ -281,6 +314,11 @@ router.delete('/:id', async (req, res) => {
     return
   }
 
+  const existing = await getSavedChartDetailForUser(id, req.authUser!.id)
+  if (existing?.isReadOnly) {
+    res.status(403).json({ error: '此命盤來自老師分享，無法刪除' })
+    return
+  }
   if (!(await deleteSavedChart(id, req.authUser!.id))) {
     res.status(404).json({ error: '找不到命盤' })
     return

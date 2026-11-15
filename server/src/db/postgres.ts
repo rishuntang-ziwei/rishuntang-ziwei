@@ -2,7 +2,16 @@ import bcrypt from 'bcryptjs'
 import pg from 'pg'
 import type { AdminAuditAction, AdminAuditLogInput, PublicAdminAuditLog } from '../adminAuditLog.js'
 import { LIFETIME_MEMBERSHIP_EXPIRY } from '../paymentPlans.js'
-import type { PublicUser, SavedChartDetail, SavedChartPayload, SavedChartRow, SavedChartSummary, UserRow, PaymentOrderRow } from '../types.js'
+import type {
+  ChartGroupShareRow,
+  PublicUser,
+  SavedChartDetail,
+  SavedChartPayload,
+  SavedChartRow,
+  SavedChartSummary,
+  UserRow,
+  PaymentOrderRow,
+} from '../types.js'
 import { mapPaymentOrderRow, mapSavedChartRow, mapUserRow, parseSavedChartPayload, toIsoString, toPublicUser, toSavedChartDetail, toSavedChartSummary } from './shared.js'
 import { resolveMembershipGrant } from '../membershipGrant.js'
 import { canGenerateChartToday, dailyChartQuotaForUser, taipeiDateString } from '../chartQuota.js'
@@ -89,6 +98,30 @@ export async function initDb() {
     ALTER TABLE saved_charts
     ADD COLUMN IF NOT EXISTS group_id INTEGER REFERENCES chart_groups(id) ON DELETE SET NULL
   `)
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS chart_group_shares (
+      id SERIAL PRIMARY KEY,
+      owner_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      source_group_id INTEGER NOT NULL REFERENCES chart_groups(id) ON DELETE CASCADE,
+      recipient_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      mirror_group_id INTEGER REFERENCES chart_groups(id) ON DELETE SET NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE(owner_user_id, source_group_id, recipient_user_id)
+    )
+  `)
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_chart_group_shares_recipient ON chart_group_shares(recipient_user_id)`)
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_chart_group_shares_mirror ON chart_group_shares(mirror_group_id)`)
+  await pool.query(`
+    ALTER TABLE saved_charts
+    ADD COLUMN IF NOT EXISTS share_id INTEGER REFERENCES chart_group_shares(id) ON DELETE CASCADE
+  `)
+  await pool.query(`
+    ALTER TABLE saved_charts
+    ADD COLUMN IF NOT EXISTS shared_from_chart_id INTEGER
+  `)
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_saved_charts_share ON saved_charts(share_id)`)
 
   await pool.query(`
     ALTER TABLE users
@@ -416,11 +449,15 @@ export async function listSavedChartsByUser(
 export async function listChartGroupsByUser(userId: number): Promise<import('../types.js').ChartGroupSummary[]> {
   const result = await pool.query(
     `SELECT g.id, g.name, g.created_at, g.updated_at,
-            COUNT(sc.id)::int AS chart_count
+            COUNT(sc.id)::int AS chart_count,
+            cgs.id AS incoming_share_id,
+            ou.name AS share_owner_name
      FROM chart_groups g
      LEFT JOIN saved_charts sc ON sc.group_id = g.id AND sc.user_id = g.user_id
+     LEFT JOIN chart_group_shares cgs ON cgs.mirror_group_id = g.id AND cgs.recipient_user_id = g.user_id
+     LEFT JOIN users ou ON ou.id = cgs.owner_user_id
      WHERE g.user_id = $1
-     GROUP BY g.id
+     GROUP BY g.id, cgs.id, ou.name
      ORDER BY g.name ASC`,
     [userId],
   )
@@ -430,6 +467,9 @@ export async function listChartGroupsByUser(userId: number): Promise<import('../
     chartCount: Number(row.chart_count ?? 0),
     createdAt: new Date(row.created_at).toISOString(),
     updatedAt: new Date(row.updated_at).toISOString(),
+    isSharedIncoming: row.incoming_share_id != null,
+    incomingShareId: row.incoming_share_id != null ? Number(row.incoming_share_id) : null,
+    shareOwnerName: row.share_owner_name != null ? String(row.share_owner_name) : null,
   }))
 }
 
@@ -478,6 +518,11 @@ export async function renameChartGroup(
 }
 
 export async function deleteChartGroup(groupId: number, userId: number): Promise<boolean> {
+  const incoming = await pool.query(
+    'SELECT id FROM chart_group_shares WHERE mirror_group_id = $1 AND recipient_user_id = $2',
+    [groupId, userId],
+  )
+  if ((incoming.rowCount ?? 0) > 0) return false
   const result = await pool.query('DELETE FROM chart_groups WHERE id = $1 AND user_id = $2', [groupId, userId])
   return (result.rowCount ?? 0) > 0
 }
@@ -491,6 +536,8 @@ export async function assignChartsToGroup(
   if (!group) return 0
   let updated = 0
   for (const chartId of chartIds) {
+    const chart = await findSavedChartForUser(chartId, userId)
+    if (!chart || chart.share_id != null) continue
     const result = await pool.query(
       `UPDATE saved_charts SET group_id = $1, updated_at = NOW() WHERE id = $2 AND user_id = $3`,
       [groupId, chartId, userId],
@@ -505,7 +552,8 @@ export async function removeChartsFromGroup(userId: number, chartIds: number[]):
   let updated = 0
   for (const chartId of chartIds) {
     const result = await pool.query(
-      `UPDATE saved_charts SET group_id = NULL, updated_at = NOW() WHERE id = $1 AND user_id = $2`,
+      `UPDATE saved_charts SET group_id = NULL, updated_at = NOW()
+       WHERE id = $1 AND user_id = $2 AND share_id IS NULL`,
       [chartId, userId],
     )
     updated += result.rowCount ?? 0
@@ -541,7 +589,10 @@ export async function createSavedChart(userId: number, payload: SavedChartPayloa
 }
 
 export async function deleteSavedChart(id: number, userId: number): Promise<boolean> {
-  const result = await pool.query('DELETE FROM saved_charts WHERE id = $1 AND user_id = $2', [id, userId])
+  const result = await pool.query(
+    'DELETE FROM saved_charts WHERE id = $1 AND user_id = $2 AND share_id IS NULL',
+    [id, userId],
+  )
   return (result.rowCount ?? 0) > 0
 }
 
@@ -552,6 +603,7 @@ export async function updateSavedChart(
 ): Promise<SavedChartDetail | undefined> {
   const existing = await findSavedChartForUser(id, userId)
   if (!existing) return undefined
+  if (existing.share_id != null) return undefined
 
   const phone = updates.phone !== undefined ? updates.phone.trim() : existing.phone ?? ''
   const payload = updates.payload ?? parseSavedChartPayload(existing.payload)
@@ -787,6 +839,128 @@ export async function incrementGuestAiQuota(ip: string) {
     [ip, today, next],
   )
   return { used: next, limit, remaining: Math.max(0, limit - next) }
+}
+
+function mapChartGroupShareRow(row: Record<string, unknown>): ChartGroupShareRow {
+  return {
+    id: Number(row.id),
+    owner_user_id: Number(row.owner_user_id),
+    source_group_id: Number(row.source_group_id),
+    recipient_user_id: Number(row.recipient_user_id),
+    mirror_group_id: row.mirror_group_id != null ? Number(row.mirror_group_id) : null,
+    created_at: toIsoString(row.created_at),
+    updated_at: toIsoString(row.updated_at),
+  }
+}
+
+export async function findChartGroupShareByTriple(
+  ownerUserId: number,
+  sourceGroupId: number,
+  recipientUserId: number,
+): Promise<ChartGroupShareRow | undefined> {
+  const result = await pool.query(
+    `SELECT * FROM chart_group_shares
+     WHERE owner_user_id = $1 AND source_group_id = $2 AND recipient_user_id = $3`,
+    [ownerUserId, sourceGroupId, recipientUserId],
+  )
+  const row = result.rows[0]
+  return row ? mapChartGroupShareRow(row as Record<string, unknown>) : undefined
+}
+
+export async function findChartGroupShareById(shareId: number): Promise<ChartGroupShareRow | undefined> {
+  const result = await pool.query('SELECT * FROM chart_group_shares WHERE id = $1', [shareId])
+  const row = result.rows[0]
+  return row ? mapChartGroupShareRow(row as Record<string, unknown>) : undefined
+}
+
+export async function createChartGroupShareRecord(
+  ownerUserId: number,
+  sourceGroupId: number,
+  recipientUserId: number,
+): Promise<ChartGroupShareRow> {
+  const result = await pool.query(
+    `INSERT INTO chart_group_shares (owner_user_id, source_group_id, recipient_user_id)
+     VALUES ($1, $2, $3)
+     RETURNING *`,
+    [ownerUserId, sourceGroupId, recipientUserId],
+  )
+  const row = result.rows[0]
+  if (!row) throw new Error('建立分享關係失敗')
+  return mapChartGroupShareRow(row as Record<string, unknown>)
+}
+
+export async function setChartGroupShareMirrorGroup(shareId: number, mirrorGroupId: number): Promise<void> {
+  await pool.query(`UPDATE chart_group_shares SET mirror_group_id = $1, updated_at = NOW() WHERE id = $2`, [
+    mirrorGroupId,
+    shareId,
+  ])
+}
+
+export async function touchChartGroupShareUpdatedAt(shareId: number): Promise<void> {
+  await pool.query(`UPDATE chart_group_shares SET updated_at = NOW() WHERE id = $1`, [shareId])
+}
+
+export async function listMirroredChartsByShareId(shareId: number): Promise<SavedChartRow[]> {
+  const result = await pool.query('SELECT * FROM saved_charts WHERE share_id = $1 ORDER BY id ASC', [shareId])
+  return result.rows.map((row) => mapSavedChartRow(row as Record<string, unknown>))
+}
+
+export async function insertMirroredSavedChart(
+  userId: number,
+  payload: SavedChartPayload,
+  phone: string,
+  groupId: number,
+  shareId: number,
+  sharedFromChartId: number,
+): Promise<SavedChartDetail> {
+  const name = payload.name.trim()
+  const bazi = payload.bazi.trim()
+  const payloadJson = JSON.stringify(payload)
+  const result = await pool.query(
+    `INSERT INTO saved_charts (user_id, subject_name, gender, bazi, payload, phone, group_id, share_id, shared_from_chart_id)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+     RETURNING id`,
+    [userId, name, payload.gender, bazi, payloadJson, phone.trim(), groupId, shareId, sharedFromChartId],
+  )
+  const row = await findSavedChartById(Number(result.rows[0].id))
+  if (!row) throw new Error('建立分享命盤失敗')
+  return toSavedChartDetail(row)
+}
+
+export async function updateMirroredSavedChart(
+  mirrorChartId: number,
+  userId: number,
+  payload: SavedChartPayload,
+  phone: string,
+): Promise<void> {
+  const payloadJson = JSON.stringify(payload)
+  await pool.query(
+    `UPDATE saved_charts
+     SET subject_name = $1, gender = $2, bazi = $3, payload = $4, phone = $5, updated_at = NOW()
+     WHERE id = $6 AND user_id = $7 AND share_id IS NOT NULL`,
+    [payload.name.trim(), payload.gender, payload.bazi.trim(), payloadJson, phone.trim(), mirrorChartId, userId],
+  )
+}
+
+export async function deleteMirroredChartsByShareNotInSources(
+  shareId: number,
+  userId: number,
+  keepSourceChartIds: number[],
+): Promise<number> {
+  const mirrors = await listMirroredChartsByShareId(shareId)
+  let removed = 0
+  for (const m of mirrors) {
+    if (m.user_id !== userId) continue
+    const srcId = m.shared_from_chart_id
+    if (srcId != null && keepSourceChartIds.includes(srcId)) continue
+    const result = await pool.query('DELETE FROM saved_charts WHERE id = $1 AND user_id = $2 AND share_id = $3', [
+      m.id,
+      userId,
+      shareId,
+    ])
+    removed += result.rowCount ?? 0
+  }
+  return removed
 }
 
 export async function ensureAdminUser() {

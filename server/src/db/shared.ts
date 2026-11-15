@@ -43,6 +43,8 @@ export function toSavedChartSummary(
     payload,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    isReadOnly: row.share_id != null,
+    shareId: row.share_id ?? null,
   }
 }
 
@@ -139,6 +141,11 @@ export function mapSavedChartRow(row: Record<string, unknown>): SavedChartRow {
     bazi: String(row.bazi),
     phone: String(row.phone ?? ''),
     group_id: row.group_id != null && row.group_id !== '' ? Number(row.group_id) : null,
+    share_id: row.share_id != null && row.share_id !== '' ? Number(row.share_id) : null,
+    shared_from_chart_id:
+      row.shared_from_chart_id != null && row.shared_from_chart_id !== ''
+        ? Number(row.shared_from_chart_id)
+        : null,
     payload: String(row.payload),
     created_at: toIsoString(row.created_at),
     updated_at: toIsoString(row.updated_at),

@@ -27,6 +27,40 @@ export const listChartGroupsByUser = (userId: number) => driver.listChartGroupsB
 export const createChartGroup = (userId: number, name: string) => driver.createChartGroup(userId, name)
 export const findChartGroupForUser = (groupId: number, userId: number) =>
   driver.findChartGroupForUser(groupId, userId)
+export const findChartGroupShareByTriple = (
+  ownerUserId: number,
+  sourceGroupId: number,
+  recipientUserId: number,
+) => driver.findChartGroupShareByTriple(ownerUserId, sourceGroupId, recipientUserId)
+export const findChartGroupShareById = (shareId: number) => driver.findChartGroupShareById(shareId)
+export const createChartGroupShareRecord = (
+  ownerUserId: number,
+  sourceGroupId: number,
+  recipientUserId: number,
+) => driver.createChartGroupShareRecord(ownerUserId, sourceGroupId, recipientUserId)
+export const setChartGroupShareMirrorGroup = (shareId: number, mirrorGroupId: number) =>
+  driver.setChartGroupShareMirrorGroup(shareId, mirrorGroupId)
+export const touchChartGroupShareUpdatedAt = (shareId: number) => driver.touchChartGroupShareUpdatedAt(shareId)
+export const listMirroredChartsByShareId = (shareId: number) => driver.listMirroredChartsByShareId(shareId)
+export const insertMirroredSavedChart = (
+  userId: number,
+  payload: Parameters<typeof sqlite.insertMirroredSavedChart>[1],
+  phone: string,
+  groupId: number,
+  shareId: number,
+  sharedFromChartId: number,
+) => driver.insertMirroredSavedChart(userId, payload, phone, groupId, shareId, sharedFromChartId)
+export const updateMirroredSavedChart = (
+  mirrorChartId: number,
+  userId: number,
+  payload: Parameters<typeof sqlite.insertMirroredSavedChart>[1],
+  phone: string,
+) => driver.updateMirroredSavedChart(mirrorChartId, userId, payload, phone)
+export const deleteMirroredChartsByShareNotInSources = (
+  shareId: number,
+  userId: number,
+  keepSourceChartIds: number[],
+) => driver.deleteMirroredChartsByShareNotInSources(shareId, userId, keepSourceChartIds)
 export const renameChartGroup = (groupId: number, userId: number, name: string) =>
   driver.renameChartGroup(groupId, userId, name)
 export const deleteChartGroup = (groupId: number, userId: number) => driver.deleteChartGroup(groupId, userId)

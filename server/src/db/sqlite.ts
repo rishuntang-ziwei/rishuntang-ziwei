@@ -5,7 +5,16 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { AdminAuditAction, AdminAuditLogInput, PublicAdminAuditLog } from '../adminAuditLog.js'
 import { LIFETIME_MEMBERSHIP_EXPIRY } from '../paymentPlans.js'
-import type { PublicUser, SavedChartDetail, SavedChartPayload, SavedChartRow, SavedChartSummary, UserRow, PaymentOrderRow } from '../types.js'
+import type {
+  ChartGroupShareRow,
+  PublicUser,
+  SavedChartDetail,
+  SavedChartPayload,
+  SavedChartRow,
+  SavedChartSummary,
+  UserRow,
+  PaymentOrderRow,
+} from '../types.js'
 import { mapPaymentOrderRow, mapSavedChartRow, mapUserRow, parseSavedChartPayload, toPublicUser, toSavedChartDetail, toSavedChartSummary } from './shared.js'
 import { resolveMembershipGrant } from '../membershipGrant.js'
 import { canGenerateChartToday, dailyChartQuotaForUser, taipeiDateString } from '../chartQuota.js'
@@ -75,6 +84,30 @@ export async function initDb() {
   if (!chartColumnsAfter.some((col) => col.name === 'group_id')) {
     db.exec(`ALTER TABLE saved_charts ADD COLUMN group_id INTEGER REFERENCES chart_groups(id) ON DELETE SET NULL`)
   }
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS chart_group_shares (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      owner_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      source_group_id INTEGER NOT NULL REFERENCES chart_groups(id) ON DELETE CASCADE,
+      recipient_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      mirror_group_id INTEGER REFERENCES chart_groups(id) ON DELETE SET NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      UNIQUE(owner_user_id, source_group_id, recipient_user_id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_chart_group_shares_recipient ON chart_group_shares(recipient_user_id);
+    CREATE INDEX IF NOT EXISTS idx_chart_group_shares_mirror ON chart_group_shares(mirror_group_id);
+  `)
+  let chartShareCols = db.prepare('PRAGMA table_info(saved_charts)').all() as { name: string }[]
+  if (!chartShareCols.some((col) => col.name === 'share_id')) {
+    db.exec(`ALTER TABLE saved_charts ADD COLUMN share_id INTEGER REFERENCES chart_group_shares(id) ON DELETE CASCADE`)
+    chartShareCols = db.prepare('PRAGMA table_info(saved_charts)').all() as { name: string }[]
+  }
+  if (!chartShareCols.some((col) => col.name === 'shared_from_chart_id')) {
+    db.exec(`ALTER TABLE saved_charts ADD COLUMN shared_from_chart_id INTEGER`)
+  }
+  db.exec(`CREATE INDEX IF NOT EXISTS idx_saved_charts_share ON saved_charts(share_id)`)
 
   if (!userColumns.some((col) => col.name === 'membership_plan')) {
     db.exec(`ALTER TABLE users ADD COLUMN membership_plan TEXT`)
@@ -405,9 +438,13 @@ export async function listChartGroupsByUser(userId: number): Promise<import('../
   const rows = db
     .prepare(
       `SELECT g.id, g.name, g.created_at, g.updated_at,
-              COUNT(sc.id) AS chart_count
+              COUNT(sc.id) AS chart_count,
+              cgs.id AS incoming_share_id,
+              ou.name AS share_owner_name
        FROM chart_groups g
        LEFT JOIN saved_charts sc ON sc.group_id = g.id AND sc.user_id = g.user_id
+       LEFT JOIN chart_group_shares cgs ON cgs.mirror_group_id = g.id AND cgs.recipient_user_id = g.user_id
+       LEFT JOIN users ou ON ou.id = cgs.owner_user_id
        WHERE g.user_id = ?
        GROUP BY g.id
        ORDER BY g.name COLLATE NOCASE ASC`,
@@ -419,6 +456,9 @@ export async function listChartGroupsByUser(userId: number): Promise<import('../
     chartCount: Number(row.chart_count ?? 0),
     createdAt: String(row.created_at),
     updatedAt: String(row.updated_at),
+    isSharedIncoming: row.incoming_share_id != null,
+    incomingShareId: row.incoming_share_id != null ? Number(row.incoming_share_id) : null,
+    shareOwnerName: row.share_owner_name != null ? String(row.share_owner_name) : null,
   }))
 }
 
@@ -466,6 +506,10 @@ export async function renameChartGroup(
 }
 
 export async function deleteChartGroup(groupId: number, userId: number): Promise<boolean> {
+  const incoming = db
+    .prepare('SELECT id FROM chart_group_shares WHERE mirror_group_id = ? AND recipient_user_id = ?')
+    .get(groupId, userId)
+  if (incoming) return false
   const result = db.prepare('DELETE FROM chart_groups WHERE id = ? AND user_id = ?').run(groupId, userId)
   return result.changes > 0
 }
@@ -482,6 +526,8 @@ export async function assignChartsToGroup(
     `UPDATE saved_charts SET group_id = ?, updated_at = datetime('now') WHERE id = ? AND user_id = ?`,
   )
   for (const chartId of chartIds) {
+    const chart = await findSavedChartForUser(chartId, userId)
+    if (!chart || chart.share_id != null) continue
     const r = stmt.run(groupId, chartId, userId)
     updated += Number(r.changes)
   }
@@ -492,7 +538,7 @@ export async function assignChartsToGroup(
 export async function removeChartsFromGroup(userId: number, chartIds: number[]): Promise<number> {
   let updated = 0
   const stmt = db.prepare(
-    `UPDATE saved_charts SET group_id = NULL, updated_at = datetime('now') WHERE id = ? AND user_id = ?`,
+    `UPDATE saved_charts SET group_id = NULL, updated_at = datetime('now') WHERE id = ? AND user_id = ? AND share_id IS NULL`,
   )
   for (const chartId of chartIds) {
     const r = stmt.run(chartId, userId)
@@ -527,7 +573,9 @@ export async function createSavedChart(userId: number, payload: SavedChartPayloa
 }
 
 export async function deleteSavedChart(id: number, userId: number): Promise<boolean> {
-  const result = db.prepare('DELETE FROM saved_charts WHERE id = ? AND user_id = ?').run(id, userId)
+  const result = db
+    .prepare('DELETE FROM saved_charts WHERE id = ? AND user_id = ? AND share_id IS NULL')
+    .run(id, userId)
   return result.changes > 0
 }
 
@@ -538,6 +586,7 @@ export async function updateSavedChart(
 ): Promise<SavedChartDetail | undefined> {
   const existing = await findSavedChartForUser(id, userId)
   if (!existing) return undefined
+  if (existing.share_id != null) return undefined
 
   const phone = updates.phone !== undefined ? updates.phone.trim() : existing.phone ?? ''
   const payload = updates.payload ?? parseSavedChartPayload(existing.payload)
@@ -766,6 +815,129 @@ export async function incrementGuestAiQuota(ip: string) {
      ON CONFLICT(ip, usage_date) DO UPDATE SET count = excluded.count`,
   ).run(ip, today, next)
   return { used: next, limit, remaining: Math.max(0, limit - next) }
+}
+
+function mapChartGroupShareRow(row: Record<string, unknown>): ChartGroupShareRow {
+  return {
+    id: Number(row.id),
+    owner_user_id: Number(row.owner_user_id),
+    source_group_id: Number(row.source_group_id),
+    recipient_user_id: Number(row.recipient_user_id),
+    mirror_group_id: row.mirror_group_id != null ? Number(row.mirror_group_id) : null,
+    created_at: String(row.created_at),
+    updated_at: String(row.updated_at),
+  }
+}
+
+export async function findChartGroupShareByTriple(
+  ownerUserId: number,
+  sourceGroupId: number,
+  recipientUserId: number,
+): Promise<ChartGroupShareRow | undefined> {
+  const row = db
+    .prepare(
+      `SELECT * FROM chart_group_shares
+       WHERE owner_user_id = ? AND source_group_id = ? AND recipient_user_id = ?`,
+    )
+    .get(ownerUserId, sourceGroupId, recipientUserId) as Record<string, unknown> | undefined
+  return row ? mapChartGroupShareRow(row) : undefined
+}
+
+export async function findChartGroupShareById(shareId: number): Promise<ChartGroupShareRow | undefined> {
+  const row = db.prepare('SELECT * FROM chart_group_shares WHERE id = ?').get(shareId) as
+    | Record<string, unknown>
+    | undefined
+  return row ? mapChartGroupShareRow(row) : undefined
+}
+
+export async function createChartGroupShareRecord(
+  ownerUserId: number,
+  sourceGroupId: number,
+  recipientUserId: number,
+): Promise<ChartGroupShareRow> {
+  const result = db
+    .prepare(
+      `INSERT INTO chart_group_shares (owner_user_id, source_group_id, recipient_user_id)
+       VALUES (?, ?, ?)`,
+    )
+    .run(ownerUserId, sourceGroupId, recipientUserId)
+  const row = db.prepare('SELECT * FROM chart_group_shares WHERE id = ?').get(Number(result.lastInsertRowid))
+  if (!row) throw new Error('建立分享關係失敗')
+  return mapChartGroupShareRow(row as Record<string, unknown>)
+}
+
+export async function setChartGroupShareMirrorGroup(shareId: number, mirrorGroupId: number): Promise<void> {
+  db.prepare(
+    `UPDATE chart_group_shares SET mirror_group_id = ?, updated_at = datetime('now') WHERE id = ?`,
+  ).run(mirrorGroupId, shareId)
+}
+
+export async function touchChartGroupShareUpdatedAt(shareId: number): Promise<void> {
+  db.prepare(`UPDATE chart_group_shares SET updated_at = datetime('now') WHERE id = ?`).run(shareId)
+}
+
+export async function listMirroredChartsByShareId(shareId: number): Promise<SavedChartRow[]> {
+  const rows = db
+    .prepare('SELECT * FROM saved_charts WHERE share_id = ? ORDER BY id ASC')
+    .all(shareId) as Record<string, unknown>[]
+  return rows.map((row) => mapSavedChartRow(row))
+}
+
+export async function insertMirroredSavedChart(
+  userId: number,
+  payload: SavedChartPayload,
+  phone: string,
+  groupId: number,
+  shareId: number,
+  sharedFromChartId: number,
+): Promise<SavedChartDetail> {
+  const name = payload.name.trim()
+  const bazi = payload.bazi.trim()
+  const payloadJson = JSON.stringify(payload)
+  const result = db
+    .prepare(
+      `INSERT INTO saved_charts (user_id, subject_name, gender, bazi, payload, phone, group_id, share_id, shared_from_chart_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    )
+    .run(userId, name, payload.gender, bazi, payloadJson, phone.trim(), groupId, shareId, sharedFromChartId)
+  const row = await findSavedChartById(Number(result.lastInsertRowid))
+  if (!row) throw new Error('建立分享命盤失敗')
+  return toSavedChartDetail(row)
+}
+
+export async function updateMirroredSavedChart(
+  mirrorChartId: number,
+  userId: number,
+  payload: SavedChartPayload,
+  phone: string,
+): Promise<void> {
+  const payloadJson = JSON.stringify(payload)
+  db.prepare(
+    `UPDATE saved_charts
+     SET subject_name = ?, gender = ?, bazi = ?, payload = ?, phone = ?, updated_at = datetime('now')
+     WHERE id = ? AND user_id = ? AND share_id IS NOT NULL`,
+  ).run(payload.name.trim(), payload.gender, payload.bazi.trim(), payloadJson, phone.trim(), mirrorChartId, userId)
+}
+
+export async function deleteMirroredChartsByShareNotInSources(
+  shareId: number,
+  userId: number,
+  keepSourceChartIds: number[],
+): Promise<number> {
+  const mirrors = await listMirroredChartsByShareId(shareId)
+  let removed = 0
+  for (const m of mirrors) {
+    if (m.user_id !== userId) continue
+    const srcId = m.shared_from_chart_id
+    if (srcId != null && keepSourceChartIds.includes(srcId)) continue
+    const r = db.prepare('DELETE FROM saved_charts WHERE id = ? AND user_id = ? AND share_id = ?').run(
+      m.id,
+      userId,
+      shareId,
+    )
+    removed += Number(r.changes)
+  }
+  return removed
 }
 
 export async function ensureAdminUser() {

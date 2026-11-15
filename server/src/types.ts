@@ -83,6 +83,8 @@ export interface SavedChartRow {
   bazi: string
   phone: string
   group_id: number | null
+  share_id: number | null
+  shared_from_chart_id: number | null
   payload: string
   created_at: string
   updated_at: string
@@ -94,6 +96,20 @@ export interface ChartGroupSummary {
   chartCount: number
   createdAt: string
   updatedAt: string
+  /** 學員端：此資料夾來自老師分享 */
+  isSharedIncoming?: boolean
+  incomingShareId?: number | null
+  shareOwnerName?: string | null
+}
+
+export interface ChartGroupShareRow {
+  id: number
+  owner_user_id: number
+  source_group_id: number
+  recipient_user_id: number
+  mirror_group_id: number | null
+  created_at: string
+  updated_at: string
 }
 
 export interface SavedChartSummary {
@@ -107,6 +123,9 @@ export interface SavedChartSummary {
   payload: SavedChartPayload
   createdAt: string
   updatedAt: string
+  /** 學員端：來自老師分享的唯讀副本 */
+  isReadOnly?: boolean
+  shareId?: number | null
 }
 
 export interface SavedChartDetail extends SavedChartSummary {
