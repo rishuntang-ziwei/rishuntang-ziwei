@@ -79,6 +79,11 @@ export async function initDb() {
   `)
 
   await pool.query(`
+    ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS star_draw_requested_at TIMESTAMPTZ
+  `)
+
+  await pool.query(`
     ALTER TABLE saved_charts
     ADD COLUMN IF NOT EXISTS phone TEXT NOT NULL DEFAULT ''
   `)
@@ -413,7 +418,24 @@ export async function revokeAllTrustedDevicesForUser(userId: number) {
 }
 
 export async function updateUserStarDraw(id: number, enabled: boolean): Promise<PublicUser | undefined> {
-  await pool.query(`UPDATE users SET star_draw_enabled = $1 WHERE id = $2 AND role = 'user'`, [enabled, id])
+  await pool.query(
+    `UPDATE users
+     SET star_draw_enabled = $1,
+         star_draw_requested_at = CASE WHEN $1 THEN NULL ELSE star_draw_requested_at END
+     WHERE id = $2 AND role = 'user'`,
+    [enabled, id],
+  )
+  const row = await findUserById(id)
+  return row ? toPublicUser(row) : undefined
+}
+
+export async function requestUserStarDraw(id: number): Promise<PublicUser | undefined> {
+  await pool.query(
+    `UPDATE users
+     SET star_draw_requested_at = COALESCE(star_draw_requested_at, NOW())
+     WHERE id = $1 AND role = 'user' AND star_draw_enabled = FALSE`,
+    [id],
+  )
   const row = await findUserById(id)
   return row ? toPublicUser(row) : undefined
 }

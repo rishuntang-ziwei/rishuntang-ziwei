@@ -11,6 +11,7 @@ export interface UserRow {
   role: UserRole
   is_super_admin: boolean
   star_draw_enabled: boolean
+  star_draw_requested_at: string | null
   membership_plan: string | null
   membership_expires_at: string | null
   birth_payload: string | null
@@ -29,6 +30,8 @@ export interface PublicUser {
   role: UserRole
   isSuperAdmin: boolean
   starDrawEnabled: boolean
+  starDrawRequestedAt: string | null
+  starDrawRequestPending: boolean
   membershipPlan: string | null
   membershipExpiresAt: string | null
   membershipActive: boolean

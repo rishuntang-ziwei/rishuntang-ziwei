@@ -59,7 +59,9 @@
           : '<button type="button" data-grant-membership="' + user.id + '" data-name="' + user.name + '">開通付費</button>',
         user.starDrawEnabled
           ? '<button type="button" class="danger" data-disable-star-draw="' + user.id + '" data-name="' + user.name + '">取消神牌</button>'
-          : '<button type="button" data-enable-star-draw="' + user.id + '" data-name="' + user.name + '">開通神牌</button>',
+          : '<button type="button" data-enable-star-draw="' + user.id + '" data-name="' + user.name + '">' +
+              (user.starDrawRequestPending ? '開通神牌（已申請）' : '開通神牌') +
+            '</button>',
         '<button type="button" data-reset="' + user.id + '" data-name="' + user.name + '">重設密碼</button>',
         (auth.isSuperAdminUser(currentUser)
           ? '<button type="button" data-make-admin="' + user.id + '" data-name="' + user.name + '">設為管理員</button>'
@@ -623,7 +625,9 @@
             ? '—'
             : user.starDrawEnabled
               ? '已開通'
-              : '未開通'
+              : user.starDrawRequestPending
+                ? '申請中'
+                : '未開通'
         const birthCell = user.birthDateTime || '—'
         const tierLabel = user.memberTierLabel || auth.memberTierDetailedLabel(user)
 
