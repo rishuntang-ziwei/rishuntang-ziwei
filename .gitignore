@@ -25,3 +25,6 @@ server/data/*.db-*
 *.njsproj
 *.sln
 *.sw?
+
+*.jks
+keystore.properties

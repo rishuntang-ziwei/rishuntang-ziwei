@@ -4,3 +4,9 @@ android/
 ios/
 .DS_Store
 *.log
+
+.secrets/
+*.jks
+keystore.properties
+
+*.apk
