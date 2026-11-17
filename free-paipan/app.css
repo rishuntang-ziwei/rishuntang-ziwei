@@ -101,16 +101,21 @@ body {
   box-shadow: var(--shadow-soft);
   padding: 18px 16px;
   backdrop-filter: blur(2px);
+  overflow: hidden;
 }
 
 .paipan-form {
   display: grid;
   gap: 14px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .field {
   display: grid;
   gap: 6px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .field label {
@@ -129,6 +134,22 @@ body {
   color: var(--ink);
   font-family: inherit;
   font-size: 1rem;
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* iOS Safari date 控件本身有很大的最小寬度，會撐破表單 */
+.field input[type='date'] {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  line-height: 1.4;
+}
+
+.field input[type='date']::-webkit-date-and-time-value {
+  text-align: left;
+  margin: 0;
 }
 
 .field input:focus,
