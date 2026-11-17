@@ -1,7 +1,7 @@
 {
   "name": "xianshi-capacitor",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "先知斗數神牌 · Capacitor 雙平台殼層",
   "scripts": {
     "sync-www": "node scripts/sync-www.mjs",

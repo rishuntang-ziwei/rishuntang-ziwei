@@ -26,8 +26,90 @@
         />
         <p class="portal-eyebrow">國際日舜堂</p>
         <h1>先知斗數神牌</h1>
-        <p class="portal-tagline">會員登入後即可申請或進入神牌</p>
+        <p class="portal-tagline" id="portalTagline">四輪抽選 · 會員授權進入</p>
       </header>
+
+      <section id="portalHome" class="portal-card" hidden>
+        <h2>歡迎使用</h2>
+        <p class="portal-note">請選擇下一步</p>
+        <div class="portal-actions">
+          <button type="button" class="portal-btn secondary" id="goIntroBtn">
+            神牌介紹
+          </button>
+          <button type="button" class="portal-btn primary" id="goRegisterBtn">
+            申請帳號
+          </button>
+          <button type="button" class="portal-btn" id="goLoginBtn">
+            已有帳號？登入
+          </button>
+        </div>
+      </section>
+
+      <section id="portalIntro" class="portal-card" hidden>
+        <h2>神牌介紹</h2>
+        <ul class="portal-intro-list">
+          <li>以四輪抽選進行神牌推演，協助解讀當下課題與應對方向。</li>
+          <li>公開下載之 App 需會員登入並取得授權後，方可進入神牌核心。</li>
+          <li>實體卡組另含識別課程，適合想系統學習與實作演練者。</li>
+        </ul>
+        <div class="portal-actions">
+          <button type="button" class="portal-btn primary" id="introToRegisterBtn">
+            申請帳號
+          </button>
+          <button type="button" class="portal-btn" id="introToLoginBtn">
+            已有帳號？登入
+          </button>
+          <button type="button" class="portal-btn ghost" id="introBackBtn">
+            返回首頁
+          </button>
+        </div>
+      </section>
+
+      <section id="portalRegister" class="portal-card" hidden>
+        <h2>申請帳號</h2>
+        <p class="portal-note">註冊後需等候審核；通過後即可申請神牌授權。</p>
+        <form id="portalRegisterForm" class="portal-form">
+          <label>
+            姓名
+            <input type="text" name="name" required autocomplete="name" />
+          </label>
+          <div id="portalPhoneMount"></div>
+          <div id="portalBirthMount"></div>
+          <label>
+            Email
+            <input type="email" name="email" required autocomplete="email" />
+          </label>
+          <label>
+            密碼
+            <input
+              type="password"
+              name="password"
+              required
+              minlength="8"
+              autocomplete="new-password"
+            />
+          </label>
+          <label>
+            確認密碼
+            <input
+              type="password"
+              name="confirmPassword"
+              required
+              minlength="8"
+              autocomplete="new-password"
+            />
+          </label>
+          <div class="portal-error" id="portalRegisterError" hidden></div>
+          <div class="portal-success" id="portalRegisterSuccess" hidden></div>
+          <button type="submit" class="portal-btn primary">送出申請</button>
+          <button type="button" class="portal-btn ghost" id="registerBackBtn">
+            返回首頁
+          </button>
+          <button type="button" class="portal-btn" id="registerToLoginBtn">
+            已有帳號？登入
+          </button>
+        </form>
+      </section>
 
       <section id="portalLogin" class="portal-card" hidden>
         <h2>系統登入</h2>
@@ -49,6 +131,12 @@
           </label>
           <div class="portal-error" id="portalLoginError" hidden></div>
           <button type="submit" class="portal-btn primary">登入</button>
+          <button type="button" class="portal-btn ghost" id="loginBackBtn">
+            返回首頁
+          </button>
+          <button type="button" class="portal-btn" id="loginToRegisterBtn">
+            還沒有帳號？申請帳號
+          </button>
         </form>
       </section>
 
@@ -76,6 +164,9 @@
       </section>
     </main>
 
+    <script src="./vendor/iztro.min.js"></script>
+    <script src="./vendor/phone-intl.js"></script>
+    <script src="./vendor/register-birth.js"></script>
     <script src="./vendor/auth-common.js"></script>
     <script src="./portal.js"></script>
   </body>

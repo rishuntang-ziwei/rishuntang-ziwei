@@ -2,9 +2,14 @@
   const auth = window.ZiweiAuth
 
   const bootEl = document.getElementById('portalBoot')
+  const homeEl = document.getElementById('portalHome')
+  const introEl = document.getElementById('portalIntro')
+  const registerEl = document.getElementById('portalRegister')
   const loginEl = document.getElementById('portalLogin')
   const statusEl = document.getElementById('portalStatus')
   const loginError = document.getElementById('portalLoginError')
+  const registerError = document.getElementById('portalRegisterError')
+  const registerSuccess = document.getElementById('portalRegisterSuccess')
   const statusError = document.getElementById('portalStatusError')
   const userNameEl = document.getElementById('portalUserName')
   const statusTextEl = document.getElementById('portalStatusText')
@@ -12,13 +17,30 @@
   const requestAccessBtn = document.getElementById('requestAccessBtn')
   const refreshStatusBtn = document.getElementById('refreshStatusBtn')
   const logoutBtn = document.getElementById('logoutBtn')
+  const taglineEl = document.getElementById('portalTagline')
 
   let currentUser = null
+  let registerFieldsReady = false
+
+  const TAGLINES = {
+    home: '四輪抽選 · 會員授權進入',
+    intro: '認識先知斗數神牌',
+    register: '申請會員帳號',
+    login: '會員登入後即可申請或進入神牌',
+    status: '授權狀態',
+    boot: '正在連線會員系統…',
+  }
 
   function showOnly(view) {
     if (bootEl) bootEl.hidden = view !== 'boot'
+    if (homeEl) homeEl.hidden = view !== 'home'
+    if (introEl) introEl.hidden = view !== 'intro'
+    if (registerEl) registerEl.hidden = view !== 'register'
     if (loginEl) loginEl.hidden = view !== 'login'
     if (statusEl) statusEl.hidden = view !== 'status'
+    if (taglineEl && TAGLINES[view]) {
+      taglineEl.textContent = TAGLINES[view]
+    }
   }
 
   function setError(el, message) {
@@ -32,8 +54,65 @@
     el.textContent = message
   }
 
+  function setSuccess(el, message) {
+    if (!el) return
+    if (!message) {
+      el.hidden = true
+      el.textContent = ''
+      return
+    }
+    el.hidden = false
+    el.textContent = message
+  }
+
   function canEnterCore(user) {
     return Boolean(user && (user.role === 'admin' || user.starDrawEnabled))
+  }
+
+  function ensureRegisterFields() {
+    if (registerFieldsReady) return
+    const phoneMount = document.getElementById('portalPhoneMount')
+    const birthMount = document.getElementById('portalBirthMount')
+    const form = document.getElementById('portalRegisterForm')
+
+    if (phoneMount && window.ZiweiPhoneIntl) {
+      phoneMount.innerHTML = window.ZiweiPhoneIntl.renderPhoneFieldHtml({
+        label: '電話',
+        localName: 'phoneLocal',
+        countryName: 'phoneCountry',
+      })
+    }
+
+    if (birthMount && window.ZiweiRegisterBirth) {
+      birthMount.innerHTML = window.ZiweiRegisterBirth.renderBirthFieldsHtml()
+      if (form) window.ZiweiRegisterBirth.bindBirthFields(form)
+    }
+
+    registerFieldsReady = true
+  }
+
+  function showHome() {
+    currentUser = null
+    setError(loginError, '')
+    setError(registerError, '')
+    setSuccess(registerSuccess, '')
+    showOnly('home')
+  }
+
+  function showIntro() {
+    showOnly('intro')
+  }
+
+  function showRegister() {
+    ensureRegisterFields()
+    setError(registerError, '')
+    setSuccess(registerSuccess, '')
+    showOnly('register')
+  }
+
+  function showLogin() {
+    setError(loginError, '')
+    showOnly('login')
   }
 
   function renderStatus(user, message) {
@@ -77,7 +156,7 @@
   async function showLoggedIn(user) {
     if (!user || user.status === 'rejected') {
       auth.setToken(null)
-      showOnly('login')
+      showHome()
       return
     }
     renderStatus(user)
@@ -93,7 +172,7 @@
       const message = err instanceof Error ? err.message : '重新檢查失敗'
       if (message.includes('登入') || message.includes('401')) {
         auth.setToken(null)
-        showOnly('login')
+        showHome()
         return
       }
       setError(statusError, message)
@@ -126,6 +205,73 @@
   }
 
   function bindEvents() {
+    const goIntroBtn = document.getElementById('goIntroBtn')
+    const goRegisterBtn = document.getElementById('goRegisterBtn')
+    const goLoginBtn = document.getElementById('goLoginBtn')
+    const introToRegisterBtn = document.getElementById('introToRegisterBtn')
+    const introToLoginBtn = document.getElementById('introToLoginBtn')
+    const introBackBtn = document.getElementById('introBackBtn')
+    const registerBackBtn = document.getElementById('registerBackBtn')
+    const registerToLoginBtn = document.getElementById('registerToLoginBtn')
+    const loginBackBtn = document.getElementById('loginBackBtn')
+    const loginToRegisterBtn = document.getElementById('loginToRegisterBtn')
+
+    if (goIntroBtn) goIntroBtn.addEventListener('click', showIntro)
+    if (goRegisterBtn) goRegisterBtn.addEventListener('click', showRegister)
+    if (goLoginBtn) goLoginBtn.addEventListener('click', showLogin)
+    if (introToRegisterBtn) introToRegisterBtn.addEventListener('click', showRegister)
+    if (introToLoginBtn) introToLoginBtn.addEventListener('click', showLogin)
+    if (introBackBtn) introBackBtn.addEventListener('click', showHome)
+    if (registerBackBtn) registerBackBtn.addEventListener('click', showHome)
+    if (registerToLoginBtn) registerToLoginBtn.addEventListener('click', showLogin)
+    if (loginBackBtn) loginBackBtn.addEventListener('click', showHome)
+    if (loginToRegisterBtn) loginToRegisterBtn.addEventListener('click', showRegister)
+
+    const registerForm = document.getElementById('portalRegisterForm')
+    if (registerForm) {
+      registerForm.addEventListener('submit', async function (e) {
+        e.preventDefault()
+        setError(registerError, '')
+        setSuccess(registerSuccess, '')
+        const submitBtn = registerForm.querySelector('button[type=submit]')
+        if (submitBtn) submitBtn.disabled = true
+        try {
+          if (!window.ZiweiRegisterBirth) {
+            throw new Error('出生資料表單尚未載入，請重新整理頁面')
+          }
+          const birth = window.ZiweiRegisterBirth.buildRegistrationBirth(
+            registerForm,
+            registerForm.name.value,
+          )
+          const data = await auth.api('/api/auth/register', {
+            method: 'POST',
+            body: JSON.stringify({
+              name: registerForm.name.value.trim(),
+              phone: window.ZiweiPhoneIntl
+                ? window.ZiweiPhoneIntl.readPhoneFromForm(registerForm)
+                : registerForm.phoneLocal.value.trim(),
+              email: registerForm.email.value.trim(),
+              password: registerForm.password.value,
+              confirmPassword: registerForm.confirmPassword.value,
+              birth: birth,
+            }),
+          })
+          setSuccess(
+            registerSuccess,
+            data.message || '申請已送出，請等候審核通過後再登入。',
+          )
+          registerForm.reset()
+          if (window.ZiweiRegisterBirth) {
+            window.ZiweiRegisterBirth.bindBirthFields(registerForm)
+          }
+        } catch (err) {
+          setError(registerError, err instanceof Error ? err.message : '申請失敗')
+        } finally {
+          if (submitBtn) submitBtn.disabled = false
+        }
+      })
+    }
+
     const form = document.getElementById('portalLoginForm')
     if (form) {
       form.addEventListener('submit', async function (e) {
@@ -161,8 +307,7 @@
       logoutBtn.addEventListener('click', function () {
         auth.setToken(null)
         currentUser = null
-        showOnly('login')
-        setError(loginError, '')
+        showHome()
       })
     }
   }
@@ -173,7 +318,7 @@
 
     const token = auth.getToken()
     if (!token) {
-      showOnly('login')
+      showHome()
       return
     }
 
@@ -182,7 +327,7 @@
       await showLoggedIn(user)
     } catch (_err) {
       auth.setToken(null)
-      showOnly('login')
+      showHome()
     }
   }
 
