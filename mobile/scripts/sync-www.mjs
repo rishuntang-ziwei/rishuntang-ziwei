@@ -40,9 +40,15 @@ copyFile(join(mobileRoot, 'portal/portal.js'), join(wwwRoot, 'portal.js'))
 console.log('sync-www: copying star-draw')
 copyDir(join(repoRoot, 'star-draw'), join(wwwRoot, 'star-draw'))
 
-console.log('sync-www: copying vendor auth + site-config')
+console.log('sync-www: copying vendor auth + site-config + wuxing-panel')
 ensureDir(join(wwwRoot, 'vendor'))
-for (const name of ['auth-common.js', 'auth-star-draw.js', 'site-config.js']) {
+for (const name of [
+  'auth-common.js',
+  'auth-star-draw.js',
+  'site-config.js',
+  // star-draw/js/wuxing.js imports this; missing it leaves the table empty
+  'wuxing-panel.mjs',
+]) {
   copyFile(join(repoRoot, 'vendor', name), join(wwwRoot, 'vendor', name))
 }
 
