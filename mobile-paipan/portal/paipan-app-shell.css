@@ -1,0 +1,7 @@
+/* Hide excluded chart surfaces in the Capacitor paipan shell. */
+#starDrawBtn,
+#chartWhiteboardBtn,
+#natalReadingOpenBtn,
+a.user-bar-link[href*="bracelet-card"] {
+  display: none !important;
+}

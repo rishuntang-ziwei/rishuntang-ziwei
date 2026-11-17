@@ -1,0 +1,6 @@
+{
+  "appId": "com.rishuntang.paipan",
+  "appName": "日舜堂紫微排盤",
+  "webDir": "www",
+  "server": { "androidScheme": "https" }
+}
