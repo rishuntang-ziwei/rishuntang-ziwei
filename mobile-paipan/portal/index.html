@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#4a3228" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="紫微排盤" />
+    <title>日舜堂紫微排盤</title>
+    <link rel="stylesheet" href="./css/theme.css" />
+    <link rel="stylesheet" href="./portal.css" />
+    <script src="./vendor/site-config.js"></script>
+  </head>
+  <body class="portal-body">
+    <main class="portal-shell">
+      <header class="portal-brand">
+        <img
+          class="portal-logo"
+          src="./assets/rishuntang-logo.png"
+          alt="日舜堂"
+          width="72"
+          height="72"
+        />
+        <p class="portal-eyebrow">國際日舜堂</p>
+        <h1>紫微排盤</h1>
+        <p class="portal-tagline" id="portalTagline">核心排盤 · 會員登入進入</p>
+      </header>
+
+      <section id="portalHome" class="portal-card" hidden>
+        <h2>歡迎使用</h2>
+        <p class="portal-note">請選擇下一步</p>
+        <div class="portal-actions">
+          <button type="button" class="portal-btn secondary" id="goIntroBtn">
+            排盤介紹
+          </button>
+          <button type="button" class="portal-btn primary" id="goRegisterBtn">
+            申請帳號
+          </button>
+          <button type="button" class="portal-btn" id="goLoginBtn">
+            已有帳號？登入
+          </button>
+        </div>
+      </section>
+
+      <section id="portalIntro" class="portal-card" hidden>
+        <h2>排盤介紹</h2>
+        <ul class="portal-intro-list">
+          <li>以紫微斗數核心排盤呈現命盤宮位與星曜配置，協助紀錄與查閱。</li>
+          <li>公開下載之 App 需會員登入；審核通過後即可進入排盤核心。</li>
+          <li>本 App 僅含核心排盤，不含神牌抽選、電子白板與付費相關介面。</li>
+        </ul>
+        <div class="portal-actions">
+          <button type="button" class="portal-btn primary" id="introToRegisterBtn">
+            申請帳號
+          </button>
+          <button type="button" class="portal-btn" id="introToLoginBtn">
+            已有帳號？登入
+          </button>
+          <button type="button" class="portal-btn ghost" id="introBackBtn">
+            返回首頁
+          </button>
+        </div>
+      </section>
+
+      <section id="portalRegister" class="portal-card" hidden>
+        <h2>申請帳號</h2>
+        <p class="portal-note">註冊後需等候審核；通過後即可登入使用排盤。</p>
+        <form id="portalRegisterForm" class="portal-form">
+          <label>
+            姓名
+            <input type="text" name="name" required autocomplete="name" />
+          </label>
+          <div id="portalPhoneMount"></div>
+          <div id="portalBirthMount"></div>
+          <label>
+            Email
+            <input type="email" name="email" required autocomplete="email" />
+          </label>
+          <label>
+            密碼
+            <input
+              type="password"
+              name="password"
+              required
+              minlength="8"
+              autocomplete="new-password"
+            />
+          </label>
+          <label>
+            確認密碼
+            <input
+              type="password"
+              name="confirmPassword"
+              required
+              minlength="8"
+              autocomplete="new-password"
+            />
+          </label>
+          <div class="portal-error" id="portalRegisterError" hidden></div>
+          <div class="portal-success" id="portalRegisterSuccess" hidden></div>
+          <button type="submit" class="portal-btn primary">送出申請</button>
+          <button type="button" class="portal-btn ghost" id="registerBackBtn">
+            返回首頁
+          </button>
+          <button type="button" class="portal-btn" id="registerToLoginBtn">
+            已有帳號？登入
+          </button>
+        </form>
+      </section>
+
+      <section id="portalLogin" class="portal-card" hidden>
+        <h2>系統登入</h2>
+        <p class="portal-note">請使用與網站相同的會員 Email／密碼</p>
+        <form id="portalLoginForm" class="portal-form">
+          <label>
+            Email
+            <input type="email" name="email" required autocomplete="username" />
+          </label>
+          <label>
+            密碼
+            <input
+              type="password"
+              name="password"
+              required
+              minlength="8"
+              autocomplete="current-password"
+            />
+          </label>
+          <div class="portal-error" id="portalLoginError" hidden></div>
+          <button type="submit" class="portal-btn primary">登入</button>
+          <button type="button" class="portal-btn ghost" id="loginBackBtn">
+            返回首頁
+          </button>
+          <button type="button" class="portal-btn" id="loginToRegisterBtn">
+            還沒有帳號？申請帳號
+          </button>
+        </form>
+      </section>
+
+      <section id="portalReady" class="portal-card" hidden>
+        <h2>可以進入排盤</h2>
+        <p class="portal-user" id="portalUserName"></p>
+        <p class="portal-status-line" id="portalStatusText">檢查中…</p>
+        <div class="portal-error" id="portalStatusError" hidden></div>
+        <div class="portal-actions">
+          <button type="button" class="portal-btn primary" id="enterChartBtn" hidden>
+            進入排盤
+          </button>
+          <button type="button" class="portal-btn secondary" id="refreshStatusBtn">
+            重新檢查
+          </button>
+          <button type="button" class="portal-btn ghost" id="logoutBtn">登出</button>
+        </div>
+      </section>
+
+      <section id="portalBoot" class="portal-card">
+        <p class="portal-note">正在連線會員系統…</p>
+      </section>
+    </main>
+
+    <script src="./vendor/auth-common.js"></script>
+    <script src="./vendor/phone-intl.js"></script>
+    <script src="./vendor/iztro.min.js"></script>
+    <script src="./vendor/register-birth.js"></script>
+    <script src="./portal.js"></script>
+  </body>
+</html>
