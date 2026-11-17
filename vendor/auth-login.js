@@ -41,6 +41,7 @@
         '<button type="submit">登入</button>' +
         '<button type="button" class="auth-link-btn" id="goForgot">忘記密碼？</button>' +
         '<button type="button" class="auth-link-btn" id="goRegister">還沒有帳號？申請註冊</button>' +
+        '<a class="auth-link-btn auth-free-paipan-link" href="./p/">免登入 · 免費簡易排盤</a>' +
       '</form>'
     )
   }
@@ -105,6 +106,7 @@
         '<div class="auth-success" id="registerSuccess" hidden></div>' +
         '<button type="submit">送出申請</button>' +
         '<button type="button" class="auth-link-btn" id="goLogin">已有帳號？返回登入</button>' +
+        '<a class="auth-link-btn auth-free-paipan-link" href="./p/">先試用 · 免登入免費排盤</a>' +
       '</form>'
     )
   }

@@ -8,9 +8,17 @@
 
 https://rishuntang-ziwei.github.io/rishuntang-ziwei/p/
 
-舊網址 `/free-paipan/` 會導向 `/p/`。
+舊網址 `/free-paipan/` 會導向 `/p/`（`noindex,follow`，canonical 指向 `/p/`）。
 
 Pages 部署以 repo 根目錄為 site root；本頁以相對路徑引用 `../css/`、`../icons/`、`../bracelet-card/assets/`，排盤結果則開啟根目錄的 `chart.html` guest 模式。
+
+## Google Search Console
+
+1. 在 [Google Search Console](https://search.google.com/search-console) 新增資源：`https://rishuntang-ziwei.github.io/rishuntang-ziwei/`
+2. 完成網域／網址前置驗證後，於「Sitemaps」提交：
+   `https://rishuntang-ziwei.github.io/rishuntang-ziwei/sitemap.xml`
+3. 使用「網址檢查」抽查 `/p/`，確認可檢索且 canonical 正確。
+4. 可再以「檢查即時網址」確認 `robots.txt` 允許爬取。
 
 ## 本機預覽
 
