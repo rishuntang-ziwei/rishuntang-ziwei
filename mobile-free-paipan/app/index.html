@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#8b2500" />
+    <title>日舜堂簡易本命排盤</title>
+    <link rel="icon" href="./icons/icon-192.png" />
+    <link rel="stylesheet" href="./css/theme.css" />
+    <link rel="stylesheet" href="./app.css" />
+    <script src="./vendor/lunar.min.js"></script>
+    <script src="./vendor/iztro.min.js"></script>
+    <script src="./vendor/rishuntang-brightness.js"></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="hero free-rise">
+        <img
+          class="hero-logo"
+          src="./assets/rishuntang-logo.png"
+          alt="日舜堂"
+          width="72"
+          height="72"
+        />
+        <p class="hero-brand">日舜堂</p>
+        <h1 class="hero-title">簡易本命排盤</h1>
+        <p class="hero-sub">免登入 · 僅本命盤 · 命／財／事／夫／疾初步解讀</p>
+      </header>
+
+      <section id="formView" class="panel free-rise free-rise-delay-1">
+        <form id="paipanForm" class="paipan-form" autocomplete="off">
+          <div class="field">
+            <label for="name">姓名（選填）</label>
+            <input id="name" name="name" type="text" maxlength="40" placeholder="命主" />
+          </div>
+          <div class="field">
+            <label for="gender">性別</label>
+            <select id="gender" name="gender" required>
+              <option value="男">男</option>
+              <option value="女">女</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="solarDate">國曆生日</label>
+            <input id="solarDate" name="solarDate" type="date" required />
+          </div>
+          <div class="field">
+            <label for="timeIndex">出生時辰</label>
+            <select id="timeIndex" name="timeIndex" required>
+              <option value="0">早子時 (00:00–01:00)</option>
+              <option value="1">丑時 (01:00–03:00)</option>
+              <option value="2">寅時 (03:00–05:00)</option>
+              <option value="3">卯時 (05:00–07:00)</option>
+              <option value="4">辰時 (07:00–09:00)</option>
+              <option value="5">巳時 (09:00–11:00)</option>
+              <option value="6">午時 (11:00–13:00)</option>
+              <option value="7">未時 (13:00–15:00)</option>
+              <option value="8">申時 (15:00–17:00)</option>
+              <option value="9">酉時 (17:00–19:00)</option>
+              <option value="10">戌時 (19:00–21:00)</option>
+              <option value="11">亥時 (21:00–23:00)</option>
+              <option value="12">晚子時 (23:00–00:00)</option>
+            </select>
+          </div>
+          <button type="submit" class="btn-primary">開始排盤</button>
+        </form>
+        <p id="formError" class="form-error" hidden></p>
+      </section>
+
+      <section id="resultView" class="result-view" hidden>
+        <div class="result-toolbar free-rise">
+          <button type="button" id="backBtn" class="btn-ghost">重新排盤</button>
+          <p id="resultMeta" class="result-meta"></p>
+        </div>
+        <div id="chartGrid" class="chart-grid free-rise free-rise-delay-1" aria-label="本命盤"></div>
+        <div id="readingPanel" class="mobile-reading is-active free-rise free-rise-delay-2" aria-live="polite"></div>
+      </section>
+
+      <footer class="app-footer">
+        <p>日舜堂簡易排盤 · 僅供參考 · 可離線使用</p>
+      </footer>
+    </div>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
