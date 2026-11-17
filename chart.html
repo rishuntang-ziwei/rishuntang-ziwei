@@ -3305,6 +3305,7 @@
           </label>
           <div class="chart-db-group-actions">
             <button type="button" id="savedChartNewGroupBtn" class="chart-db-create-folder">建立資料夾</button>
+            <button type="button" id="savedChartDeleteGroupBtn">刪除資料夾</button>
             <button type="button" id="savedChartMoveToGroupBtn">移入資料夾</button>
             <button type="button" id="savedChartRemoveFromGroupBtn">移出資料夾</button>
             <button type="button" id="savedChartShareGroupBtn">分享資料夾</button>
@@ -4224,6 +4225,7 @@
       const hint = document.getElementById('savedChartShareHint')
       const moveBtn = document.getElementById('savedChartMoveToGroupBtn')
       const removeBtn = document.getElementById('savedChartRemoveFromGroupBtn')
+      const deleteGroupBtn = document.getElementById('savedChartDeleteGroupBtn')
       const group = getActiveChartGroupMeta()
       const incoming = Boolean(group && group.incomingShareId)
       const needsSync = Boolean(group && group.shareNeedsSync)
@@ -4236,6 +4238,8 @@
       if (shareBtn) shareBtn.hidden = incoming
       if (moveBtn) moveBtn.disabled = incoming
       if (removeBtn) removeBtn.disabled = incoming
+      // 老師分享進來的資料夾不可刪；未選資料夾時仍可按，稍後再挑選自己的資料夾
+      if (deleteGroupBtn) deleteGroupBtn.disabled = incoming
 
       if (hint) {
         hint.classList.remove('chart-db-share-hint--alert')
@@ -4412,6 +4416,60 @@
         await loadSavedCharts(savedChartSearchQuery)
       } catch (err) {
         alert(err.message || '移出資料夾失敗')
+      }
+    }
+
+    function listOwnChartGroups() {
+      return chartGroupsCache.filter(function (g) {
+        return !g.isSharedIncoming && !g.incomingShareId
+      })
+    }
+
+    async function pickOwnGroupByPrompt(title) {
+      const ownGroups = listOwnChartGroups()
+      if (!ownGroups.length) {
+        alert('目前沒有可操作的自有資料夾')
+        return null
+      }
+      const lines = ownGroups.map(function (g, i) {
+        return (i + 1) + '. ' + g.name + '（' + g.chartCount + ' 筆）'
+      }).join('\n')
+      const raw = prompt(title + '\n\n' + lines + '\n\n請輸入序號：')
+      if (raw == null || !String(raw).trim()) return null
+      const idx = Number(String(raw).trim()) - 1
+      if (!Number.isFinite(idx) || idx < 0 || idx >= ownGroups.length) {
+        alert('無效的序號')
+        return null
+      }
+      return ownGroups[idx]
+    }
+
+    async function deleteChartGroupFromUi() {
+      try {
+        await loadChartGroups()
+        let group = getActiveChartGroupMeta()
+        if (group && (group.isSharedIncoming || group.incomingShareId)) {
+          alert('老師分享的資料夾無法刪除')
+          return
+        }
+        if (!group) {
+          group = await pickOwnGroupByPrompt('要刪除哪個資料夾？')
+          if (!group) return
+        }
+        const count = Number(group.chartCount) || 0
+        const ok = confirm(
+          '確定刪除資料夾「' + group.name + '」？\n' +
+            (count ? '資料夾內 ' + count + ' 筆命盤不會被刪除，會回到未分類。' : '此資料夾目前沒有命盤。'),
+        )
+        if (!ok) return
+        await window.ZiweiAuth.api('/api/charts/groups/' + group.id, { method: 'DELETE' })
+        savedChartGroupFilterId = ''
+        const sel = document.getElementById('savedChartGroupFilter')
+        if (sel) sel.value = ''
+        await loadChartGroups()
+        await loadSavedCharts(savedChartSearchQuery)
+      } catch (err) {
+        alert(err.message || '刪除資料夾失敗')
       }
     }
 
@@ -5607,6 +5665,10 @@
 
     document.getElementById('savedChartNewGroupBtn')?.addEventListener('click', function () {
       createChartGroupFromUi()
+    })
+
+    document.getElementById('savedChartDeleteGroupBtn')?.addEventListener('click', function () {
+      deleteChartGroupFromUi()
     })
 
     document.getElementById('savedChartMoveToGroupBtn')?.addEventListener('click', function () {
