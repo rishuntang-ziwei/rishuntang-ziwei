@@ -6,9 +6,11 @@
 
 | 層級 | 說明 |
 |------|------|
-| `app/` | 單頁 UI（表單 + 命盤格 + 解讀面板） |
-| `scripts/sync-www.mjs` | 複製 app + vendor／主題／圖示到 `www/` |
+| [`../free-paipan/`](../free-paipan/) | **網頁版 UI 單一來源**（GitHub Pages 亦直接服務此目錄） |
+| `scripts/sync-www.mjs` | 自 `free-paipan/` 改寫相對路徑後，連同 vendor／主題／圖示複製到 `www/` |
 | Capacitor 7 | `appId`：`com.rishuntang.freepaipan`，`webDir`：`www` |
+
+UI 請改 [`free-paipan/`](../free-paipan/)；勿在 `www/` 或已移除的 `app/` 副本直接改碼。
 
 ## 本機指令
 
@@ -22,3 +24,7 @@ cd android && ./gradlew assembleDebug
 ```
 
 產生的 `www/`、`android/` 已列入 `.gitignore`，請勿提交。
+
+## 公開網頁版
+
+https://rishuntang-ziwei.github.io/rishuntang-ziwei/free-paipan/

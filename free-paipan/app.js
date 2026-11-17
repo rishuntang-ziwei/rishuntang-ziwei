@@ -1,4 +1,4 @@
-import { buildNatalReading, renderReadingPanel } from './vendor/natal-reading.mjs'
+import { buildNatalReading, renderReadingPanel } from '../vendor/natal-reading.mjs'
 
 const GRID = [
   ['巳', '午', '未', '申'],
