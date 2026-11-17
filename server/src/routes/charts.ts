@@ -104,7 +104,7 @@ router.delete('/groups/:groupId', async (req, res) => {
     return
   }
   if (!(await deleteChartGroup(groupId, req.authUser!.id))) {
-    res.status(404).json({ error: '找不到資料夾' })
+    res.status(404).json({ error: '找不到資料夾，或此資料夾為他人分享無法刪除' })
     return
   }
   res.json({ message: '資料夾已刪除' })
