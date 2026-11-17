@@ -11,9 +11,6 @@
     <link rel="icon" href="../icons/icon-192.png" />
     <link rel="stylesheet" href="../css/theme.css" />
     <link rel="stylesheet" href="./app.css" />
-    <script src="../vendor/lunar.min.js"></script>
-    <script src="../vendor/iztro.min.js"></script>
-    <script src="../vendor/rishuntang-brightness.js"></script>
   </head>
   <body>
     <div class="app-shell">
@@ -27,7 +24,7 @@
         />
         <p class="hero-brand">日舜堂</p>
         <h1 class="hero-title">簡易本命排盤</h1>
-        <p class="hero-sub">免登入 · 僅本命盤 · 命／財／事／夫／疾初步解讀 · 網頁版</p>
+        <p class="hero-sub">免登入 · 僅本命盤 · 提交後開啟官方命盤視圖</p>
       </header>
 
       <section id="formView" class="panel free-rise free-rise-delay-1">
@@ -70,17 +67,8 @@
         <p id="formError" class="form-error" hidden></p>
       </section>
 
-      <section id="resultView" class="result-view" hidden>
-        <div class="result-toolbar free-rise">
-          <button type="button" id="backBtn" class="btn-ghost">重新排盤</button>
-          <p id="resultMeta" class="result-meta"></p>
-        </div>
-        <div id="chartGrid" class="chart-grid free-rise free-rise-delay-1" aria-label="本命盤"></div>
-        <div id="readingPanel" class="mobile-reading is-active free-rise free-rise-delay-2" aria-live="polite"></div>
-      </section>
-
       <footer class="app-footer">
-        <p>日舜堂簡易排盤 · 僅供參考 · 可離線使用</p>
+        <p>日舜堂簡易排盤 · 使用官方命盤視圖 · 僅供參考</p>
       </footer>
     </div>
     <script type="module" src="./app.js"></script>

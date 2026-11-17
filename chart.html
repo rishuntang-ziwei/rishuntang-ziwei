@@ -204,9 +204,20 @@
       box-shadow: var(--shadow-soft);
     }
 
+    body.guest-mode .mobile-reading.is-active {
+      display: block !important;
+      max-width: 720px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
     @media (min-width: 901px) {
       .mobile-reading.is-active {
         display: none !important;
+      }
+
+      body.guest-mode .mobile-reading.is-active {
+        display: block !important;
       }
 
       .natal-reading-open-btn.is-visible {
@@ -3370,9 +3381,11 @@
     import * as WuxingPanel from './vendor/wuxing-panel.mjs'
     import * as AiFormatter from './vendor/ai-formatter.mjs'
     import * as AiInterpreter from './vendor/ai-interpreter.mjs'
+    import * as NatalReading from './vendor/natal-reading.mjs'
     window.WuxingPanel = WuxingPanel
     window.AiFormatter = AiFormatter
     window.AiInterpreter = AiInterpreter
+    window.NatalReading = NatalReading
   </script>
   <script>
     function isPremiumMember() {
@@ -3698,8 +3711,17 @@
     function hideAiInterpretUi() {
       const panel = document.getElementById('mobileReadingPanel')
       if (panel) {
-        panel.classList.remove('is-active')
-        panel.innerHTML = ''
+        const payload = window.__guestPayload || {}
+        const keepGuestNatalReading =
+          isGuestMode() &&
+          initialChartType === 'natal' &&
+          (payload.source === 'free-paipan' ||
+            Boolean(payload.showNatalReading) ||
+            new URLSearchParams(window.location.search).get('from') === 'free-paipan')
+        if (!keepGuestNatalReading) {
+          panel.classList.remove('is-active')
+          panel.innerHTML = ''
+        }
       }
       document.getElementById('natalReadingOpenBtn')?.classList.remove('is-visible')
       closeAiInterpretModal()
@@ -5069,17 +5091,64 @@
       run({ skipQuotaCheck: skipQuotaCheck })
     }
 
+    function customizeGuestBarForFreePaipan() {
+      const guestBar = document.getElementById('guestBar')
+      if (!guestBar) return
+      guestBar.innerHTML =
+        '<span class="guest-bar-text">簡易本命排盤</span>' +
+        '<a class="guest-bar-link" href="./free-paipan/">重新排盤</a>' +
+        '<a class="guest-bar-link" href="./index.html">會員登入</a>'
+    }
+
     function applyGuestPayload(payload) {
+      window.__guestPayload = payload
       window.__guestTopic = payload.topic || 'overall'
+      if (payload && payload.source === 'free-paipan') {
+        customizeGuestBarForFreePaipan()
+      }
       applyInputToForm(payload)
       run({ skipQuotaCheck: true })
     }
 
     function isAllowedGuestOrigin(origin) {
       if (!origin) return false
+      if (origin === window.location.origin) return true
       if (origin === 'https://rishuntang.com' || origin === 'https://www.rishuntang.com') return true
       if (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) return true
+      if (origin.endsWith('.github.io')) return true
       return false
+    }
+
+    function showGuestNatalReading(name, astrolabe) {
+      if (!isGuestMode()) return
+      if (initialChartType !== 'natal') return
+      const payload = window.__guestPayload || {}
+      const fromFreePaipan = new URLSearchParams(window.location.search).get('from') === 'free-paipan'
+      const allowReading =
+        payload.source === 'free-paipan' ||
+        Boolean(payload.showNatalReading) ||
+        fromFreePaipan
+      if (!allowReading) return
+
+      const panel = document.getElementById('mobileReadingPanel')
+      const NatalReading = window.NatalReading
+      if (!panel || !NatalReading || typeof NatalReading.buildNatalReading !== 'function') return
+
+      let activeTab = 'life'
+      const reading = NatalReading.buildNatalReading(astrolabe, name)
+
+      function renderReading() {
+        panel.innerHTML = NatalReading.renderReadingPanel(reading, activeTab, name)
+        panel.classList.add('is-active')
+        panel.querySelectorAll('.mobile-reading-tab').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            activeTab = btn.dataset.tab || 'life'
+            renderReading()
+          })
+        })
+      }
+
+      renderReading()
     }
 
     window.addEventListener('message', function (e) {
@@ -5117,7 +5186,7 @@
 
       if (!window.__guestPayloadReceived) {
         document.getElementById('chartView').innerHTML =
-          '<div class="error-box">找不到試排資料，請從官網「免費試排」重新填寫並允許開啟新視窗。</div>'
+          '<div class="error-box">找不到試排資料，請從「簡易本命排盤」或官網「免費試排」重新填寫並允許開啟新視窗。</div>'
       }
     }
 
@@ -5589,6 +5658,8 @@
       })
 
       syncAiInterpretButton(name, a)
+      // After AI UI sync (which may clear #mobileReadingPanel), restore guest natal reading.
+      showGuestNatalReading(name, a)
     }
 
     async function run(options) {
