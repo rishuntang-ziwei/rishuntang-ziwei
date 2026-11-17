@@ -29,50 +29,74 @@ function copyFile(src, dest) {
   cpSync(src, dest)
 }
 
-function rewriteIndexHtml(raw) {
+function rewriteFreePaipanIndex(raw) {
   return raw
-    .replaceAll('../vendor/', './vendor/')
-    .replaceAll('../css/', './css/')
-    .replaceAll('../icons/', './icons/')
-    .replaceAll('../bracelet-card/assets/rishuntang-logo.png', './assets/rishuntang-logo.png')
+    .replaceAll('../bracelet-card/assets/rishuntang-logo.png', '../assets/rishuntang-logo.png')
     .replaceAll(' · 網頁版', '')
-}
-
-function rewriteAppJs(raw) {
-  return raw.replace(
-    "from '../vendor/natal-reading.mjs'",
-    "from './vendor/natal-reading.mjs'",
-  )
 }
 
 console.log('sync-www: cleaning www/')
 rmSync(wwwRoot, { recursive: true, force: true })
 ensureDir(wwwRoot)
 
-console.log('sync-www: copying free-paipan entry (path rewrite for Capacitor)')
+console.log('sync-www: root index redirects to free-paipan/')
+writeFileSync(
+  join(wwwRoot, 'index.html'),
+  [
+    '<!DOCTYPE html>',
+    '<html lang="zh-Hant">',
+    '<head>',
+    '  <meta charset="UTF-8" />',
+    '  <meta http-equiv="refresh" content="0;url=./free-paipan/" />',
+    '  <meta name="viewport" content="width=device-width, initial-scale=1" />',
+    '  <title>日舜堂簡易本命排盤</title>',
+    '  <script>location.replace("./free-paipan/")</script>',
+    '</head>',
+    '<body>',
+    '  <p><a href="./free-paipan/">前往簡易本命排盤</a></p>',
+    '</body>',
+    '</html>',
+    '',
+  ].join('\n'),
+  'utf8',
+)
+
+console.log('sync-www: copying free-paipan form into www/free-paipan/')
 if (!existsSync(webSrc)) {
   throw new Error('缺少來源目錄：' + webSrc)
 }
-
+const freeDest = join(wwwRoot, 'free-paipan')
+ensureDir(freeDest)
 writeFileSync(
-  join(wwwRoot, 'index.html'),
-  rewriteIndexHtml(readFileSync(join(webSrc, 'index.html'), 'utf8')),
+  join(freeDest, 'index.html'),
+  rewriteFreePaipanIndex(readFileSync(join(webSrc, 'index.html'), 'utf8')),
   'utf8',
 )
-copyFile(join(webSrc, 'app.css'), join(wwwRoot, 'app.css'))
-writeFileSync(
-  join(wwwRoot, 'app.js'),
-  rewriteAppJs(readFileSync(join(webSrc, 'app.js'), 'utf8')),
-  'utf8',
-)
+copyFile(join(webSrc, 'app.css'), join(freeDest, 'app.css'))
+copyFile(join(webSrc, 'app.js'), join(freeDest, 'app.js'))
 
-console.log('sync-www: copying vendor chart deps')
+console.log('sync-www: copying chart.html')
+const chartSrc = join(repoRoot, 'chart.html')
+if (!existsSync(chartSrc)) {
+  throw new Error('缺少來源檔案：' + chartSrc)
+}
+copyFile(chartSrc, join(wwwRoot, 'chart.html'))
+
+console.log('sync-www: copying vendor deps for guest chart')
 ensureDir(join(wwwRoot, 'vendor'))
 for (const name of [
   'lunar.min.js',
   'iztro.min.js',
   'rishuntang-brightness.js',
   'natal-reading.mjs',
+  'wuxing-panel.mjs',
+  'ai-formatter.mjs',
+  'ai-interpreter.mjs',
+  'auth-common.js',
+  'auth-app.js',
+  'payment-ui.js',
+  'chart-whiteboard.js',
+  'pwa-register.js',
 ]) {
   copyFile(join(repoRoot, 'vendor', name), join(wwwRoot, 'vendor', name))
 }
@@ -81,6 +105,17 @@ const brightnessJson = join(repoRoot, 'vendor/rishuntang-brightness.json')
 if (existsSync(brightnessJson)) {
   copyFile(brightnessJson, join(wwwRoot, 'vendor/rishuntang-brightness.json'))
 }
+
+writeFileSync(
+  join(wwwRoot, 'vendor/site-config.js'),
+  [
+    ';(function () {',
+    "  window.API_BASE = 'https://rishuntang-ziwei-api.onrender.com'",
+    '})()',
+    '',
+  ].join('\n'),
+  'utf8',
+)
 
 console.log('sync-www: copying theme + brand assets')
 ensureDir(join(wwwRoot, 'css'))
@@ -110,7 +145,7 @@ writeFileSync(
       appName: '日舜堂簡易排盤',
       appId: 'com.rishuntang.freepaipan',
       version: packageJson.version,
-      source: 'free-paipan/',
+      source: 'free-paipan/ + chart.html guest',
       syncedAt: new Date().toISOString(),
     },
     null,
