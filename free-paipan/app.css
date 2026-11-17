@@ -9,7 +9,7 @@ body {
 }
 
 .app-shell {
-  width: min(100%, 560px);
+  width: min(100%, 720px);
   margin: 0 auto;
   padding: 20px 16px 48px;
   padding-top: max(20px, env(safe-area-inset-top));
