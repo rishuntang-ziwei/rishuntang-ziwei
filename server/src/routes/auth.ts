@@ -304,8 +304,9 @@ router.get('/birth-chart', requireAuth, requireApprovedMember, async (req, res) 
 router.post('/chart-generate', requireAuth, requireApprovedMember, async (req, res) => {
   const result = await consumeDailyChartGeneration(req.authUser!.id)
   if (!result.allowed) {
+    const limit = result.quota?.limit ?? 3
     res.status(429).json({
-      error: '免費會員每日最多排盤 3 次，請明天再試或升級付費訂閱',
+      error: `免費會員每日最多排盤 ${limit} 次，請明天再試或升級付費訂閱`,
       quota: result.quota,
     })
     return

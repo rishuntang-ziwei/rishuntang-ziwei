@@ -145,6 +145,16 @@ export function disableUserStarDraw(id: number) {
   )
 }
 
+export function setUserDailyChartLimit(id: number, limit: 3 | 5) {
+  return request<{ message: string; user: UsersResponse['users'][number] }>(
+    `/api/admin/users/${id}/set-daily-chart-limit`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ limit }),
+    },
+  )
+}
+
 export function grantUserMembership(id: number, planId: string) {
   return request<{ message: string; planLabel: string; user: UsersResponse['users'][number] }>(
     `/api/admin/users/${id}/grant-membership`,

@@ -17,6 +17,8 @@ export interface UserRow {
   birth_payload: string | null
   daily_chart_gen_date: string | null
   daily_chart_gen_count: number
+  /** Free-member daily paipan cap; usually 3, admins may raise to 5 */
+  daily_chart_limit: number
   created_at: string
   approved_at: string | null
 }
@@ -38,6 +40,8 @@ export interface PublicUser {
   membershipTier: 'free' | 'paid'
   birthDateTime: string | null
   dailyChartQuota: { used: number; limit: number; remaining: number } | null
+  /** Free-member daily paipan cap (3 or 5); ignored when membershipActive */
+  dailyChartLimit: number
   createdAt: string
   approvedAt: string | null
 }

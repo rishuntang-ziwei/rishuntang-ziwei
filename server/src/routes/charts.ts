@@ -14,7 +14,7 @@ import {
   renameChartGroup,
   updateSavedChart,
 } from '../db.js'
-import { requireAuth, requireActiveMember } from '../middleware.js'
+import { requireAuth, requireActiveMember, requireApprovedMember } from '../middleware.js'
 import { isAdminUser } from '../adminRoles.js'
 import {
   ShareChartGroupError,
@@ -27,7 +27,7 @@ import type { SavedChartPayload } from '../types.js'
 const router = Router()
 
 router.use(requireAuth)
-router.use(requireActiveMember)
+router.use(requireApprovedMember)
 
 function normalizeGroupName(raw: unknown): string | null {
   if (typeof raw !== 'string') return null
@@ -48,7 +48,7 @@ router.get('/groups', async (req, res) => {
   res.json({ groups })
 })
 
-router.post('/groups', async (req, res) => {
+router.post('/groups', requireActiveMember, async (req, res) => {
   const name = normalizeGroupName(req.body?.name)
   if (!name) {
     res.status(400).json({ error: '請輸入有效的資料夾名稱（1–40 字）' })
@@ -68,7 +68,7 @@ router.post('/groups', async (req, res) => {
   }
 })
 
-router.patch('/groups/:groupId', async (req, res) => {
+router.patch('/groups/:groupId', requireActiveMember, async (req, res) => {
   const groupId = Number(req.params.groupId)
   if (!Number.isFinite(groupId)) {
     res.status(400).json({ error: '無效的資料夾 ID' })
@@ -97,7 +97,7 @@ router.patch('/groups/:groupId', async (req, res) => {
   }
 })
 
-router.delete('/groups/:groupId', async (req, res) => {
+router.delete('/groups/:groupId', requireActiveMember, async (req, res) => {
   const groupId = Number(req.params.groupId)
   if (!Number.isFinite(groupId)) {
     res.status(400).json({ error: '無效的資料夾 ID' })
@@ -110,7 +110,7 @@ router.delete('/groups/:groupId', async (req, res) => {
   res.json({ message: '資料夾已刪除' })
 })
 
-router.put('/groups/:groupId/members', async (req, res) => {
+router.put('/groups/:groupId/members', requireActiveMember, async (req, res) => {
   const groupId = Number(req.params.groupId)
   if (!Number.isFinite(groupId)) {
     res.status(400).json({ error: '無效的資料夾 ID' })
@@ -129,7 +129,7 @@ router.put('/groups/:groupId/members', async (req, res) => {
   res.json({ updated })
 })
 
-router.post('/groups/:groupId/share', async (req, res) => {
+router.post('/groups/:groupId/share', requireActiveMember, async (req, res) => {
   const groupId = Number(req.params.groupId)
   if (!Number.isFinite(groupId)) {
     res.status(400).json({ error: '無效的資料夾 ID' })
@@ -215,7 +215,7 @@ router.post('/shares/:shareId/sync', async (req, res) => {
   }
 })
 
-router.post('/groups/unassign', async (req, res) => {
+router.post('/groups/unassign', requireActiveMember, async (req, res) => {
   const chartIds = normalizeChartIds(req.body?.chartIds)
   if (!chartIds) {
     res.status(400).json({ error: '請選擇至少一筆命盤' })
@@ -233,7 +233,7 @@ router.get('/', async (req, res) => {
   res.json({ charts })
 })
 
-router.post('/', async (req, res) => {
+router.post('/', requireActiveMember, async (req, res) => {
   const payload = validateChartPayload(req.body?.payload ?? req.body)
   if (!payload) {
     res.status(400).json({ error: '命盤資料不完整或格式錯誤' })
@@ -260,7 +260,7 @@ router.get('/:id', async (req, res) => {
   res.json({ chart })
 })
 
-router.patch('/:id', async (req, res) => {
+router.patch('/:id', requireActiveMember, async (req, res) => {
   const id = Number(req.params.id)
   if (!Number.isFinite(id)) {
     res.status(400).json({ error: '無效的命盤 ID' })
@@ -307,7 +307,7 @@ router.patch('/:id', async (req, res) => {
   res.json({ chart })
 })
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requireActiveMember, async (req, res) => {
   const id = Number(req.params.id)
   if (!Number.isFinite(id)) {
     res.status(400).json({ error: '無效的命盤 ID' })
