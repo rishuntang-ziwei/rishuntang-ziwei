@@ -56,8 +56,13 @@
     if (document.querySelector('script[data-star-draw-app]')) return
     const script = document.createElement('script')
     script.type = 'module'
-    script.src = 'js/app.js'
+    script.src = new URL('js/app.js', location.href).href
     script.dataset.starDrawApp = '1'
+    script.onerror = function () {
+      const hint = document.getElementById('hint')
+      if (hint) hint.textContent = '神牌模組載入失敗，請重新安裝或聯絡管理員'
+      console.error('[star-draw] failed to load js/app.js')
+    }
     document.body.appendChild(script)
   }
 
