@@ -1,0 +1,6 @@
+{
+  "appId": "com.rishuntang.freepaipan",
+  "appName": "日舜堂簡易排盤",
+  "webDir": "www",
+  "server": { "androidScheme": "https" }
+}
