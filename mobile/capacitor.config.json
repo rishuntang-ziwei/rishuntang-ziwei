@@ -1,0 +1,8 @@
+{
+  "appId": "com.rishuntang.xianshi",
+  "appName": "先知斗數神牌",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  }
+}

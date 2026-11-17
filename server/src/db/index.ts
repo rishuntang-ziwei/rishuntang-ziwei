@@ -20,6 +20,7 @@ export const updateUserPassword = (id: number, passwordHash: string) =>
 export const countAdmins = () => driver.countAdmins()
 export const updateUserRole = (id: number, role: 'user' | 'admin') => driver.updateUserRole(id, role)
 export const updateUserStarDraw = (id: number, enabled: boolean) => driver.updateUserStarDraw(id, enabled)
+export const requestUserStarDraw = (id: number) => driver.requestUserStarDraw(id)
 export const deleteUser = (id: number) => driver.deleteUser(id)
 export const listSavedChartsByUser = (userId: number, search?: string, groupId?: number) =>
   driver.listSavedChartsByUser(userId, search, groupId)

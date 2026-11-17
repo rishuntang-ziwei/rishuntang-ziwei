@@ -1,6 +1,10 @@
 (function () {
   const auth = window.ZiweiAuth
 
+  function isCapacitorApp() {
+    return Boolean(window.Capacitor && (window.Capacitor.isNativePlatform ? window.Capacitor.isNativePlatform() : true))
+  }
+
   function appRoot() {
     return location.pathname.includes('/star-draw/') ? '../' : ''
   }
@@ -9,7 +13,16 @@
     location.href = appRoot() + 'index.html'
   }
 
-  function showDenied(message) {
+  function goBack() {
+    if (isCapacitorApp()) {
+      location.href = appRoot() + 'index.html'
+      return
+    }
+    location.href = appRoot() + 'chart.html'
+  }
+
+  function showDenied(message, options) {
+    const pending = Boolean(options && options.pending)
     const gate = document.getElementById('accessGate')
     const denied = document.getElementById('accessDenied')
     const app = document.getElementById('starDrawApp')
@@ -18,7 +31,15 @@
     if (denied) {
       denied.hidden = false
       const msg = denied.querySelector('[data-denied-message]')
-      if (msg) msg.textContent = message || '您尚未開通神牌功能，請聯絡管理員。'
+      if (msg) {
+        msg.textContent =
+          message ||
+          (pending
+            ? '已送出神牌授權申請，請等候管理員開通。'
+            : '您尚未開通神牌功能，請申請授權或聯絡管理員。')
+      }
+      const requestBtn = document.getElementById('requestAccessBtn')
+      if (requestBtn) requestBtn.hidden = pending
     }
   }
 
@@ -40,15 +61,35 @@
     document.body.appendChild(script)
   }
 
-  function apiWithTimeout(path, ms) {
+  function apiWithTimeout(path, ms, options) {
     return Promise.race([
-      auth.api(path),
+      auth.api(path, options),
       new Promise(function (_, reject) {
         setTimeout(function () {
           reject(new Error('連線逾時，伺服器可能正在喚醒，請稍後再試'))
         }, ms)
       }),
     ])
+  }
+
+  async function requestAccess() {
+    const requestBtn = document.getElementById('requestAccessBtn')
+    if (requestBtn) requestBtn.disabled = true
+    try {
+      const data = await apiWithTimeout('/api/star-draw/request-access', 20000, { method: 'POST' })
+      if (data.starDrawEnabled) {
+        showApp()
+        loadStarDrawApp()
+        return
+      }
+      showDenied(data.message || '已送出神牌授權申請，請等候管理員開通。', {
+        pending: Boolean(data.starDrawRequestPending),
+      })
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '申請失敗'
+      showDenied(message, { pending: false })
+      if (requestBtn) requestBtn.disabled = false
+    }
   }
 
   async function boot() {
@@ -71,13 +112,18 @@
         return
       }
 
-      if (user.role !== 'admin' && !user.starDrawEnabled) {
-        showDenied('您尚未開通神牌功能，請聯絡管理員。')
+      if (user.role === 'admin' || user.starDrawEnabled) {
+        showApp()
+        loadStarDrawApp()
         return
       }
 
-      showApp()
-      loadStarDrawApp()
+      showDenied(
+        user.starDrawRequestPending
+          ? '已送出神牌授權申請，請等候管理員開通。'
+          : '您尚未開通神牌功能，請申請授權或聯絡管理員。',
+        { pending: Boolean(user.starDrawRequestPending) },
+      )
     } catch (err) {
       const message = err instanceof Error ? err.message : '驗證失敗'
       if (message.includes('登入') || message.includes('401')) {
@@ -85,7 +131,7 @@
         redirectToLogin()
         return
       }
-      showDenied(message)
+      showDenied(message, { pending: false })
     }
   }
 
@@ -93,7 +139,7 @@
     const backBtn = document.getElementById('backToChartBtn')
     if (backBtn) {
       backBtn.addEventListener('click', function () {
-        location.href = appRoot() + 'chart.html'
+        goBack()
       })
     }
 
@@ -105,6 +151,13 @@
         if (denied) denied.hidden = true
         if (gate) gate.hidden = false
         boot()
+      })
+    }
+
+    const requestBtn = document.getElementById('requestAccessBtn')
+    if (requestBtn) {
+      requestBtn.addEventListener('click', function () {
+        requestAccess()
       })
     }
 

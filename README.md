@@ -2,6 +2,7 @@
 
 - 正式前端（GitHub Pages）：`chart.html`、`index.html`
 - 正式 API（Render）：`rishuntang-ziwei-api`
+- Capacitor 雙平台神牌 App：見 [mobile/README.md](./mobile/README.md)
 
 ## 部署設定文件
 
