@@ -1,0 +1,146 @@
+name: iOS Cloud Build
+
+# 使用 GitHub 託管的 macOS runner 編譯 Capacitor iOS。
+# - verify：不需 Apple 憑證，確認雲端可編過
+# - release：需 repo secrets，產出可安裝 IPA（Ad Hoc 或 App Store）
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'verify = 無簽名編譯；release = 簽名匯出 IPA'
+        type: choice
+        options:
+          - verify
+          - release
+        default: verify
+      export_method:
+        description: '僅 release：ad-hoc（直裝）或 app-store（TestFlight）'
+        type: choice
+        options:
+          - ad-hoc
+          - app-store
+        default: ad-hoc
+
+permissions:
+  contents: write
+
+jobs:
+  ios:
+    runs-on: macos-14
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: Install JS deps + sync www
+        run: |
+          npm ci
+          npm run sync-www
+          test -f www/vendor/auth-star-draw.js
+          test -f www/vendor/wuxing-panel.mjs
+
+      - name: Add / sync Capacitor iOS
+        run: |
+          rm -rf ios
+          npx cap add ios
+          npx cap sync ios
+
+      - name: Install CocoaPods
+        run: |
+          cd ios/App
+          pod install --repo-update
+
+      - name: Verify build (no signing)
+        if: ${{ inputs.mode == 'verify' }}
+        run: |
+          cd ios/App
+          xcodebuild \
+            -workspace App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build/DerivedData \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Import Apple signing
+        if: ${{ inputs.mode == 'release' }}
+        env:
+          APPLE_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_PROVISIONING_PROFILE_BASE64: ${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}
+        run: |
+          chmod +x ios-ci/import-signing.sh
+          ./ios-ci/import-signing.sh
+
+      - name: Prepare ExportOptions
+        if: ${{ inputs.mode == 'release' }}
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          : "${APPLE_TEAM_ID:?Set secret APPLE_TEAM_ID}"
+          : "${PROVISIONING_PROFILE_NAME:?PROVISIONING_PROFILE_NAME missing after import}"
+          METHOD="${{ inputs.export_method }}"
+          TEMPLATE="ios-ci/ExportOptions.${METHOD}.plist.template"
+          test -f "$TEMPLATE"
+          sed \
+            -e "s/__APPLE_TEAM_ID__/${APPLE_TEAM_ID}/g" \
+            -e "s/__PROVISIONING_PROFILE_NAME__/${PROVISIONING_PROFILE_NAME}/g" \
+            "$TEMPLATE" > ios-ci/ExportOptions.plist
+          cat ios-ci/ExportOptions.plist
+
+      - name: Archive + export IPA
+        if: ${{ inputs.mode == 'release' }}
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          cd ios/App
+          xcodebuild \
+            -workspace App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath build/App.xcarchive \
+            DEVELOPMENT_TEAM="${APPLE_TEAM_ID}" \
+            CODE_SIGN_STYLE=Manual \
+            archive
+          xcodebuild \
+            -exportArchive \
+            -archivePath build/App.xcarchive \
+            -exportPath build/ipa \
+            -exportOptionsPlist ../../ios-ci/ExportOptions.plist
+          ls -lh build/ipa
+
+      - name: Upload IPA artifact
+        if: ${{ inputs.mode == 'release' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: xianshi-ios-${{ inputs.export_method }}
+          path: mobile/ios/App/build/ipa/*.ipa
+          if-no-files-found: error
+
+      - name: Publish GitHub Release (IPA)
+        if: ${{ inputs.mode == 'release' }}
+        working-directory: .
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          IPA="$(ls mobile/ios/App/build/ipa/*.ipa | head -1)"
+          TAG="ios-${{ inputs.export_method }}-$(date -u +%Y%m%d%H%M)"
+          cp "$IPA" "xianshi-star-draw-${{ inputs.export_method }}.ipa"
+          gh release create "$TAG" \
+            "xianshi-star-draw-${{ inputs.export_method }}.ipa" \
+            --title "先知斗數神牌 iOS (${{ inputs.export_method }}) ${TAG}" \
+            --notes "Cloud-built Capacitor IPA via GitHub Actions macOS runner.
+方法：${{ inputs.export_method }}
+Bundle ID：com.rishuntang.xianshi
+請以對應的 Provisioning Profile 裝置清單安裝（Ad Hoc）或上傳 TestFlight（App Store）。"
