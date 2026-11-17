@@ -27,6 +27,11 @@ function isLocalDevOrigin(origin: string): boolean {
   return /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin)
 }
 
+/** Capacitor / Ionic WebView origins (Android uses https://localhost). */
+function isNativeShellOrigin(origin: string): boolean {
+  return /^(capacitor|ionic):\/\/localhost$/i.test(origin) || isLocalDevOrigin(origin)
+}
+
 export function buildCorsOptions(): CorsOptions {
   const allowed = new Set(defaultCorsOrigins())
 
@@ -36,17 +41,13 @@ export function buildCorsOptions(): CorsOptions {
         callback(null, true)
         return
       }
-      if (!isProductionDeploy()) {
-        if (isLocalDevOrigin(origin) || allowed.has(origin)) {
-          callback(null, true)
-          return
-        }
-      }
-      if (allowed.has(origin)) {
+      // Always allow Capacitor app shell (production API is called from https://localhost).
+      if (isNativeShellOrigin(origin) || allowed.has(origin)) {
         callback(null, true)
         return
       }
-      callback(new Error('不允許的來源'))
+      // Do not throw — throwing becomes HTTP 500 and browsers only show "Failed to fetch".
+      callback(null, false)
     },
   }
 }
@@ -71,5 +72,7 @@ export function securityHelmet() {
   return helmet({
     contentSecurityPolicy: false,
     crossOriginEmbedderPolicy: false,
+    // Allow Capacitor / GitHub Pages webviews to read API responses cross-origin.
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
   })
 }
