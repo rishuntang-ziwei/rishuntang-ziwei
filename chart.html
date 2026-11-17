@@ -3708,6 +3708,17 @@
       updateAiInterpretButtonLabel()
     }
 
+    function isFreePaipanGuestContext(payload) {
+      const p = payload || {}
+      const from = new URLSearchParams(window.location.search).get('from')
+      return (
+        p.source === 'p' ||
+        p.source === 'free-paipan' ||
+        from === 'p' ||
+        from === 'free-paipan'
+      )
+    }
+
     function hideAiInterpretUi() {
       const panel = document.getElementById('mobileReadingPanel')
       if (panel) {
@@ -3715,9 +3726,7 @@
         const keepGuestNatalReading =
           isGuestMode() &&
           initialChartType === 'natal' &&
-          (payload.source === 'free-paipan' ||
-            Boolean(payload.showNatalReading) ||
-            new URLSearchParams(window.location.search).get('from') === 'free-paipan')
+          (isFreePaipanGuestContext(payload) || Boolean(payload.showNatalReading))
         if (!keepGuestNatalReading) {
           panel.classList.remove('is-active')
           panel.innerHTML = ''
@@ -5096,14 +5105,14 @@
       if (!guestBar) return
       guestBar.innerHTML =
         '<span class="guest-bar-text">簡易本命排盤</span>' +
-        '<a class="guest-bar-link" href="./free-paipan/">重新排盤</a>' +
+        '<a class="guest-bar-link" href="./p/">重新排盤</a>' +
         '<a class="guest-bar-link" href="./index.html">會員登入</a>'
     }
 
     function applyGuestPayload(payload) {
       window.__guestPayload = payload
       window.__guestTopic = payload.topic || 'overall'
-      if (payload && payload.source === 'free-paipan') {
+      if (payload && isFreePaipanGuestContext(payload)) {
         customizeGuestBarForFreePaipan()
       }
       applyInputToForm(payload)
@@ -5123,11 +5132,8 @@
       if (!isGuestMode()) return
       if (initialChartType !== 'natal') return
       const payload = window.__guestPayload || {}
-      const fromFreePaipan = new URLSearchParams(window.location.search).get('from') === 'free-paipan'
       const allowReading =
-        payload.source === 'free-paipan' ||
-        Boolean(payload.showNatalReading) ||
-        fromFreePaipan
+        isFreePaipanGuestContext(payload) || Boolean(payload.showNatalReading)
       if (!allowReading) return
 
       const panel = document.getElementById('mobileReadingPanel')

@@ -7,7 +7,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const mobileRoot = resolve(__dirname, '..')
 const repoRoot = resolve(mobileRoot, '..')
 const wwwRoot = join(mobileRoot, 'www')
-const webSrc = join(repoRoot, 'free-paipan')
+const webSrc = join(repoRoot, 'p')
 
 function ensureDir(path) {
   mkdirSync(path, { recursive: true })
@@ -39,7 +39,7 @@ console.log('sync-www: cleaning www/')
 rmSync(wwwRoot, { recursive: true, force: true })
 ensureDir(wwwRoot)
 
-console.log('sync-www: root index redirects to free-paipan/')
+console.log('sync-www: root index redirects to p/')
 writeFileSync(
   join(wwwRoot, 'index.html'),
   [
@@ -47,13 +47,13 @@ writeFileSync(
     '<html lang="zh-Hant">',
     '<head>',
     '  <meta charset="UTF-8" />',
-    '  <meta http-equiv="refresh" content="0;url=./free-paipan/" />',
+    '  <meta http-equiv="refresh" content="0;url=./p/" />',
     '  <meta name="viewport" content="width=device-width, initial-scale=1" />',
     '  <title>日舜堂簡易本命排盤</title>',
-    '  <script>location.replace("./free-paipan/")</script>',
+    '  <script>location.replace("./p/")</script>',
     '</head>',
     '<body>',
-    '  <p><a href="./free-paipan/">前往簡易本命排盤</a></p>',
+    '  <p><a href="./p/">前往簡易本命排盤</a></p>',
     '</body>',
     '</html>',
     '',
@@ -61,11 +61,11 @@ writeFileSync(
   'utf8',
 )
 
-console.log('sync-www: copying free-paipan form into www/free-paipan/')
+console.log('sync-www: copying p form into www/p/')
 if (!existsSync(webSrc)) {
   throw new Error('缺少來源目錄：' + webSrc)
 }
-const freeDest = join(wwwRoot, 'free-paipan')
+const freeDest = join(wwwRoot, 'p')
 ensureDir(freeDest)
 writeFileSync(
   join(freeDest, 'index.html'),
@@ -145,7 +145,7 @@ writeFileSync(
       appName: '日舜堂簡易排盤',
       appId: 'com.rishuntang.freepaipan',
       version: packageJson.version,
-      source: 'free-paipan/ + chart.html guest',
+      source: 'p/ + chart.html guest',
       syncedAt: new Date().toISOString(),
     },
     null,
