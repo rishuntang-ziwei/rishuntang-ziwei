@@ -35,11 +35,11 @@ form.addEventListener('submit', (event) => {
       timeIndex,
       isLeap: false,
       initialChartType: 'natal',
-      source: 'free-paipan',
+      source: 'p',
       showNatalReading: true,
     }
     sessionStorage.setItem('guestChartPayload', JSON.stringify(payload))
-    location.href = '../chart.html?guest=1&from=free-paipan'
+    location.href = '../chart.html?guest=1&from=p'
   } catch (err) {
     showError(err?.message || String(err))
   }
