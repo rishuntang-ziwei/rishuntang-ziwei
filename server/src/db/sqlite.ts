@@ -63,6 +63,11 @@ export async function initDb() {
     db.exec(`ALTER TABLE users ADD COLUMN star_draw_enabled INTEGER NOT NULL DEFAULT 0`)
   }
 
+  const userColumnsAfterStarDraw = db.prepare('PRAGMA table_info(users)').all() as { name: string }[]
+  if (!userColumnsAfterStarDraw.some((col) => col.name === 'star_draw_requested_at')) {
+    db.exec(`ALTER TABLE users ADD COLUMN star_draw_requested_at TEXT`)
+  }
+
   const chartColumns = db.prepare('PRAGMA table_info(saved_charts)').all() as { name: string }[]
   if (!chartColumns.some((col) => col.name === 'phone')) {
     db.exec(`ALTER TABLE saved_charts ADD COLUMN phone TEXT NOT NULL DEFAULT ''`)
@@ -392,10 +397,25 @@ export async function revokeAllTrustedDevicesForUser(userId: number) {
 }
 
 export async function updateUserStarDraw(id: number, enabled: boolean): Promise<PublicUser | undefined> {
-  db.prepare(`UPDATE users SET star_draw_enabled = ? WHERE id = ? AND role = 'user'`).run(
-    enabled ? 1 : 0,
-    id,
-  )
+  if (enabled) {
+    db.prepare(
+      `UPDATE users
+       SET star_draw_enabled = 1, star_draw_requested_at = NULL
+       WHERE id = ? AND role = 'user'`,
+    ).run(id)
+  } else {
+    db.prepare(`UPDATE users SET star_draw_enabled = 0 WHERE id = ? AND role = 'user'`).run(id)
+  }
+  const row = await findUserById(id)
+  return row ? toPublicUser(row) : undefined
+}
+
+export async function requestUserStarDraw(id: number): Promise<PublicUser | undefined> {
+  db.prepare(
+    `UPDATE users
+     SET star_draw_requested_at = COALESCE(star_draw_requested_at, ?)
+     WHERE id = ? AND role = 'user' AND star_draw_enabled = 0`,
+  ).run(new Date().toISOString(), id)
   const row = await findUserById(id)
   return row ? toPublicUser(row) : undefined
 }

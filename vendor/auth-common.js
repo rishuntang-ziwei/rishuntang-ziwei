@@ -93,6 +93,7 @@ window.ZiweiAuth = (function () {
     var parts = []
     parts.push(user.membershipActive ? '付費會員' : '免費會員')
     if (user.starDrawEnabled) parts.push('神牌已開通')
+    else if (user.starDrawRequestPending) parts.push('神牌申請中')
     return parts.join(' · ')
   }
 
