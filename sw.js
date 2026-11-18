@@ -1,5 +1,5 @@
 /* 國際日舜堂排盤 · 靜態資源快取（API 一律走網路） */
-const CACHE_VERSION = 'rishuntang-ziwei-v1'
+const CACHE_VERSION = 'rishuntang-ziwei-v1-share-quota'
 const PRECACHE = [
   './',
   './index.html',

@@ -100,10 +100,18 @@
     )
   }
 
-  function renderFreeUpgrade(status) {
+  function freeDailyLimitFromUser(user) {
+    if (user && user.dailyChartQuota && user.dailyChartQuota.limit) return user.dailyChartQuota.limit
+    if (user && user.dailyChartLimit) return user.dailyChartLimit
+    return 3
+  }
+
+  function renderFreeUpgrade(status, user) {
     let html =
       '<div class="membership-free">' +
-        '<p class="membership-alert">您目前是 <strong>免費會員</strong>，登入後自動顯示本命命盤，每日最多排盤 3 次。</p>' +
+        '<p class="membership-alert">您目前是 <strong>免費會員</strong>，登入後自動顯示本命命盤，每日最多排盤 ' +
+          freeDailyLimitFromUser(user) +
+          ' 次；亦可唯讀查看老師分享的命盤資料夾。</p>' +
         '<p class="membership-note">升級付費後，可解鎖大限流年命盤、列印、儲存命盤等完整功能。</p>'
 
     if (!status.paymentEnabled) {
@@ -174,7 +182,7 @@
       if (user.membershipActive) {
         panel.innerHTML = renderPaidActive(statusData)
       } else {
-        panel.innerHTML = renderFreeUpgrade(statusData)
+        panel.innerHTML = renderFreeUpgrade(statusData, user)
         bindPayButtons(panel)
       }
       panel.hidden = false

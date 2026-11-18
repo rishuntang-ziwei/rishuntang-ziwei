@@ -2,6 +2,7 @@ export type AdminAuditAction =
   | 'grant_membership'
   | 'revoke_membership'
   | 'set_membership_expiry'
+  | 'set_daily_chart_limit'
   | 'enable_course'
   | 'disable_course'
   | 'approve_user'
@@ -44,6 +45,8 @@ export function auditActionLabel(action: AdminAuditAction): string {
       return '取消付費'
     case 'set_membership_expiry':
       return '調整到期日'
+    case 'set_daily_chart_limit':
+      return '調整每日排盤次數'
     case 'enable_course':
       return '開通神牌'
     case 'disable_course':

@@ -140,6 +140,9 @@ export async function initDb() {
   if (!userColumns.some((col) => col.name === 'daily_chart_gen_count')) {
     db.exec(`ALTER TABLE users ADD COLUMN daily_chart_gen_count INTEGER NOT NULL DEFAULT 0`)
   }
+  if (!userColumns.some((col) => col.name === 'daily_chart_limit')) {
+    db.exec(`ALTER TABLE users ADD COLUMN daily_chart_limit INTEGER NOT NULL DEFAULT 3`)
+  }
   if (!userColumns.some((col) => col.name === 'is_super_admin')) {
     db.exec(`ALTER TABLE users ADD COLUMN is_super_admin INTEGER NOT NULL DEFAULT 0`)
   }
@@ -406,6 +409,15 @@ export async function updateUserStarDraw(id: number, enabled: boolean): Promise<
   } else {
     db.prepare(`UPDATE users SET star_draw_enabled = 0 WHERE id = ? AND role = 'user'`).run(id)
   }
+  const row = await findUserById(id)
+  return row ? toPublicUser(row) : undefined
+}
+
+export async function updateUserDailyChartLimit(
+  id: number,
+  limit: number,
+): Promise<PublicUser | undefined> {
+  db.prepare(`UPDATE users SET daily_chart_limit = ? WHERE id = ? AND role = 'user'`).run(limit, id)
   const row = await findUserById(id)
   return row ? toPublicUser(row) : undefined
 }

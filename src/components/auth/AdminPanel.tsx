@@ -9,6 +9,7 @@ import {
   makeUserAdmin,
   rejectUser,
   revokeUserAdmin,
+  setUserDailyChartLimit,
 } from '../../lib/api'
 import { useAuth } from '../../context/AuthContext'
 import type { AdminMemberSegment, AdminMemberSummary, AuthUser } from '../../types/auth'
@@ -41,7 +42,7 @@ function tabTitle(tab: AdminMemberSegment) {
 
 function tabNote(tab: AdminMemberSegment) {
   if (tab === 'free') {
-    return '註冊即列入免費會員資料庫，可使用本命命盤；線上訂閱或管理員手動開通後，會移至付費會員。'
+    return '註冊即列入免費會員資料庫，可使用本命命盤並唯讀同步老師分享資料夾；可用「每日5次／恢復3次」調整指定會員排盤上限。線上訂閱或管理員手動開通後，會移至付費會員。'
   }
   if (tab === 'paid') {
     return '付費訂閱中的會員，可完整使用大限流年、列印儲存與神牌等功能；線下付款可由管理員按「延長付費」加期。'
@@ -181,6 +182,32 @@ export function AdminPanel({
     )
   }
 
+  async function handleSetDailyChartLimit(id: number, name: string, limit: 3 | 5) {
+    const label = limit === 5 ? '每日排盤 5 次' : '每日排盤 3 次'
+    if (!confirm(`確定要將「${name}」設為${label}？`)) return
+    try {
+      const data = await setUserDailyChartLimit(id, limit)
+      alert(data.message || '已更新每日排盤次數')
+      await refresh()
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '更新失敗')
+    }
+  }
+
+  function dailyChartLimitButton(item: AuthUser) {
+    if (item.role !== 'user' || item.status !== 'approved' || item.membershipActive) return null
+    const boosted = Number(item.dailyChartLimit) === 5
+    return boosted ? (
+      <button type="button" onClick={() => handleSetDailyChartLimit(item.id, item.name, 3)}>
+        恢復3次
+      </button>
+    ) : (
+      <button type="button" onClick={() => handleSetDailyChartLimit(item.id, item.name, 5)}>
+        每日5次
+      </button>
+    )
+  }
+
   function renderActions(item: AuthUser) {
     if (item.role === 'admin') {
       return item.id === user?.id ? (
@@ -223,6 +250,7 @@ export function AdminPanel({
           查看命盤
         </button>
         {grantMembershipButton(item)}
+        {dailyChartLimitButton(item)}
         {starDrawButton(item)}
         <button type="button" onClick={() => handleMakeAdmin(item.id, item.name)}>
           設為管理員

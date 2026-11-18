@@ -163,6 +163,11 @@ export async function initDb() {
 
   await pool.query(`
     ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS daily_chart_limit INTEGER NOT NULL DEFAULT 3
+  `)
+
+  await pool.query(`
+    ALTER TABLE users
     ADD COLUMN IF NOT EXISTS is_super_admin BOOLEAN NOT NULL DEFAULT FALSE
   `)
 
@@ -425,6 +430,18 @@ export async function updateUserStarDraw(id: number, enabled: boolean): Promise<
      WHERE id = $2 AND role = 'user'`,
     [enabled, id],
   )
+  const row = await findUserById(id)
+  return row ? toPublicUser(row) : undefined
+}
+
+export async function updateUserDailyChartLimit(
+  id: number,
+  limit: number,
+): Promise<PublicUser | undefined> {
+  await pool.query(`UPDATE users SET daily_chart_limit = $1 WHERE id = $2 AND role = 'user'`, [
+    limit,
+    id,
+  ])
   const row = await findUserById(id)
   return row ? toPublicUser(row) : undefined
 }

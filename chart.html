@@ -3261,7 +3261,7 @@
         <label><input type="radio" name="chartType" value="natal" checked /> 本命命盤</label>
         <label class="chart-type-premium"><input type="radio" name="chartType" value="yearly" /> 流年命盤</label>
       </div>
-      <p class="membership-note chart-type-note hidden" id="chartTypeNote">免費會員每日最多排盤 3 次。升級付費可解鎖流年、大限、列印與儲存命盤；神牌功能請聯絡老師洽詢。</p>
+      <p class="membership-note chart-type-note hidden" id="chartTypeNote">免費會員每日最多排盤 3 次，可唯讀同步老師分享資料夾。升級付費可解鎖流年、大限、列印與儲存命盤；神牌功能請聯絡老師洽詢。</p>
       <p class="membership-note hidden" id="freeChartQuotaNote"></p>
       <p class="membership-note hidden" id="memberTierNote"></p>
       <div class="row hidden" id="yearlyYearRow">
@@ -3395,18 +3395,28 @@
     window.applyMemberTierUI = function () {
       const premium = isPremiumMember()
       const note = document.getElementById('chartTypeNote')
-      if (note) note.classList.toggle('hidden', premium)
-
-      const quotaNote = document.getElementById('freeChartQuotaNote')
       const quota = window.ZiweiMember && window.ZiweiMember.currentUser
         ? window.ZiweiMember.currentUser.dailyChartQuota
         : null
+      if (note) {
+        note.classList.toggle('hidden', premium)
+        if (!premium) {
+          const limit = (quota && quota.limit) ||
+            (window.ZiweiMember && window.ZiweiMember.currentUser && window.ZiweiMember.currentUser.dailyChartLimit) ||
+            3
+          note.textContent =
+            '免費會員每日最多排盤 ' + limit +
+            ' 次，可唯讀同步老師分享資料夾。升級付費可解鎖流年、大限、列印與儲存命盤；神牌功能請聯絡老師洽詢。'
+        }
+      }
+
+      const quotaNote = document.getElementById('freeChartQuotaNote')
       if (quotaNote) {
         if (!premium && quota) {
           quotaNote.classList.remove('hidden')
           quotaNote.textContent =
             '免費會員今日剩餘排盤次數：' + quota.remaining + ' / ' + quota.limit +
-            ' · 升級付費可解鎖流年、大限、列印、儲存'
+            ' · 可唯讀同步分享資料夾 · 升級付費可解鎖流年、大限、列印、儲存'
         } else {
           quotaNote.classList.add('hidden')
           quotaNote.textContent = ''
@@ -4183,7 +4193,9 @@
     }
 
     function showChartDatabase() {
-      if (window.ZiweiMember && window.ZiweiMember.requirePremium && !window.ZiweiMember.requirePremium('命盤資料庫')) {
+      if (window.ZiweiMember && window.ZiweiMember.requireApproved) {
+        if (!window.ZiweiMember.requireApproved('命盤資料庫')) return
+      } else if (window.ZiweiMember && window.ZiweiMember.requirePremium && !window.ZiweiMember.requirePremium('命盤資料庫')) {
         return
       }
       chartDatabaseVisible = true
@@ -4195,6 +4207,15 @@
         .finally(function () {
           loadSavedCharts(savedChartSearchQuery)
         })
+    }
+
+    function requireChartDbMutate(featureName) {
+      if (isPremiumMember()) return true
+      if (window.ZiweiMember && window.ZiweiMember.requirePremium) {
+        return window.ZiweiMember.requirePremium(featureName || '此操作')
+      }
+      alert((featureName || '此操作') + '需訂閱付費會員')
+      return false
     }
 
     function getActiveGroupFilterLabel() {
@@ -4257,20 +4278,38 @@
       const moveBtn = document.getElementById('savedChartMoveToGroupBtn')
       const removeBtn = document.getElementById('savedChartRemoveFromGroupBtn')
       const deleteGroupBtn = document.getElementById('savedChartDeleteGroupBtn')
+      const newGroupBtn = document.getElementById('savedChartNewGroupBtn')
       const group = getActiveChartGroupMeta()
       const incoming = Boolean(group && group.incomingShareId)
       const needsSync = Boolean(group && group.shareNeedsSync)
+      const premium = isPremiumMember()
 
       if (syncBtn) {
         syncBtn.classList.toggle('hidden', !incoming)
         syncBtn.textContent = needsSync ? '同步到最新（有新版本）' : '同步到最新'
         syncBtn.classList.toggle('chart-db-sync-pending', needsSync)
       }
-      if (shareBtn) shareBtn.hidden = incoming
-      if (moveBtn) moveBtn.disabled = incoming
-      if (removeBtn) removeBtn.disabled = incoming
-      // 老師分享進來的資料夾不可刪；未選資料夾時仍可按，稍後再挑選自己的資料夾
-      if (deleteGroupBtn) deleteGroupBtn.disabled = incoming
+      if (shareBtn) {
+        shareBtn.hidden = incoming || !premium
+        shareBtn.disabled = !premium
+      }
+      if (newGroupBtn) {
+        newGroupBtn.hidden = !premium
+        newGroupBtn.disabled = !premium
+      }
+      if (moveBtn) {
+        moveBtn.hidden = !premium
+        moveBtn.disabled = !premium || incoming
+      }
+      if (removeBtn) {
+        removeBtn.hidden = !premium
+        removeBtn.disabled = !premium || incoming
+      }
+      // 老師分享進來的資料夾不可刪；免費會員不可建立／刪除資料夾
+      if (deleteGroupBtn) {
+        deleteGroupBtn.hidden = !premium
+        deleteGroupBtn.disabled = !premium || incoming
+      }
 
       if (hint) {
         hint.classList.remove('chart-db-share-hint--alert')
@@ -4285,6 +4324,9 @@
               '此資料夾由「' + (group.shareOwnerName || '老師') +
               '」分享，命盤唯讀；已與老師最新內容同步。'
           }
+        } else if (!premium) {
+          hint.classList.remove('hidden')
+          hint.textContent = '免費會員可唯讀查看並同步老師分享的資料夾；建立、刪除、移動與分享需升級付費。'
         } else {
           hint.classList.add('hidden')
           hint.textContent = ''
@@ -4387,6 +4429,7 @@
     }
 
     async function createChartGroupFromUi() {
+      if (!requireChartDbMutate('建立資料夾')) return
       const name = prompt('請輸入資料夾名稱（1–40 字）')
       if (name == null || !name.trim()) return
       try {
@@ -4407,6 +4450,7 @@
     }
 
     async function moveSelectedChartsToGroup() {
+      if (!requireChartDbMutate('移入資料夾')) return
       syncSavedChartSelectionFromDom()
       const chartIds = getSelectedChartIds()
       if (!chartIds.length) {
@@ -4430,6 +4474,7 @@
     }
 
     async function removeSelectedChartsFromGroup() {
+      if (!requireChartDbMutate('移出資料夾')) return
       syncSavedChartSelectionFromDom()
       const chartIds = getSelectedChartIds()
       if (!chartIds.length) {
@@ -4476,6 +4521,7 @@
     }
 
     async function deleteChartGroupFromUi() {
+      if (!requireChartDbMutate('刪除資料夾')) return
       try {
         await loadChartGroups()
         let group = getActiveChartGroupMeta()
@@ -4664,6 +4710,7 @@
     }
 
     async function shareCurrentChartFolder() {
+      if (!requireChartDbMutate('分享資料夾')) return
       await loadChartGroups()
       if (!savedChartGroupFilterId) {
         alert('請先在「篩選資料夾」選擇要分享的資料夾')
@@ -4915,14 +4962,21 @@
       const list = document.getElementById('savedChartList')
       if (!list) return
       updateSavedChartSearchStatus(charts.length, query)
+      const premium = isPremiumMember()
       if (!charts.length) {
         list.innerHTML = '<div class="chart-db-empty">' +
-          (query && query.trim() ? '找不到符合的命盤' : '尚無已存命盤') +
+          (query && query.trim()
+            ? '找不到符合的命盤'
+            : premium
+              ? '尚無已存命盤'
+              : '尚無老師分享的命盤。請請老師分享資料夾後，於此處按「同步到最新」。') +
           '</div>'
         return
       }
       let html = '<table class="chart-db-table"><thead><tr>' +
-        '<th class="db-select-col"><input type="checkbox" id="savedChartSelectAll" title="全選本頁" aria-label="全選" /></th>' +
+        (premium
+          ? '<th class="db-select-col"><input type="checkbox" id="savedChartSelectAll" title="全選本頁" aria-label="全選" /></th>'
+          : '') +
         '<th>姓名</th><th>性別</th><th>出生資訊</th><th>電話</th><th>資料夾</th><th>操作</th>' +
         '</tr></thead><tbody>'
       html += charts.map(function (chart) {
@@ -4933,11 +4987,14 @@
         const name = payload.name || chart.subjectName
         const groupLabel = chart.groupName ? escapeHtml(chart.groupName) : '—'
         const checked = savedChartSelection.has(chart.id) ? ' checked' : ''
+        const readOnly = Boolean(chart.isReadOnly) || !premium
         return (
           '<tr data-chart-id="' + chart.id + '">' +
-            '<td class="db-select-col">' +
-              '<input type="checkbox" class="saved-chart-select" data-chart-id="' + chart.id + '"' + checked + ' aria-label="選取" />' +
-            '</td>' +
+            (premium
+              ? '<td class="db-select-col">' +
+                  '<input type="checkbox" class="saved-chart-select" data-chart-id="' + chart.id + '"' + checked + ' aria-label="選取" />' +
+                '</td>'
+              : '') +
             '<td class="db-name-cell">' +
               '<span class="db-field-view">' + escapeHtml(chart.subjectName) + '</span>' +
               '<input type="text" class="db-field-edit db-name-input" value="' + escapeHtml(name) + '" readonly />' +
@@ -4956,12 +5013,12 @@
             '<td><input type="tel" class="db-phone-input" value="' + escapeHtml(phone) + '" placeholder="請輸入電話" readonly /></td>' +
             '<td class="db-group-cell">' + groupLabel + '</td>' +
             '<td><div class="db-actions">' +
-              (chart.isReadOnly
+              (readOnly
                 ? '<span class="db-readonly-tag">分享唯讀</span>'
                 : '<button type="button" data-edit-chart="' + chart.id + '">修改</button>' +
                   '<button type="button" data-save-chart="' + chart.id + '" disabled>儲存</button>') +
               '<button type="button" data-load-chart="' + chart.id + '">提取</button>' +
-              (chart.isReadOnly
+              (readOnly
                 ? ''
                 : '<button type="button" class="danger" data-delete-chart="' + chart.id + '" data-name="' + escapeHtml(chart.subjectName) + '">刪除</button>') +
             '</div></td>' +
@@ -5803,9 +5860,9 @@
     window.initChartApp = initChartApp
   </script>
   <script src="./vendor/auth-common.js?v=20260717"></script>
-  <script src="./vendor/payment-ui.js?v=20260717"></script>
+  <script src="./vendor/payment-ui.js?v=20261117share"></script>
   <script src="./vendor/chart-whiteboard.js?v=20261020c"></script>
-  <script src="./vendor/auth-app.js?v=20261019"></script>
+  <script src="./vendor/auth-app.js?v=20261117share"></script>
   <script src="./vendor/pwa-register.js"></script>
   </body>
 </html>

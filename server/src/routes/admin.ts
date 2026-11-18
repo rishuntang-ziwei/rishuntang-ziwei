@@ -25,6 +25,7 @@ import {
   revokeTrustedDevice,
   revokeUserMembership,
   setUserMembershipExpiry,
+  updateUserDailyChartLimit,
   updateUserPassword,
   updateUserRole,
   updateUserStarDraw,
@@ -32,6 +33,11 @@ import {
 } from '../db.js'
 import { isMembershipActive, parseSavedChartPayload } from '../db/shared.js'
 import { isAdminUser, isSuperAdminUser } from '../adminRoles.js'
+import {
+  FREE_DAILY_CHART_LIMIT,
+  FREE_DAILY_CHART_LIMIT_BOOSTED,
+  normalizeFreeDailyChartLimit,
+} from '../chartQuota.js'
 import { requireAdmin, requireAuth, requireSuperAdmin } from '../middleware.js'
 import { maxTrustedDevicesPerAdmin, type PublicTrustedDevice } from '../trustedDevices.js'
 import { getPaymentPlan, getPlanLabel } from '../paymentPlans.js'
@@ -367,6 +373,51 @@ router.post('/users/:id/revoke-admin', requireSuperAdmin, async (req, res) => {
     return
   }
   res.json({ message: '已取消管理員權限', user })
+})
+
+router.post('/users/:id/set-daily-chart-limit', async (req, res) => {
+  const id = Number(req.params.id)
+  const limit = normalizeFreeDailyChartLimit(req.body?.limit)
+
+  if (!Number.isFinite(id)) {
+    res.status(400).json({ error: '無效的使用者 ID' })
+    return
+  }
+  if (limit !== FREE_DAILY_CHART_LIMIT && limit !== FREE_DAILY_CHART_LIMIT_BOOSTED) {
+    res.status(400).json({ error: '每日排盤次數僅可設為 3 或 5' })
+    return
+  }
+
+  const target = await findUserById(id)
+  if (!target || target.role !== 'user') {
+    res.status(404).json({ error: '找不到會員帳號' })
+    return
+  }
+  if (target.status !== 'approved') {
+    res.status(400).json({ error: '僅已開通的免費會員可調整每日排盤次數' })
+    return
+  }
+  if (isMembershipActive(target)) {
+    res.status(400).json({ error: '付費會員無每日排盤上限，無需調整' })
+    return
+  }
+
+  const previousLimit = normalizeFreeDailyChartLimit(target.daily_chart_limit)
+  const user = await updateUserDailyChartLimit(id, limit)
+  if (!user) {
+    res.status(404).json({ error: '找不到會員帳號' })
+    return
+  }
+
+  await recordAudit(req, 'set_daily_chart_limit', id, target.name, {
+    previousLimit,
+    newLimit: limit,
+  })
+
+  res.json({
+    message: limit === FREE_DAILY_CHART_LIMIT_BOOSTED ? '已設為每日排盤 5 次' : '已恢復每日排盤 3 次',
+    user,
+  })
 })
 
 router.post('/users/:id/enable-star-draw', async (req, res) => {

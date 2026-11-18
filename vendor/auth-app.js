@@ -56,7 +56,10 @@
           ? '<button type="button" data-grant-membership="' + user.id + '" data-name="' + user.name + '" data-extend="1" data-expires-at="' + escapeAdminHtml(user.membershipExpiresAt || '') + '">延長付費</button>' +
             '<button type="button" data-set-expiry="' + user.id + '" data-name="' + user.name + '" data-expires-at="' + escapeAdminHtml(user.membershipExpiresAt || '') + '">調整到期日</button>' +
             '<button type="button" class="danger" data-revoke-membership="' + user.id + '" data-name="' + user.name + '" data-expires-at="' + escapeAdminHtml(user.membershipExpiresAt || '') + '">取消付費</button>'
-          : '<button type="button" data-grant-membership="' + user.id + '" data-name="' + user.name + '">開通付費</button>',
+          : '<button type="button" data-grant-membership="' + user.id + '" data-name="' + user.name + '">開通付費</button>' +
+            (Number(user.dailyChartLimit) === 5
+              ? '<button type="button" data-set-daily-chart-limit="' + user.id + '" data-name="' + user.name + '" data-limit="3">恢復3次</button>'
+              : '<button type="button" data-set-daily-chart-limit="' + user.id + '" data-name="' + user.name + '" data-limit="5">每日5次</button>'),
         user.starDrawEnabled
           ? '<button type="button" class="danger" data-disable-star-draw="' + user.id + '" data-name="' + user.name + '">取消神牌</button>'
           : '<button type="button" data-enable-star-draw="' + user.id + '" data-name="' + user.name + '">' +
@@ -553,6 +556,27 @@
       })
     })
 
+    panel.querySelectorAll('[data-set-daily-chart-limit]').forEach(function (btn) {
+      btn.addEventListener('click', async function () {
+        const limit = Number(btn.dataset.limit)
+        const label = limit === 5 ? '每日排盤 5 次' : '每日排盤 3 次'
+        if (!confirm('確定要將「' + btn.dataset.name + '」設為' + label + '？')) return
+        try {
+          const data = await auth.api(
+            '/api/admin/users/' + btn.dataset.setDailyChartLimit + '/set-daily-chart-limit',
+            {
+              method: 'POST',
+              body: JSON.stringify({ limit: limit }),
+            },
+          )
+          alert((data && data.message) || '已更新每日排盤次數')
+          await renderAdminPanel()
+        } catch (err) {
+          alert(err.message)
+        }
+      })
+    })
+
     panel.querySelectorAll('[data-grant-membership]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         showGrantMembershipModal(
@@ -717,7 +741,7 @@
 
   function adminTabDescription(tab) {
     if (tab === 'free') {
-      return '註冊即列入免費會員資料庫，可使用本命命盤；線上訂閱或管理員手動開通後，會移至付費會員。'
+      return '註冊即列入免費會員資料庫，可使用本命命盤並唯讀同步老師分享資料夾；可用「每日5次／恢復3次」調整指定會員排盤上限。線上訂閱或管理員手動開通後，會移至付費會員。'
     }
     if (tab === 'paid') {
       return '付費訂閱中的會員，可完整使用大限流年、列印儲存等功能；線下付款可由管理員按「延長付費」加期。'
@@ -1005,8 +1029,15 @@
     return user.role === 'admin' || user.membershipActive
   }
 
+  function isApprovedMember(user) {
+    if (!user) return false
+    if (user.role === 'admin') return true
+    return user.status === 'approved'
+  }
+
   function updateMemberFeatures(user) {
     const premium = isPremiumMember(user)
+    const approved = isApprovedMember(user)
     const starDrawBtn = document.getElementById('starDrawBtn')
     const saveChartBtn = document.getElementById('saveChartBtn')
     const printChartBtn = document.getElementById('printChartBtn')
@@ -1018,9 +1049,17 @@
       isPremium: function () {
         return isPremiumMember(window.ZiweiMember.currentUser)
       },
+      isApproved: function () {
+        return isApprovedMember(window.ZiweiMember.currentUser)
+      },
       requirePremium: function (featureName) {
         if (isPremiumMember(window.ZiweiMember.currentUser)) return true
         alert((featureName || '此功能') + '需訂閱付費會員，請在左側選擇方案升級')
+        return false
+      },
+      requireApproved: function (featureName) {
+        if (isApprovedMember(window.ZiweiMember.currentUser)) return true
+        alert((featureName || '此功能') + '需先完成會員開通')
         return false
       },
     }
@@ -1029,12 +1068,22 @@
       return window.ZiweiMember.requirePremium(featureName)
     }
 
-    ;[saveChartBtn, printChartBtn, chartDbBtn, starDrawBtn].forEach(function (btn) {
+    ;[saveChartBtn, printChartBtn, starDrawBtn].forEach(function (btn) {
       if (!btn) return
       btn.disabled = false
       btn.classList.toggle('member-feature-locked', !premium)
       btn.title = premium ? '' : '付費會員專屬功能，請升級訂閱'
     })
+
+    if (chartDbBtn) {
+      chartDbBtn.disabled = false
+      chartDbBtn.classList.toggle('member-feature-locked', !approved)
+      chartDbBtn.title = approved
+        ? premium
+          ? ''
+          : '免費會員可唯讀查看老師分享的資料夾並同步'
+        : '請先完成會員開通'
+    }
 
     if (printChartBtn) {
       printChartBtn.onclick = function () {
@@ -1065,7 +1114,7 @@
 
     if (chartDbBtn) {
       chartDbBtn.onclick = function () {
-        if (!requireUpgrade('命盤資料庫')) return
+        if (!window.ZiweiMember.requireApproved('命盤資料庫')) return
         if (typeof window.showChartDatabaseAction !== 'function') {
           alert('排盤程式尚未就緒，請重新整理頁面')
           return

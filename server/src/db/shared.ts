@@ -1,5 +1,5 @@
 import { formatBirthDateTime } from '../chartFormat.js'
-import { dailyChartQuotaForUser } from '../chartQuota.js'
+import { dailyChartQuotaForUser, freeDailyChartLimitForUser } from '../chartQuota.js'
 import type {
   PublicUser,
   SavedChartDetail,
@@ -84,6 +84,7 @@ export function toPublicUser(row: UserRow): PublicUser {
     membershipTier: membershipTier(row),
     birthDateTime: birthDateTimeFromUser(row),
     dailyChartQuota: dailyChartQuotaForUser(row),
+    dailyChartLimit: freeDailyChartLimitForUser(row),
     createdAt: row.created_at,
     approvedAt: row.approved_at,
   }
@@ -116,6 +117,9 @@ export function mapUserRow(row: Record<string, unknown>): UserRow {
     birth_payload: row.birth_payload != null ? String(row.birth_payload) : null,
     daily_chart_gen_date: row.daily_chart_gen_date != null ? String(row.daily_chart_gen_date) : null,
     daily_chart_gen_count: Number(row.daily_chart_gen_count ?? 0),
+    daily_chart_limit: freeDailyChartLimitForUser({
+      daily_chart_limit: Number(row.daily_chart_limit ?? 3),
+    }),
     created_at: toIsoString(row.created_at),
     approved_at: toIsoStringOrNull(row.approved_at),
   }
