@@ -19,6 +19,8 @@ export interface UserRow {
   daily_chart_gen_count: number
   /** Free-member daily paipan cap; usually 3, admins may raise to 5 */
   daily_chart_limit: number
+  /** Free-member own saved-chart cap; usually 0, admins may raise to 10 */
+  saved_chart_limit: number
   created_at: string
   approved_at: string | null
 }
@@ -42,6 +44,10 @@ export interface PublicUser {
   dailyChartQuota: { used: number; limit: number; remaining: number } | null
   /** Free-member daily paipan cap (3 or 5); ignored when membershipActive */
   dailyChartLimit: number
+  /** Free-member own saved-chart cap (0 or 10); ignored when membershipActive */
+  savedChartLimit: number
+  /** Own charts only (shared teacher charts excluded); null when unlimited */
+  savedChartQuota: { used: number; limit: number; remaining: number } | null
   createdAt: string
   approvedAt: string | null
 }

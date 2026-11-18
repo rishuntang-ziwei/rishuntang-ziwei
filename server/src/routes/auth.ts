@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs'
 import { isAdminUser } from '../adminRoles.js'
 import {
   countActiveTrustedDevices,
+  countOwnSavedCharts,
   createUser,
   findActiveTrustedDevice,
   findUserByEmail,
@@ -118,7 +119,8 @@ router.post('/login', async (req, res) => {
     return
   }
 
-  const publicUser = toPublicUser(user)
+  const ownSavedChartCount = await countOwnSavedCharts(user.id)
+  const publicUser = toPublicUser(user, { ownSavedChartCount })
   const token = signToken(user.id, user.role)
   const response: {
     token: string
@@ -272,8 +274,14 @@ router.post('/reset-password', async (req, res) => {
   res.json({ message: '密碼已重設，請使用新密碼登入' })
 })
 
-router.get('/me', requireAuth, (req, res) => {
-  res.json({ user: req.authUser })
+router.get('/me', requireAuth, async (req, res) => {
+  const row = await findUserById(req.authUser!.id)
+  if (!row) {
+    res.status(401).json({ error: '帳號不存在' })
+    return
+  }
+  const ownSavedChartCount = await countOwnSavedCharts(row.id)
+  res.json({ user: toPublicUser(row, { ownSavedChartCount }) })
 })
 
 router.get('/birth-chart', requireAuth, requireApprovedMember, async (req, res) => {

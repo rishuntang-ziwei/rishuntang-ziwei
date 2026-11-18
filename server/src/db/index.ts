@@ -22,6 +22,9 @@ export const updateUserRole = (id: number, role: 'user' | 'admin') => driver.upd
 export const updateUserStarDraw = (id: number, enabled: boolean) => driver.updateUserStarDraw(id, enabled)
 export const updateUserDailyChartLimit = (id: number, limit: number) =>
   driver.updateUserDailyChartLimit(id, limit)
+export const updateUserSavedChartLimit = (id: number, limit: number) =>
+  driver.updateUserSavedChartLimit(id, limit)
+export const countOwnSavedCharts = (userId: number) => driver.countOwnSavedCharts(userId)
 export const requestUserStarDraw = (id: number) => driver.requestUserStarDraw(id)
 export const deleteUser = (id: number) => driver.deleteUser(id)
 export const listSavedChartsByUser = (userId: number, search?: string, groupId?: number) =>

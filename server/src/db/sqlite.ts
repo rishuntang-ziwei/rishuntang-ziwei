@@ -143,6 +143,9 @@ export async function initDb() {
   if (!userColumns.some((col) => col.name === 'daily_chart_limit')) {
     db.exec(`ALTER TABLE users ADD COLUMN daily_chart_limit INTEGER NOT NULL DEFAULT 3`)
   }
+  if (!userColumns.some((col) => col.name === 'saved_chart_limit')) {
+    db.exec(`ALTER TABLE users ADD COLUMN saved_chart_limit INTEGER NOT NULL DEFAULT 0`)
+  }
   if (!userColumns.some((col) => col.name === 'is_super_admin')) {
     db.exec(`ALTER TABLE users ADD COLUMN is_super_admin INTEGER NOT NULL DEFAULT 0`)
   }
@@ -420,6 +423,23 @@ export async function updateUserDailyChartLimit(
   db.prepare(`UPDATE users SET daily_chart_limit = ? WHERE id = ? AND role = 'user'`).run(limit, id)
   const row = await findUserById(id)
   return row ? toPublicUser(row) : undefined
+}
+
+export async function updateUserSavedChartLimit(
+  id: number,
+  limit: number,
+): Promise<PublicUser | undefined> {
+  db.prepare(`UPDATE users SET saved_chart_limit = ? WHERE id = ? AND role = 'user'`).run(limit, id)
+  const row = await findUserById(id)
+  return row ? toPublicUser(row) : undefined
+}
+
+/** Own charts only — shared teacher mirrors (share_id set) do not count */
+export async function countOwnSavedCharts(userId: number): Promise<number> {
+  const row = db
+    .prepare(`SELECT COUNT(*) AS c FROM saved_charts WHERE user_id = ? AND share_id IS NULL`)
+    .get(userId) as { c: number } | undefined
+  return Number(row?.c ?? 0)
 }
 
 export async function requestUserStarDraw(id: number): Promise<PublicUser | undefined> {

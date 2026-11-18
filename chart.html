@@ -3392,11 +3392,22 @@
       return window.ZiweiMember && window.ZiweiMember.isPremium && window.ZiweiMember.isPremium()
     }
 
+    function canSaveOwnCharts() {
+      if (window.ZiweiMember && window.ZiweiMember.canSaveCharts) {
+        return window.ZiweiMember.canSaveCharts()
+      }
+      return isPremiumMember()
+    }
+
     window.applyMemberTierUI = function () {
       const premium = isPremiumMember()
+      const canSave = canSaveOwnCharts()
       const note = document.getElementById('chartTypeNote')
       const quota = window.ZiweiMember && window.ZiweiMember.currentUser
         ? window.ZiweiMember.currentUser.dailyChartQuota
+        : null
+      const savedQuota = window.ZiweiMember && window.ZiweiMember.currentUser
+        ? window.ZiweiMember.currentUser.savedChartQuota
         : null
       if (note) {
         note.classList.toggle('hidden', premium)
@@ -3406,7 +3417,10 @@
             3
           note.textContent =
             '免費會員每日最多排盤 ' + limit +
-            ' 次，可唯讀同步老師分享資料夾。升級付費可解鎖流年、大限、列印與儲存命盤；神牌功能請聯絡老師洽詢。'
+            ' 次，可唯讀同步老師分享資料夾。' +
+            (canSave
+              ? '指定會員可儲存自己的命盤最多 10 筆（老師分享不計入）。升級付費可解鎖流年、大限與列印；神牌功能請聯絡老師洽詢。'
+              : '升級付費可解鎖流年、大限、列印與儲存命盤；神牌功能請聯絡老師洽詢。')
         }
       }
 
@@ -3414,9 +3428,14 @@
       if (quotaNote) {
         if (!premium && quota) {
           quotaNote.classList.remove('hidden')
+          const saveHint = canSave
+            ? (savedQuota
+                ? ' · 自己的命盤可存 ' + savedQuota.remaining + ' / ' + savedQuota.limit + ' 筆'
+                : ' · 可存自己的命盤最多 10 筆')
+            : ' · 升級付費可解鎖流年、大限、列印、儲存'
           quotaNote.textContent =
             '免費會員今日剩餘排盤次數：' + quota.remaining + ' / ' + quota.limit +
-            ' · 可唯讀同步分享資料夾 · 升級付費可解鎖流年、大限、列印、儲存'
+            ' · 可唯讀同步分享資料夾' + saveHint
         } else {
           quotaNote.classList.add('hidden')
           quotaNote.textContent = ''
@@ -4963,18 +4982,19 @@
       if (!list) return
       updateSavedChartSearchStatus(charts.length, query)
       const premium = isPremiumMember()
+      const canSave = canSaveOwnCharts()
       if (!charts.length) {
         list.innerHTML = '<div class="chart-db-empty">' +
           (query && query.trim()
             ? '找不到符合的命盤'
-            : premium
+            : canSave
               ? '尚無已存命盤'
               : '尚無老師分享的命盤。請請老師分享資料夾後，於此處按「同步到最新」。') +
           '</div>'
         return
       }
       let html = '<table class="chart-db-table"><thead><tr>' +
-        (premium
+        (canSave
           ? '<th class="db-select-col"><input type="checkbox" id="savedChartSelectAll" title="全選本頁" aria-label="全選" /></th>'
           : '') +
         '<th>姓名</th><th>性別</th><th>出生資訊</th><th>電話</th><th>資料夾</th><th>操作</th>' +
@@ -4987,10 +5007,10 @@
         const name = payload.name || chart.subjectName
         const groupLabel = chart.groupName ? escapeHtml(chart.groupName) : '—'
         const checked = savedChartSelection.has(chart.id) ? ' checked' : ''
-        const readOnly = Boolean(chart.isReadOnly) || !premium
+        const readOnly = Boolean(chart.isReadOnly) || !canSave
         return (
           '<tr data-chart-id="' + chart.id + '">' +
-            (premium
+            (canSave
               ? '<td class="db-select-col">' +
                   '<input type="checkbox" class="saved-chart-select" data-chart-id="' + chart.id + '"' + checked + ' aria-label="選取" />' +
                 '</td>'
@@ -5132,7 +5152,7 @@
     }
 
     async function saveCurrentChart() {
-      if (!isPremiumMember()) {
+      if (!canSaveOwnCharts()) {
         throw new Error('儲存命盤需訂閱付費會員，請在左側選擇方案升級')
       }
       const input = getInput()
@@ -5143,6 +5163,17 @@
         body: JSON.stringify({ payload }),
       })
       alert('命盤已儲存')
+      try {
+        if (window.ZiweiAuth && typeof window.ZiweiAuth.refreshSession === 'function') {
+          await window.ZiweiAuth.refreshSession()
+        } else if (window.ZiweiAuth && typeof window.ZiweiAuth.api === 'function') {
+          const me = await window.ZiweiAuth.api('/api/auth/me')
+          if (me && me.user && window.ZiweiMember) {
+            window.ZiweiMember.currentUser = me.user
+            if (typeof window.applyMemberTierUI === 'function') window.applyMemberTierUI()
+          }
+        }
+      } catch (_) { /* ignore refresh errors */ }
       if (chartDatabaseVisible) {
         await loadSavedCharts(savedChartSearchQuery)
       }

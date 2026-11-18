@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import {
   assignChartsToGroup,
+  countOwnSavedCharts,
   createChartGroup,
   createSavedChart,
   deleteChartGroup,
@@ -16,6 +17,17 @@ import {
 } from '../db.js'
 import { requireAuth, requireActiveMember, requireApprovedMember } from '../middleware.js'
 import { isAdminUser } from '../adminRoles.js'
+import {
+  DESIGNATED_FREE_SAVED_CHART_LIMIT,
+  canSaveOwnChart,
+  freeSavedChartLimitForUser,
+} from '../savedChartQuota.js'
+import type { PublicUser } from '../types.js'
+
+function canMutateOwnSavedCharts(user: PublicUser): boolean {
+  if (isAdminUser(user) || user.membershipActive) return true
+  return freeSavedChartLimitForUser({ saved_chart_limit: user.savedChartLimit }) > 0
+}
 import {
   ShareChartGroupError,
   shareChartGroupToUser,
@@ -233,14 +245,36 @@ router.get('/', async (req, res) => {
   res.json({ charts })
 })
 
-router.post('/', requireActiveMember, async (req, res) => {
+router.post('/', async (req, res) => {
+  const user = req.authUser!
+  if (!canMutateOwnSavedCharts(user)) {
+    res.status(403).json({ error: '此功能需訂閱付費會員，請升級後使用' })
+    return
+  }
+
   const payload = validateChartPayload(req.body?.payload ?? req.body)
   if (!payload) {
     res.status(400).json({ error: '命盤資料不完整或格式錯誤' })
     return
   }
 
-  const chart = await createSavedChart(req.authUser!.id, payload)
+  if (!isAdminUser(user) && !user.membershipActive) {
+    const ownCount = await countOwnSavedCharts(user.id)
+    const rowLike = {
+      role: 'user' as const,
+      membership_expires_at: null,
+      saved_chart_limit: user.savedChartLimit,
+    }
+    if (!canSaveOwnChart(rowLike, ownCount)) {
+      const limit = freeSavedChartLimitForUser({ saved_chart_limit: user.savedChartLimit })
+      res.status(403).json({
+        error: `免費會員最多儲存 ${limit || DESIGNATED_FREE_SAVED_CHART_LIMIT} 筆自己的命盤（老師分享不計入），請先刪除後再儲存`,
+      })
+      return
+    }
+  }
+
+  const chart = await createSavedChart(user.id, payload)
   res.status(201).json({ chart })
 })
 
@@ -260,7 +294,13 @@ router.get('/:id', async (req, res) => {
   res.json({ chart })
 })
 
-router.patch('/:id', requireActiveMember, async (req, res) => {
+router.patch('/:id', async (req, res) => {
+  const user = req.authUser!
+  if (!canMutateOwnSavedCharts(user)) {
+    res.status(403).json({ error: '此功能需訂閱付費會員，請升級後使用' })
+    return
+  }
+
   const id = Number(req.params.id)
   if (!Number.isFinite(id)) {
     res.status(400).json({ error: '無效的命盤 ID' })
@@ -293,9 +333,9 @@ router.patch('/:id', requireActiveMember, async (req, res) => {
     }
   }
 
-  const chart = await updateSavedChart(id, req.authUser!.id, { phone, payload })
+  const chart = await updateSavedChart(id, user.id, { phone, payload })
   if (!chart) {
-    const existing = await getSavedChartDetailForUser(id, req.authUser!.id)
+    const existing = await getSavedChartDetailForUser(id, user.id)
     if (existing?.isReadOnly) {
       res.status(403).json({ error: '此命盤來自老師分享，僅能閱讀與抽盤' })
       return
@@ -307,19 +347,25 @@ router.patch('/:id', requireActiveMember, async (req, res) => {
   res.json({ chart })
 })
 
-router.delete('/:id', requireActiveMember, async (req, res) => {
+router.delete('/:id', async (req, res) => {
+  const user = req.authUser!
+  if (!canMutateOwnSavedCharts(user)) {
+    res.status(403).json({ error: '此功能需訂閱付費會員，請升級後使用' })
+    return
+  }
+
   const id = Number(req.params.id)
   if (!Number.isFinite(id)) {
     res.status(400).json({ error: '無效的命盤 ID' })
     return
   }
 
-  const existing = await getSavedChartDetailForUser(id, req.authUser!.id)
+  const existing = await getSavedChartDetailForUser(id, user.id)
   if (existing?.isReadOnly) {
     res.status(403).json({ error: '此命盤來自老師分享，無法刪除' })
     return
   }
-  if (!(await deleteSavedChart(id, req.authUser!.id))) {
+  if (!(await deleteSavedChart(id, user.id))) {
     res.status(404).json({ error: '找不到命盤' })
     return
   }

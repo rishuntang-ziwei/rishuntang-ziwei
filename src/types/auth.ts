@@ -19,6 +19,8 @@ export interface AuthUser {
   birthDateTime: string | null
   dailyChartQuota: { used: number; limit: number; remaining: number } | null
   dailyChartLimit: number
+  savedChartLimit: number
+  savedChartQuota: { used: number; limit: number; remaining: number } | null
   createdAt: string
   approvedAt: string | null
 }

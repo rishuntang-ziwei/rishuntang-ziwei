@@ -155,6 +155,16 @@ export function setUserDailyChartLimit(id: number, limit: 3 | 5) {
   )
 }
 
+export function setUserSavedChartLimit(id: number, limit: 0 | 10) {
+  return request<{ message: string; user: UsersResponse['users'][number] }>(
+    `/api/admin/users/${id}/set-saved-chart-limit`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ limit }),
+    },
+  )
+}
+
 export function grantUserMembership(id: number, planId: string) {
   return request<{ message: string; planLabel: string; user: UsersResponse['users'][number] }>(
     `/api/admin/users/${id}/grant-membership`,

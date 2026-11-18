@@ -10,6 +10,7 @@ import {
   rejectUser,
   revokeUserAdmin,
   setUserDailyChartLimit,
+  setUserSavedChartLimit,
 } from '../../lib/api'
 import { useAuth } from '../../context/AuthContext'
 import type { AdminMemberSegment, AdminMemberSummary, AuthUser } from '../../types/auth'
@@ -42,7 +43,7 @@ function tabTitle(tab: AdminMemberSegment) {
 
 function tabNote(tab: AdminMemberSegment) {
   if (tab === 'free') {
-    return '註冊即列入免費會員資料庫，可使用本命命盤並唯讀同步老師分享資料夾；可用「每日5次／恢復3次」調整指定會員排盤上限。線上訂閱或管理員手動開通後，會移至付費會員。'
+    return '註冊即列入免費會員資料庫，可使用本命命盤並唯讀同步老師分享資料夾；可用「每日5次／恢復3次」與「可存10筆／取消可存」調整指定會員權限。線上訂閱或管理員手動開通後，會移至付費會員。'
   }
   if (tab === 'paid') {
     return '付費訂閱中的會員，可完整使用大限流年、列印儲存與神牌等功能；線下付款可由管理員按「延長付費」加期。'
@@ -208,6 +209,32 @@ export function AdminPanel({
     )
   }
 
+  async function handleSetSavedChartLimit(id: number, name: string, limit: 0 | 10) {
+    const label = limit === 10 ? '可存自己的命盤 10 筆' : '取消可存命盤'
+    if (!confirm(`確定要將「${name}」設為${label}？`)) return
+    try {
+      const data = await setUserSavedChartLimit(id, limit)
+      alert(data.message || '已更新可存命盤筆數')
+      await refresh()
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '更新失敗')
+    }
+  }
+
+  function savedChartLimitButton(item: AuthUser) {
+    if (item.role !== 'user' || item.status !== 'approved' || item.membershipActive) return null
+    const designated = Number(item.savedChartLimit) === 10
+    return designated ? (
+      <button type="button" onClick={() => handleSetSavedChartLimit(item.id, item.name, 0)}>
+        取消可存
+      </button>
+    ) : (
+      <button type="button" onClick={() => handleSetSavedChartLimit(item.id, item.name, 10)}>
+        可存10筆
+      </button>
+    )
+  }
+
   function renderActions(item: AuthUser) {
     if (item.role === 'admin') {
       return item.id === user?.id ? (
@@ -251,6 +278,7 @@ export function AdminPanel({
         </button>
         {grantMembershipButton(item)}
         {dailyChartLimitButton(item)}
+        {savedChartLimitButton(item)}
         {starDrawButton(item)}
         <button type="button" onClick={() => handleMakeAdmin(item.id, item.name)}>
           設為管理員

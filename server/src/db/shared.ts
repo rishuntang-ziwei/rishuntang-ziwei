@@ -1,5 +1,6 @@
 import { formatBirthDateTime } from '../chartFormat.js'
 import { dailyChartQuotaForUser, freeDailyChartLimitForUser } from '../chartQuota.js'
+import { freeSavedChartLimitForUser, savedChartQuotaForUser } from '../savedChartQuota.js'
 import type {
   PublicUser,
   SavedChartDetail,
@@ -65,8 +66,9 @@ export function membershipTier(row: UserRow): 'free' | 'paid' {
   return isMembershipActive(row) ? 'paid' : 'free'
 }
 
-export function toPublicUser(row: UserRow): PublicUser {
+export function toPublicUser(row: UserRow, extras?: { ownSavedChartCount?: number }): PublicUser {
   const membershipActive = isMembershipActive(row)
+  const ownCount = extras?.ownSavedChartCount
   return {
     id: row.id,
     name: row.name,
@@ -85,6 +87,9 @@ export function toPublicUser(row: UserRow): PublicUser {
     birthDateTime: birthDateTimeFromUser(row),
     dailyChartQuota: dailyChartQuotaForUser(row),
     dailyChartLimit: freeDailyChartLimitForUser(row),
+    savedChartLimit: freeSavedChartLimitForUser(row),
+    savedChartQuota:
+      ownCount == null ? savedChartQuotaForUser(row, 0) : savedChartQuotaForUser(row, ownCount),
     createdAt: row.created_at,
     approvedAt: row.approved_at,
   }
@@ -119,6 +124,9 @@ export function mapUserRow(row: Record<string, unknown>): UserRow {
     daily_chart_gen_count: Number(row.daily_chart_gen_count ?? 0),
     daily_chart_limit: freeDailyChartLimitForUser({
       daily_chart_limit: Number(row.daily_chart_limit ?? 3),
+    }),
+    saved_chart_limit: freeSavedChartLimitForUser({
+      saved_chart_limit: Number(row.saved_chart_limit ?? 0),
     }),
     created_at: toIsoString(row.created_at),
     approved_at: toIsoStringOrNull(row.approved_at),

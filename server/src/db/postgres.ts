@@ -168,6 +168,11 @@ export async function initDb() {
 
   await pool.query(`
     ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS saved_chart_limit INTEGER NOT NULL DEFAULT 0
+  `)
+
+  await pool.query(`
+    ALTER TABLE users
     ADD COLUMN IF NOT EXISTS is_super_admin BOOLEAN NOT NULL DEFAULT FALSE
   `)
 
@@ -444,6 +449,27 @@ export async function updateUserDailyChartLimit(
   ])
   const row = await findUserById(id)
   return row ? toPublicUser(row) : undefined
+}
+
+export async function updateUserSavedChartLimit(
+  id: number,
+  limit: number,
+): Promise<PublicUser | undefined> {
+  await pool.query(`UPDATE users SET saved_chart_limit = $1 WHERE id = $2 AND role = 'user'`, [
+    limit,
+    id,
+  ])
+  const row = await findUserById(id)
+  return row ? toPublicUser(row) : undefined
+}
+
+/** Own charts only — shared teacher mirrors (share_id set) do not count */
+export async function countOwnSavedCharts(userId: number): Promise<number> {
+  const result = await pool.query<{ c: string }>(
+    `SELECT COUNT(*)::text AS c FROM saved_charts WHERE user_id = $1 AND share_id IS NULL`,
+    [userId],
+  )
+  return Number(result.rows[0]?.c ?? 0)
 }
 
 export async function requestUserStarDraw(id: number): Promise<PublicUser | undefined> {

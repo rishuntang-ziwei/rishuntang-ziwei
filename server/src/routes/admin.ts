@@ -26,6 +26,7 @@ import {
   revokeUserMembership,
   setUserMembershipExpiry,
   updateUserDailyChartLimit,
+  updateUserSavedChartLimit,
   updateUserPassword,
   updateUserRole,
   updateUserStarDraw,
@@ -38,6 +39,11 @@ import {
   FREE_DAILY_CHART_LIMIT_BOOSTED,
   normalizeFreeDailyChartLimit,
 } from '../chartQuota.js'
+import {
+  DESIGNATED_FREE_SAVED_CHART_LIMIT,
+  FREE_SAVED_CHART_LIMIT,
+  normalizeFreeSavedChartLimit,
+} from '../savedChartQuota.js'
 import { requireAdmin, requireAuth, requireSuperAdmin } from '../middleware.js'
 import { maxTrustedDevicesPerAdmin, type PublicTrustedDevice } from '../trustedDevices.js'
 import { getPaymentPlan, getPlanLabel } from '../paymentPlans.js'
@@ -416,6 +422,54 @@ router.post('/users/:id/set-daily-chart-limit', async (req, res) => {
 
   res.json({
     message: limit === FREE_DAILY_CHART_LIMIT_BOOSTED ? '已設為每日排盤 5 次' : '已恢復每日排盤 3 次',
+    user,
+  })
+})
+
+router.post('/users/:id/set-saved-chart-limit', async (req, res) => {
+  const id = Number(req.params.id)
+  const limit = normalizeFreeSavedChartLimit(req.body?.limit)
+
+  if (!Number.isFinite(id)) {
+    res.status(400).json({ error: '無效的使用者 ID' })
+    return
+  }
+  if (limit !== FREE_SAVED_CHART_LIMIT && limit !== DESIGNATED_FREE_SAVED_CHART_LIMIT) {
+    res.status(400).json({ error: '可存命盤筆數僅可設為 0 或 10' })
+    return
+  }
+
+  const target = await findUserById(id)
+  if (!target || target.role !== 'user') {
+    res.status(404).json({ error: '找不到會員帳號' })
+    return
+  }
+  if (target.status !== 'approved') {
+    res.status(400).json({ error: '僅已開通的免費會員可調整可存命盤筆數' })
+    return
+  }
+  if (isMembershipActive(target)) {
+    res.status(400).json({ error: '付費會員無儲存筆數上限，無需調整' })
+    return
+  }
+
+  const previousLimit = normalizeFreeSavedChartLimit(target.saved_chart_limit)
+  const user = await updateUserSavedChartLimit(id, limit)
+  if (!user) {
+    res.status(404).json({ error: '找不到會員帳號' })
+    return
+  }
+
+  await recordAudit(req, 'set_saved_chart_limit', id, target.name, {
+    previousLimit,
+    newLimit: limit,
+  })
+
+  res.json({
+    message:
+      limit === DESIGNATED_FREE_SAVED_CHART_LIMIT
+        ? '已設為可存自己的命盤 10 筆（老師分享不計入）'
+        : '已取消可存命盤資格',
     user,
   })
 })
