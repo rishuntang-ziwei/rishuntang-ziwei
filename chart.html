@@ -456,10 +456,27 @@
     .chart-database {
       flex: 1;
       min-width: 0;
+      min-height: 0;
+      max-height: calc(100vh - 24px);
+      max-height: calc(100dvh - 24px);
       padding: 16px;
       display: flex;
       flex-direction: column;
-      min-height: 520px;
+      overflow: hidden;
+    }
+
+    /* 資料庫開啟時：中欄鎖在視窗內，只讓表格區捲動（避免被瀏覽器裁切且整頁捲軸無效） */
+    body.chart-db-open .chart-panel {
+      max-height: calc(100vh - 24px);
+      max-height: calc(100dvh - 24px);
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    body.chart-db-open .chart-database {
+      flex: 1 1 auto;
+      height: 100%;
+      max-height: 100%;
     }
 
     .chart-db-header {
@@ -629,7 +646,9 @@
     }
 
     .chart-db-table-wrap {
-      flex: 1;
+      flex: 1 1 auto;
+      min-height: 0;
+      -webkit-overflow-scrolling: touch;
       overflow: auto;
       border: 1px solid var(--border);
       background: var(--paper-muted);
@@ -656,7 +675,9 @@
       top: 0;
       font-weight: 700;
       white-space: nowrap;
-      z-index: 1;
+      z-index: 2;
+      background: var(--paper-muted, #f5f0e8);
+      box-shadow: 0 1px 0 #eee;
     }
 
     .chart-db-table tbody tr:hover {
@@ -2047,6 +2068,12 @@
       .chart-panel {
         width: 100%;
         min-width: 0;
+      }
+
+      body.chart-db-open .chart-panel,
+      .chart-database {
+        max-height: calc(100vh - 16px);
+        max-height: calc(100dvh - 16px);
       }
 
       .chart-outer {
@@ -4200,6 +4227,7 @@
 
     function showChartView() {
       chartDatabaseVisible = false
+      document.body.classList.remove('chart-db-open')
       document.getElementById('chartView')?.classList.remove('hidden')
       document.getElementById('chartDatabaseView')?.classList.add('hidden')
       if (currentAstrolabe && currentInput) {
@@ -4218,6 +4246,7 @@
         return
       }
       chartDatabaseVisible = true
+      document.body.classList.add('chart-db-open')
       document.getElementById('chartView')?.classList.add('hidden')
       document.getElementById('chartDatabaseView')?.classList.remove('hidden')
       hideAiInterpretUi()
